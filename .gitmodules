@@ -1,0 +1,3 @@
+[submodule "config/neovim-config"]
+	path = config/neovim-config
+	url = https://github.com/Tenn1518/neovim-config
