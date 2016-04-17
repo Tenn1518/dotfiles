@@ -5,4 +5,12 @@ Welcome to my repo used for keeping configuration files that are important for m
 This project is licensed under the terms of the [MIT license](https://github.com/Tenn1518/dotfiles/blob/master/LICENSE).
 
 #### How do I use these files?
-NOT DONE YET
+Install the dotfiles with:
+```
+git clone --recursive https://github.com/Tenn1518/dotfiles ~/.dotfiles
+```
+and then run:
+```
+bash ~/.dotfiles/install.sh
+```
+These will install my dotfiles to their respective locations. Note that most if not all dotfiles will simply be symlinks to their respective locations under ~/.dotfiles, so do not remove ~/.dotfiles.
