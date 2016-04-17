@@ -1,3 +1,6 @@
 [submodule "config/neovim-config"]
 	path = config/neovim-config
 	url = https://github.com/Tenn1518/neovim-config
+[submodule "antigen"]
+	path = antigen
+	url = https://github.com/zsh-users/antigen
