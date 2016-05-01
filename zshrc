@@ -1,7 +1,3 @@
-##########
-# .zshrc #
-##########
-
 HISTFILE=~/.zsh-histfile
 HISTSIZE=500
 SAVEHIST=500
@@ -37,3 +33,21 @@ fi
 
 # Set XDG_CONFIG_HOME variable
 export XDG_CONFIG_HOME="~/.config"
+
+# Antigen
+source ~/.antigen/antigen.zsh
+
+# Load oh-my-zsh core libraries
+antigen use oh-my-zsh
+
+# Load oh-my-zsh bundles
+antigen bundle git
+antigen bundle command-not-found
+
+# Syntax hightlighting bundle
+antigen bundle zsh-users/zsh-syntax-highlighting
+
+# Load oh-my-zsh theme
+antigen theme agnoster
+
+antigen apply
