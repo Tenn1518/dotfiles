@@ -25,12 +25,6 @@ PS1="%n@%m %~ $ "
 # export EDITOR=/usr/bin/emacs
 export EDITOR=/usr/bin/nvim
 
-# Alias definitions
-# Put your alias definitions into ~/.zsh_aliases
-if [ -f ~/.zsh_aliases ]; then
-    source ~/.zsh_aliases
-fi
-
 # Set XDG_CONFIG_HOME variable
 export XDG_CONFIG_HOME="~/.config"
 
@@ -51,3 +45,49 @@ antigen bundle zsh-users/zsh-syntax-highlighting
 antigen theme agnoster
 
 antigen apply
+
+# Aliases
+
+# Edit and source zsh configuration file
+alias vp="nvim ~/.zshrc"
+alias sp="source ~/.zshrc"
+# alias ep="emacs ~/.zshrc"
+
+# Edit nvim configuration file
+alias vimrc="nvim ~/.config/nvim/init.vim"
+
+# Edit and source zsh alias definition file
+# alias ea="emacs ~/.zsh_aliases"
+alias va="nvim ~/.zsh_aliases"
+
+# Shorten nvim
+alias nv="nvim"
+
+# Redirect vi and vim commands to nvim
+alias vi="nvim"
+alias vim="nvim"
+
+# Forces ls command to use colors
+alias ls="ls --color=auto"
+
+# Git mode
+alias gitm="source ~/.bash_gitrc"
+
+# ls command with flags
+alias la="ls -A"
+alias ll="ls -l"
+alias lla="ls -lA"
+alias lal="ls -Al"
+
+# Changes directory to where I put my GitHub projects
+alias cdgh="cd ~/.stuff/github && ls"
+
+# Uncomment following line to replace git with GitHub's hub command with added GitHub functionality
+# eval "$(hub alias -s)"
+
+# Check the weather at a moment's notice
+alias weather="curl wttr.in"
+
+# Shorten emacsclient command
+# alias ec="emacsclient"
+# alias tec="emacsclient -t"
