@@ -15,7 +15,7 @@ autoload -U promptinit
 promptinit
 
 screenfetch
-echo "You are now logged in as user tnazmee on Tanzeem's MacBook Pro running Fedora 23"
+echo "You are now logged in as user $USER on $(hostname -s) running Fedora 23"
 
 # Set bash prompt
 PS1="%n@%m %~ $ "
