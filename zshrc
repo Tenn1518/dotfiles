@@ -15,7 +15,7 @@ autoload -U promptinit
 promptinit
 
 screenfetch
-echo "You are now logged in as user $USER on $(hostname -s) running Fedora 23"
+echo "You are now logged in as user $USER on $(hostname -s) running Fedora 23 \n \nRun tmux to enter tmux."
 
 # Set bash prompt
 PS1="%n@%m %~ $ "
@@ -57,11 +57,10 @@ alias sp="source ~/.zshrc"
 # alias ep="emacs ~/.zshrc"
 
 # Edit nvim configuration file
-alias vimrc="nvim ~/.config/nvim/init.vim"
+alias vvc="nvim ~/.config/nvim/init.vim"
 
-# Edit and source zsh alias definition file
-# alias ea="emacs ~/.zsh_aliases"
-alias va="nvim ~/.zsh_aliases"
+# Edit tmux configuration file, source file with <C-a>r
+alias vtc="nvim ~/.tmux.conf"
 
 # Shorten nvim
 alias nv="nvim"
