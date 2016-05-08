@@ -46,6 +46,9 @@ antigen theme agnoster
 
 antigen apply
 
+# Set $DEFAULT_USER variable for agnoster theme
+DEFAULT_USER="$USER"
+
 # Aliases
 
 # Edit and source zsh configuration file
