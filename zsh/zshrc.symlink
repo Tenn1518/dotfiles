@@ -2,20 +2,14 @@ HISTFILE=~/.zsh-histfile
 HISTSIZE=500
 SAVEHIST=500
 bindkey -v
-
-# End of lines configured by zsh-newuser-install
-# The following lines were added by compinstall
 zstyle :compinstall filename '/home/tnazmee/.zshrc'
-
 autoload -Uz compinit
 compinit
-# End of lines added by compinstall
-
 autoload -U promptinit
 promptinit
 
 screenfetch
-echo "You are now logged in as user $USER on $(hostname -s) running Fedora 23"
+echo "You are now logged in as user $USER on $(hostname -s)"
 
 # Set bash prompt
 PS1="%n@%m %~ $ "
@@ -62,9 +56,6 @@ alias vvc="nvim ~/.config/nvim/init.vim"
 # Edit tmux configuration file, source file with <C-a>r
 alias vtc="nvim ~/.tmux.conf"
 
-# Tmux aliases
-alias tm="tmux"
-
 # Shorten nvim
 alias nv="nvim"
 
@@ -72,11 +63,24 @@ alias nv="nvim"
 alias vi="nvim"
 alias vim="nvim"
 
+# Tmux aliases
+alias t="tmux"
+alias tls="tmux ls"
+alias ta="tmux attach -t"
+alias tns="tmux new-session -s
+
 # Forces ls command to use colors
 alias ls="ls --color=auto"
 
-# Git mode
-alias gitm="source ~/.bash_gitrc"
+# Git aliases
+alias ga="git add"
+alias gs="git status"
+alias grm="git rm"
+alias gmv="git mv"
+alias gb="git branch"
+alias gd="git diff"
+alias gps="git push"
+alias gpl="git pull"
 
 # ls command with flags
 alias la="ls -A"
@@ -87,12 +91,12 @@ alias lal="ls -Al"
 # Changes directory to where I put my GitHub projects
 alias cdgh="cd ~/.stuff/github && ls"
 
-# Uncomment following line to replace git with GitHub's hub command with added GitHub functionality
-# eval "$(hub alias -s)"
+# alias git to hub if hub is found
+if hash hub 2>/dev/null; then
+    eval "$(hub alias -s)"
+fi
 
-# Check the weather at a moment's notice
-alias weather="curl wttr.in"
-
-# Shorten emacsclient command
-# alias ec="emacsclient"
-# alias tec="emacsclient -t"
+# find localrc file for local-only zsh configurations
+if [[ -a ~/.localrc ]]; then
+    source ~/.localrc
+fi
