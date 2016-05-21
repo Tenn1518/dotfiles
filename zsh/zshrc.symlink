@@ -1,3 +1,13 @@
+export DOTFILES=$HOME/dotfiles
+
+# Add custom scripts from dotfiles repository
+export PATH=$DOTFILES/bin:$PATH
+
+# Add custom bin directory to $PATH if it exists
+if [[ -d ~/bin ]]; then
+    export PATH=~/bin:$PATH
+fi
+
 HISTFILE=~/.zsh-histfile
 HISTSIZE=500
 SAVEHIST=500
