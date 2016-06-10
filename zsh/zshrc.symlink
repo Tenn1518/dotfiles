@@ -77,7 +77,7 @@ alias vim="nvim"
 alias t="tmux"
 alias tls="tmux ls"
 alias ta="tmux attach -t"
-alias tns="tmux new-session -s
+alias tns="tmux new-session -s"
 
 # Forces ls command to use colors
 alias ls="ls --color=auto"
