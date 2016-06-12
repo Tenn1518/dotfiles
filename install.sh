@@ -18,4 +18,7 @@ fi
 # echo "Configuring zsh as default shell"
 # chsh -s $(which zsh)
 
+echo "Installing antigen"
+ln -s ~/.dotfiles/antigen ~/.antigen
+
 echo "Done."
