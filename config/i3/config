@@ -164,3 +164,13 @@ exec --no-startup=id feh  --bg-fill '/home/$USER/Pictures/wallpaper.jpg'
 
 # Change screen resolution
 exec xrandr --output eDP1 --mode 1680x1050
+
+# Disable window titlebars for i3-gaps
+for_window [class="^.*"] border pixel 0
+
+# Set gaps between windows
+gaps inner 5
+gaps outer 5
+
+# Gaps are only used if there is more than one container on the workspace
+smart_gaps on
