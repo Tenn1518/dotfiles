@@ -21,6 +21,9 @@ promptinit
 screenfetch
 echo "You are now logged in as user $USER"
 
+# Export BROWSER variable for default browser
+export BROWSER=firefox
+
 # Set bash prompt
 PS1="%n@%m %~ $ "
 
