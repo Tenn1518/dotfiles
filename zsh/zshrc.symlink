@@ -18,7 +18,7 @@ compinit
 autoload -U promptinit
 promptinit
 
-screenfetch
+neofetch
 echo "You are now logged in as user $USER"
 
 # Export BROWSER variable for default browser
