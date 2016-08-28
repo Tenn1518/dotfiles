@@ -33,7 +33,7 @@ PS1="%n@%m %~ $ "
 export EDITOR=/usr/bin/nvim
 
 # Set XDG_CONFIG_HOME variable
-export XDG_CONFIG_HOME="~/.config"
+export XDG_CONFIG_HOME="/home/$USER/.config"
 
 # Antigen
 source ~/.antigen/antigen.zsh
