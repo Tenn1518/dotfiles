@@ -26,8 +26,8 @@ Plug 'rking/ag.vim' | Plug 'ctrlpvim/ctrlp.vim'
 " NERDTree, replacement for vim's browser
 Plug 'scrooloose/nerdtree'
 
-" vim-colors-solarized
-Plug 'altercation/vim-colors-solarized'
+" base16-dark colorscheme
+Plug 'chriskempson/base16-vim'
 
 " vim-airline and vim-airline themes
 Plug 'vim-airline/vim-airline'
@@ -52,7 +52,7 @@ set lazyredraw
 set showmatch
 set nocp
 set number
-set cursorline
+" set cursorline
 set so=2
 set backupdir=~/.config/nvim/backups
 set directory=~/.config/nvim/swaps
@@ -210,11 +210,11 @@ nnoremap <leader>gr :Gremove<cr>
 " }}}
 
 " Colorscheme {{{
-" Vim Solarized theme
-" Uncomment the following lines if you wish not to use the solarized
+" base16-oceantheme
+" Uncomment the following lines if you wish not to use the base16-ocean
 " colorscheme
-set background=dark
-colorscheme solarized
+colorscheme base16-ocean
+
 " }}}
 
 " Vim-airline {{{
@@ -222,9 +222,9 @@ colorscheme solarized
 let g:airline_powerline_fonts = 1
 
 " Set vim-airline theme
-" Comment the following line if you wish not to use the solarized
+" Comment the following line if you wish not to use the base16-ocean
 " colorscheme
-let g:airline_theme="solarized"
+let g:airline_theme="base16_ocean"
 
 " Default vim-airline theme
 " Uncomment the following line if you wish to use the default vim-airline
