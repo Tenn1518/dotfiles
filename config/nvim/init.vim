@@ -39,6 +39,9 @@ Plug 'bling/vim-bufferline'
 " Syntastic
 Plug 'scrooloose/syntastic'
 
+" Solarized Colorscheme
+Plug 'altercation/vim-colors-solarized'
+
 call plug#end()
 " }}}
 
@@ -71,6 +74,9 @@ set foldmethod=indent
 
 " Enable syntax highlighting
 syntax enable
+
+" Set background dark for solarized colorscheme
+set background=dark
 
 filetype on
 filetype indent on
@@ -210,10 +216,10 @@ nnoremap <leader>gr :Gremove<cr>
 " }}}
 
 " Colorscheme {{{
-" base16-oceantheme
+" base16-solarized theme
 " Uncomment the following lines if you wish not to use the base16-ocean
 " colorscheme
-colorscheme base16-ocean
+colorscheme solarized
 
 " }}}
 
@@ -222,9 +228,9 @@ colorscheme base16-ocean
 let g:airline_powerline_fonts = 1
 
 " Set vim-airline theme
-" Comment the following line if you wish not to use the base16-ocean
+" Comment the following line if you wish not to use the base16-solarized
 " colorscheme
-let g:airline_theme="base16_ocean"
+let g:airline_theme="solarized"
 
 " Default vim-airline theme
 " Uncomment the following line if you wish to use the default vim-airline
