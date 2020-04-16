@@ -1,5 +1,10 @@
 export DOTFILES=$HOME/dotfiles
 
+export TERM="xterm-256color"
+
+# Replace BSD coreutils with GNU coreutils
+export PATH="$(brew --prefix coreutils)/libexec/gnubin:/usr/local/bin:$PATH"
+
 # Add custom scripts from dotfiles repository
 export PATH=$DOTFILES/bin:$PATH
 
@@ -19,7 +24,6 @@ autoload -U promptinit
 promptinit
 
 neofetch
-echo "You are now logged in as user $USER"
 
 # Export BROWSER variable for default browser
 export BROWSER=firefox
@@ -30,10 +34,10 @@ PS1="%n@%m %~ $ "
 # Sets default editor for programs which check the EDITOR variable
 # export EDITOR=/usr/bin/nano
 # export EDITOR=/usr/bin/emacs
-export EDITOR=/usr/bin/nvim
+export EDITOR=/usr/local/bin/nvim
 
 # Set XDG_CONFIG_HOME variable
-export XDG_CONFIG_HOME="/home/$USER/.config"
+export XDG_CONFIG_HOME="/Users/$USER/.config"
 
 # Antigen
 source ~/.antigen/antigen.zsh
@@ -50,7 +54,6 @@ antigen bundle zsh-users/zsh-syntax-highlighting
 
 # Load powerline9k theme
 antigen theme bhilburn/powerlevel9k powerlevel9k
-
 antigen apply
 
 # powerline9k zsh prompt variable settings
@@ -83,43 +86,15 @@ alias sp="source ~/.zshrc"
 # Edit nvim configuration file
 alias vvc="nvim ~/.config/nvim/init.vim"
 
-# Edit tmux configuration file, source file with <C-a>r
-alias vtc="nvim ~/.tmux.conf"
-
 # Shorten nvim
 alias nv="nvim"
 
 # Redirect vi and vim commands to nvim
-alias vi="nvim"
-alias vim="nvim"
-
-# Tmux aliases
-alias t="tmux"
-alias tls="tmux ls"
-alias ta="tmux attach -t"
-alias tns="tmux new-session -s"
+# alias vi="nvim"
+# alias vim="nvim"
 
 # Forces ls command to use colors
 alias ls="ls --color=auto"
-
-# Git aliases
-alias ga="git add"
-alias gs="git status"
-alias grm="git rm"
-alias gmv="git mv"
-alias gb="git branch"
-alias gd="git diff"
-alias gps="git push"
-alias gpl="git pull"
-
-# ls command with flags
-alias la="ls -A"
-alias ll="ls -l"
-alias lla="ls -lA"
-alias lal="ls -Al"
-
-# Changes directory to where I put my GitHub projects
-alias cdgh="cd ~/.stuff/github && ls"
 
 # alias git to hub if hub is found
 if hash hub 2>/dev/null; then
