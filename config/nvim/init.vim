@@ -27,7 +27,7 @@ Plug 'rking/ag.vim' | Plug 'ctrlpvim/ctrlp.vim'
 Plug 'scrooloose/nerdtree'
 
 " base16-dark colorscheme
-Plug 'chriskempson/base16-vim'
+"Plug 'chriskempson/base16-vim'
 
 " vim-airline and vim-airline themes
 Plug 'vim-airline/vim-airline'
@@ -40,7 +40,8 @@ Plug 'bling/vim-bufferline'
 Plug 'scrooloose/syntastic'
 
 " Solarized Colorscheme
-Plug 'altercation/vim-colors-solarized'
+Plug 'iCyMind/NeoSolarized'
+Plug 'lifepillar/vim-solarized8'
 
 call plug#end()
 " }}}
@@ -62,6 +63,9 @@ set directory=~/.config/nvim/swaps
 
 " Set cursor as blinking in insert mode, and a square in normal mode
 let $NVIM_TUI_ENABLE_CURSOR_SHAPE=1
+
+" Set tab to 4 spaces
+set ts=4 sw=4
 
 if exists("%undodir")
 	set undodir=~/.config/nvim/undo
@@ -219,7 +223,41 @@ nnoremap <leader>gr :Gremove<cr>
 " base16-solarized theme
 " Uncomment the following lines if you wish not to use the base16-ocean
 " colorscheme
-colorscheme solarized
+set termguicolors
+" Vim-specific sequences for RGB colors, might not be needed for tmux
+let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+
+set background=dark
+colorscheme solarized8
+
+" Default value is "normal", Setting this option to "high" or "low" does use the
+" same Solarized palette but simply shifts some values up or down in order to
+" expand or compress the tonal range displayed.
+let g:neosolarized_contrast = "normal"
+
+" Special characters such as trailing whitespace, tabs, newlines, when displayed
+" using ":set list" can be set to one of three levels depending on your needs.
+" Default value is "normal". Provide "high" and "low" options.
+let g:neosolarized_visibility = "normal"
+
+" I make vertSplitBar a transparent background color. If you like the origin
+" solarized vertSplitBar style more, set this value to 0.
+let g:neosolarized_vertSplitBgTrans = 1
+
+" If you wish to enable/disable NeoSolarized from displaying bold, underlined
+" or italicized" typefaces, simply assign 1 or 0 to the appropriate variable.
+" Default values:
+let g:neosolarized_bold = 1
+let g:neosolarized_underline = 1
+let g:neosolarized_italic = 0
+
+" Used to enable/disable "bold as bright" in Neovim terminal. If colors of bold
+" text output by commands like `ls` aren't what you expect, you might want to
+" try disabling this option. Default value:
+let g:neosolarized_termBoldAsBright = 1
+"colorscheme NeoSolarized
+"set background=dark
 
 " }}}
 
@@ -235,7 +273,7 @@ let g:airline_theme="solarized"
 " Default vim-airline theme
 " Uncomment the following line if you wish to use the default vim-airline
 " theme
-" let g:airline_theme="dark"
+ let g:airline_theme="dark"
 " }}}
 
 " Vim-bufferline {{{
