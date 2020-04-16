@@ -4,6 +4,21 @@
 
 # Configuration file for tmux
 
+# List of plugins
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-sensible'
+
+# Solarized theme
+set -g @plugin 'seebi/tmux-colors-solarized'
+set -g @colors-solarized 'dark'
+
+# Terminal type configuration
+set -g default-terminal "screen-256color"
+set -ga terminal-overrides ",xterm-256color:Tc"
+
+# Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
+run '~/.tmux/plugins/tpm/tpm'
+
 # remap prefix key to 'C-a'
 unbind C-b
 set-option -g prefix C-a
@@ -36,11 +51,9 @@ unbind p
 # don't rename windows automatically
 set-option -g allow-rename off
 
-set -g default-terminal "screen-256color"
-
 # Run powerline-daemon
- run-shell "powerline-daemon -q"
+run-shell "powerline-daemon -q"
 
 # Use tmux-powerline for status bar
-source /usr/lib/python3.5/site-packages/powerline/bindings/tmux/powerline.conf
+source /usr/local/lib/python3.7/site-packages/powerline/bindings/tmux/powerline.conf
 
