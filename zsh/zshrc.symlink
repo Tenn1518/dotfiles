@@ -23,7 +23,7 @@ compinit
 autoload -U promptinit
 promptinit
 
-neofetch
+#neofetch
 
 # Export BROWSER variable for default browser
 export BROWSER=firefox
