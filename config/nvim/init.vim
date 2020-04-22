@@ -63,16 +63,6 @@ let $NVIM_TUI_ENABLE_CURSOR_SHAPE=1
 " Set tab to 4 spaces
 set ts=4 sw=4
 
-" PEP 8 Python standards
-au BufNewFile,BufRead *.py
-    \ set tabstop=4
-    \ set softtabstop=4
-    \ set shiftwidth=4
-    \ set textwidth=79
-    \ set expandtab
-    \ set autoindent
-    \ set fileformat=unix
-
 if exists("%undodir")
 	set undodir=~/.config/nvim/undo
 endif
