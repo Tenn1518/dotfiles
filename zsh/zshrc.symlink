@@ -52,46 +52,21 @@ antigen bundle command-not-found
 # Syntax hightlighting bundle
 antigen bundle zsh-users/zsh-syntax-highlighting
 
-# Load powerline9k theme
-antigen theme bhilburn/powerlevel9k powerlevel9k
 antigen apply
-
-# powerline9k zsh prompt variable settings
-POWERLEVEL9K_SHORTEN_DIR_LENGTH=2
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs)
-POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status battery time)
-
-POWERLEVEL9K_DIR_HOME_FOREGROUND="black"
-POWERLEVEL9K_DIR_HOME_SUBFOLDER_FOREGROUND="white"
-POWERLEVEL9K_DIR_DEFAULT_FOREGROUND="white"
-POWERLEVEL9K_BATTERY_LOW_FOREGROUND="red"
-POWERLEVEL9K_BATTERY_LOW_BACKGROUND="black"
-POWERLEVEL9K_BATTERY_CHARGING_FOREGROUND="blue"
-POWERLEVEL9K_BATTERY_CHARGING_BACKGROUND="black"
-POWERLEVEL9K_BATTERY_CHARGED_FOREGROUND="green"
-POWERLEVEL9K_BATTERY_CHARGED_BACKGROUND="black"
-POWERLEVEL_BATTERY_DISCONNECTED_FOREGROUND="green"
-POWERLEVEL_BATTERY_DISCONNECTED_BACKGROUND="black"
-
-# Set $DEFAULT_USER variable for agnoster theme
-DEFAULT_USER="$USER"
 
 # Aliases
 
 # Edit and source zsh configuration file
-alias vp="nvim ~/.zshrc"
-alias sp="source ~/.zshrc"
+alias zshrc="nvim ~/.zshrc"
+alias srczshrc="source ~/.zshrc"
 # alias ep="emacs ~/.zshrc"
 
 # Edit nvim configuration file
-alias vvc="nvim ~/.config/nvim/init.vim"
+alias nvrc="nvim ~/.config/nvim/init.vim"
 
-# Shorten nvim
+# Shorten common commands
 alias nv="nvim"
-
-# Redirect vi and vim commands to nvim
-# alias vi="nvim"
-# alias vim="nvim"
+alias py="python3"
 
 # Forces ls command to use colors
 alias ls="ls --color=auto"
@@ -105,3 +80,6 @@ fi
 if [[ -a ~/.localrc ]]; then
     source ~/.localrc
 fi
+
+powerline-daemon -q
+. /usr/local/lib/python3.7/site-packages/powerline/bindings/zsh/powerline.zsh
