@@ -10,15 +10,16 @@
 
 ;; ----- ido-work-directory-list -----
 (
+ "/Users/tnazmee/.emacs.d/"
  "/Users/tnazmee/Code/org/"
  "/Users/tnazmee/Code/"
  "/Users/tnazmee/"
  "/Users/tnazmee/.emacs.d/better-defaults/"
- "/Users/tnazmee/.emacs.d/"
 )
 
 ;; ----- ido-work-file-list -----
 (
+ "init.el"
  "tasks.org"
  "org"
  ".emacs"
@@ -27,15 +28,15 @@
 
 ;; ----- ido-dir-file-cache -----
 (
+ ("/Users/tnazmee/.emacs.d/" (24240 16059 610355 719000) "backups/" "games/" "elpa/" "init.el" "url/" "auto-save-list/" "places" "eshell/" ".DS_Store" "ido.last" "better-defaults/" "../" "./")
+
+ ("/Users/tnazmee/" (24240 16673 836890 575000) ".gtk-bookmarks" ".viminfo" ".bash_history" ".gitconfig" ".cache/" ".python_history" "Downloads/" ".Xauthority" ".antigen/" ".mono/" ".hushlogin" "Documents/" ".zcompdump" ".Trash/" ".emacs~" "Applications/" "Movies/" ".ssh/" ".stuff/" ".idlerc/" "Public/" "Google Drive/" ".bash_sessions/" ".cups/" ".emacs.d/" ".zsh-histfile" ".dotfiles/" ".oracle_jre_usage/" ".lesshst" "Library/" "Desktop/" ".gnome2/" "Code/" ".zprofile" "ROMs/" "Pictures/" ".local/" ".adobe/" ".zshrc" ".CFUserTextEncoding" "VirtualBox VMs/" ".tmux.conf" ".DS_Store" ".vim/" "Music/" ".config/" "../" "./")
+
  ("/Users/tnazmee/Code/org/" (24239 37456 568469 560000) "../" "./")
 
  ("/Users/tnazmee/.oracle_jre_usage/" (23880 47473 950828 980000) "bc2400a4d1dbdbed.timestamp" "b774b2def85c25e9.timestamp" "../" "./")
 
- ("/Users/tnazmee/.emacs.d/" (24239 33839 12347 599000) "backups/" "games/" "elpa/" "url/" "auto-save-list/" "places" "eshell/" ".DS_Store" "ido.last" "better-defaults/" "../" "./")
-
  ("/Users/tnazmee/.emacs.d/better-defaults/" (24239 32509 97551 828000) ".git/" "README.md" "better-defaults.el" "../" "./")
-
- ("/Users/tnazmee/" (24239 33836 888645 216000) ".gtk-bookmarks" ".viminfo" ".bash_history" ".gitconfig" ".cache/" ".python_history" "Downloads/" ".Xauthority" ".antigen/" ".mono/" ".hushlogin" "Documents/" ".zcompdump" ".Trash/" ".emacs~" "Applications/" ".emacs" "Movies/" ".ssh/" ".stuff/" ".idlerc/" "Public/" "Google Drive/" ".bash_sessions/" ".cups/" ".emacs.d/" ".zsh-histfile" ".dotfiles/" ".oracle_jre_usage/" ".lesshst" "Library/" "Desktop/" ".gnome2/" "Code/" ".zprofile" "ROMs/" "Pictures/" ".local/" ".adobe/" ".zshrc" ".CFUserTextEncoding" "VirtualBox VMs/" ".tmux.conf" ".DS_Store" ".vim/" "Music/" ".config/" "../" "./")
 
  ("/Applications/" (24239 7714 604517 179000) "Discord.app/" "checkra1n.app/" "Neovim.app/" "Emacs.app/" "PPSSPPSDL.app/" "Firefox.app/" "Alfred 4.app/" "Skype.app/" "iTerm.app/" "WineBottler.app/" "The Unarchiver.app/" "VirtualBox.app/" "Pages.app/" "krita.app/" "DeSmuME.app/" "Backup and Sync.app/" "TI Connect CE.app/" "Malwarebytes.app/" "Keynote.app/" "GhosteryLite.app/" "Wineskin Winery.app/" ".new-GeForceNOW-vYFbjH/" "Utilities/" "Amphetamine.app/" "Safari.app/" "uBlock.app/" "Transmission.app/" "GeForceNOW.app/" "HP Easy Scan.app/" "Dolphin.app/" "Remote Mouse.app/" "Scroll Reverser.app/" "iMovie.app/" "Spotify.app/" "coconutBattery.app/" "Day One.app/" ".localized" "Numbers.app/" "Karabiner-EventViewer.app/" "Karabiner-Elements.app/" "Google Chrome.app/" "GIMP-2.10.app/" "HP Easy Start.app/" "HP/" "Steam.app/" "Wine.app/" "Minecraft.app/" ".DS_Store" "Hewlett-Packard/" "ProtonVPN.app/" "Citra/" "RetroArch.app/" "Adblock Plus.app/" "../" "./")
 
