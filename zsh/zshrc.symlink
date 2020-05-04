@@ -66,7 +66,9 @@ alias nvrc="nvim ~/.config/nvim/init.vim"
 
 # Shorten common commands
 alias nv="nvim"
-alias py="python3"
+alias py="/usr/local/bin/python3"
+alias vimrc="nvim ~/.config/nvim/init.vim"
+alias zshrc="nvim ~/.zshrc"
 
 # Forces ls command to use colors
 alias ls="ls --color=auto"
@@ -81,5 +83,6 @@ if [[ -a ~/.localrc ]]; then
     source ~/.localrc
 fi
 
+# Start powerline for zsh shell
 powerline-daemon -q
 . /usr/local/lib/python3.7/site-packages/powerline/bindings/zsh/powerline.zsh
