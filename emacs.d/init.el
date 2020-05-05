@@ -1,9 +1,13 @@
-; .emacs file
+;; .emacs file
+;; 3-3-2020
+
+;; Straight.el package manager
+;;============================
 
 ;; emacs package manager
 (require 'package)
 
-; straight.el package manager
+;; initialize straight.el
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -17,23 +21,44 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-;; Install packages
-; Solarized theme for emacs
+;; install packages
+;; solarized theme for emacs
 (straight-use-package
  '(el-patch :type git :host github :repo "bbatsov/solarized-emacs"))
-; Git integration
+;; git integration
 (straight-use-package 'magit)
 
-; Turn on line numbers
-(global-linum-mode 1)
+;; Settings
+;;=========
 
-;; Load solarized
+;; enable better defaults
+(add-to-list 'load-path "~/.emacs.d/better-defaults")
+(require 'better-defaults)
+
+;; turn on line numbers
+(global-linum-mode 1)
+;; highlight current lines
+(global-hl-line-mode)
+
+;; load solarized
 (setq custom-safe-themes t)
 (load-theme 'solarized-dark t)
 
-; Enable better defaults
-(add-to-list 'load-path "~/.emacs.d/better-defaults")
-(require 'better-defaults)
+;; Keybindings
+;;============
+
+;; Use command as meta and preserve default macOS alt-key behavior
+(setq mac-command-modifier 'meta)
+(setq mac-option-modifier nil)
+
+;; open init.el in a new window on the right
+(global-set-key (kbd "C-c i") (lambda ()
+                                  "Opens init.el in a new window on the right"
+                                  (interactive)
+                                  (split-window-right)
+                                  (other-window 1)
+                                  (find-file `"~/.emacs.d/init.el")))
+
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
