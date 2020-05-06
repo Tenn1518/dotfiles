@@ -27,6 +27,20 @@
  '(el-patch :type git :host github :repo "bbatsov/solarized-emacs"))
 ;; git integration
 (straight-use-package 'magit)
+;; undo-tree
+(straight-use-package 'undo-tree)
+(global-undo-tree-mode)
+;; vim-like bindings for emacs
+(straight-use-package 'evil)
+(require 'evil)
+(evil-mode 1)
+;; dash
+(straight-use-package 'dash)
+;; monitor
+(straight-use-package 'monitor)
+;; evil-integration for org-mode
+(straight-use-package 'org-evil)
+(require 'org-evil)
 
 ;; Settings
 ;;=========
@@ -37,6 +51,7 @@
 
 ;; turn on line numbers
 (global-linum-mode 1)
+
 ;; highlight current lines
 (global-hl-line-mode)
 
@@ -59,6 +74,25 @@
                                   (other-window 1)
                                   (find-file `"~/.emacs.d/init.el")))
 
+;; evil bindings
+;; Type 'jk' to exit insert mode
+(defun my-jk ()
+  "When j is typed in evil insert mode, wait 0.5 seconds for a k before switching to normal mode"
+  (interactive)
+  (let* ((initial-key ?j)
+         (final-key ?k)
+         (timeout 0.5)
+         (event (read-event nil nil timeout)))
+    (if event
+        ;; timeout met
+        (if (and (characterp event) (= event final-key))
+            (evil-normal-state)
+          (insert initial-key)
+          (push event unread-command-events))
+      ;; timeout exceeded
+      (insert initial-key))))
+
+(evil-define-key 'insert 'global "j" 'my-jk)
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
