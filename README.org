@@ -1,0 +1,40 @@
+#+TITLE: dotfiles
+#+AUTHOR: Tenn1518
+
+* DOTFILES
+
+Configuration files for programs such as emacs, zsh, etc.
+
+This project is licensed under the terms of the [[https://github.com/Tenn1518/dotfiles/blob/master/LICENSE][MIT license].| Somebody      | ONce | Told | Me |
+
+** Prerequisites
+
+Install emacs, zsh, tmux, a terminal emulator with true color support, and a solarized theme for your terminal.
+
+** How to Install
+
+Install the dotfiles with:
+#+BEGIN_SRC
+$ git clone --recursive https://github.com/Tenn1518/dotfiles ~/.dotfiles
+$ cd ~/.dotfiles
+$ ./install.sh
+#+END_SRC
+
+This will symlink folders from their respective locations in $HOME to under ~/.dotfiles
+
+** Emacs plugins
+
+| Plugins     | Description                            |
+|-------------+----------------------------------------|
+| straight.el | Package manager                        |
+| magit       | git integration                        |
+| evil-mode   | Vim-like keybindings and modal editing |
+| org-evil    | Evil mode integration into org-mode    |
+| undo-tree   | Needed for evil-mode                   |
+| dash        | Needed for evil-mode                   |
+| monitor     | Needed for evil-mode                   |
+
+** TODO
+
++ Move neovim config into separate, archived branch and remove it from master
++ Extend emacs more as I learn it
