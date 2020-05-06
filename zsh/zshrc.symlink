@@ -2,16 +2,8 @@ export DOTFILES=$HOME/dotfiles
 
 export TERM="xterm-256color"
 
-# Replace BSD coreutils with GNU coreutils
-export PATH="$(brew --prefix coreutils)/libexec/gnubin:/usr/local/bin:$PATH"
-
 # Add custom scripts from dotfiles repository
 export PATH=$DOTFILES/bin:$PATH
-
-# Add custom bin directory to $PATH if it exists
-if [[ -d ~/bin ]]; then
-    export PATH=~/bin:$PATH
-fi
 
 HISTFILE=~/.zsh-histfile
 HISTSIZE=500
