@@ -1,11 +1,9 @@
 #+TITLE: dotfiles
 #+AUTHOR: Tenn1518
 
-* DOTFILES
-
 Configuration files for programs such as emacs, zsh, etc.
 
-This project is licensed under the terms of the [[https://github.com/Tenn1518/dotfiles/blob/master/LICENSE][MIT license].| Somebody      | ONce | Told | Me |
+This project is licensed under the terms of the [[https://github.com/Tenn1518/dotfiles/blob/master/LICENSE][MIT license].
 
 ** Prerequisites
 
@@ -34,7 +32,7 @@ This will symlink folders from their respective locations in $HOME to under ~/.d
 | dash        | Needed for evil-mode                   |
 | monitor     | Needed for evil-mode                   |
 
-** TODO
+** TO-DO
 
 + Move neovim config into separate, archived branch and remove it from master
 + Extend emacs more as I learn it
