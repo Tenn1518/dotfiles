@@ -1,8 +1,8 @@
 *.swp
 plugged
 *.DS_Store
-straight
-eshell
-games
+straight/
+eshell/
+games/
 ido.last
-places
+places/
