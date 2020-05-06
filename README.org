@@ -3,7 +3,7 @@
 
 Configuration files for programs such as emacs, zsh, etc.
 
-This project is licensed under the terms of the [[https://github.com/Tenn1518/dotfiles/blob/master/LICENSE][MIT license].
+This project is licensed under the terms of the [[https://github.com/Tenn1518/dotfiles/blob/master/LICENSE][MIT license]].
 
 ** Prerequisites
 
