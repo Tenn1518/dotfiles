@@ -2,7 +2,7 @@
 plugged
 *.DS_Store
 straight/
-eshell/
+eshell/*
 games/
-ido.last
+emacs.d/ido.last
 places/
