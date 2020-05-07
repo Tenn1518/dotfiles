@@ -2,7 +2,9 @@
 plugged
 *.DS_Store
 straight/
-eshell/*
+eshell/
 games/
 emacs.d/ido.last
 places/
+auto-save-list/
+backups/
