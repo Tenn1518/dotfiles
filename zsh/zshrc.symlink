@@ -2,6 +2,8 @@ export DOTFILES=$HOME/dotfiles
 
 export TERM="xterm-256color"
 
+export PATH=/usr/local/bin:$PATH
+
 # Add custom scripts from dotfiles repository
 export PATH=$DOTFILES/bin:$PATH
 
@@ -15,18 +17,13 @@ compinit
 autoload -U promptinit
 promptinit
 
-#neofetch
-
 # Export BROWSER variable for default browser
 export BROWSER=firefox
 
-# Set bash prompt
-PS1="%n@%m %~ $ "
-
 # Sets default editor for programs which check the EDITOR variable
 # export EDITOR=/usr/bin/nano
-# export EDITOR=/usr/bin/emacs
-export EDITOR=/usr/local/bin/nvim
+export EDITOR=/usr/bin/emacs
+# export EDITOR=/usr/local/bin/nvim
 
 # Set XDG_CONFIG_HOME variable
 export XDG_CONFIG_HOME="/Users/$USER/.config"
@@ -46,7 +43,10 @@ antigen bundle zsh-users/zsh-syntax-highlighting
 
 antigen apply
 
-# Aliases
+# Set zsh prompt
+PS1="%n@%m %~ $ "
+
+## Aliases
 
 # Edit and source zsh configuration file
 alias zshrc="nvim ~/.zshrc"
@@ -60,10 +60,7 @@ alias nvrc="nvim ~/.config/nvim/init.vim"
 alias nv="nvim"
 alias py="/usr/local/bin/python3"
 alias vimrc="nvim ~/.config/nvim/init.vim"
-alias zshrc="nvim ~/.zshrc"
-
-# Forces ls command to use colors
-alias ls="ls --color=auto"
+alias zshrc="emacs ~/.zshrc"
 
 # alias git to hub if hub is found
 if hash hub 2>/dev/null; then
@@ -75,6 +72,6 @@ if [[ -a ~/.localrc ]]; then
     source ~/.localrc
 fi
 
-# Start powerline for zsh shell
-powerline-daemon -q
-. /usr/local/lib/python3.7/site-packages/powerline/bindings/zsh/powerline.zsh
+# Start powerline for zsh shell (disabled)
+#powerline-daemon -q
+#. /usr/local/lib/python3.7/site-packages/powerline/bindings/zsh/powerline.zsh
