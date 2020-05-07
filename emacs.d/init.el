@@ -1,4 +1,4 @@
-;; .emacs file
+;; init.el file
 ;; 3-3-2020
 
 ;; Straight.el package manager
@@ -22,9 +22,9 @@
   (load bootstrap-file nil 'nomessage))
 
 ;; install packages
-;; solarized theme for emacs
-(straight-use-package
- '(el-patch :type git :host github :repo "bbatsov/solarized-emacs"))
+;; base16 theme for emacs
+(straight-use-package 'base16-theme)
+(require 'base16-theme)
 ;; git integration
 (straight-use-package 'magit)
 ;; undo-tree
@@ -41,23 +41,52 @@
 ;; evil-integration for org-mode
 (straight-use-package 'org-evil)
 (require 'org-evil)
+;; Fancy bullets in org-mode
+(straight-use-package 'org-bullets)
+(require 'org-bullets)
+(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+;; telephone-line
+(straight-use-package 'telephone-line)
+(require 'telephone-line)
 
 ;; Settings
 ;;=========
+
+;; Stop the default startup screen
+(setq inhibit-startup-screen t)
 
 ;; enable better defaults
 (add-to-list 'load-path "~/.emacs.d/better-defaults")
 (require 'better-defaults)
 
+;; emacs appearance settings
 ;; turn on line numbers
 (global-linum-mode 1)
-
 ;; highlight current lines
 (global-hl-line-mode)
-
-;; load solarized
+;; fix emacs.app colors
+(setq ns-use-srgb-colorspace nil)
+;; enable base16-dracula theme for emacs
 (setq custom-safe-themes t)
-(load-theme 'solarized-dark t)
+(load-theme 'base16-dracula t)
+;; telephone-line settings
+(setq telephone-line-primary-left-separator 'telephone-line-cubed-left
+      telephone-line-secondary-left-separator 'telephone-line-cubed-hollow-left
+      telephone-line-primary-right-separator 'telephone-line-cubed-right
+      telephone-line-secondary-right-separator 'telephone-line-cubed-hollow-right)
+(setq telephone-line-height 24
+      telephone-line-evil-use-short-tag t)
+(telephone-line-mode 1)
+
+;; Org-mode settings
+;; Indent headings in org files
+(setq org-startup-indented t)
+;; Set to the location of your Org files on your local system
+(setq org-directory '"~/Documents/org")
+;; Set to the name of the file where new notes will be stored
+(setq org-mobile-inbox-for-pull "~/Documents/org/flagged.org")
+;; Set to <your Dropbox root directory>/MobileOrg.
+(setq org-mobile-directory "~/Dropbox/Apps/MobileOrg")
 
 ;; Keybindings
 ;;============
@@ -92,7 +121,7 @@
       ;; timeout exceeded
       (insert initial-key))))
 
-(evil-define-key 'insert 'global "j" 'my-jk)
+(evil-define-key '(insert) 'global "j" 'my-jk)
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
