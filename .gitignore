@@ -2,10 +2,11 @@
 plugged
 *.DS_Store
 straight/
-eshell/
-games/
+emacs.d/eshell/
+emacs.d/games/
 emacs.d/ido.last
-places/
-auto-save-list/
-backups/
-games/
+emacs.d/places
+emacs.d/url/
+emacs.d/auto-save-list/
+emacs.d/backups/
+emacs.d/games/
