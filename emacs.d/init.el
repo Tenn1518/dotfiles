@@ -38,6 +38,8 @@
 (straight-use-package 'dash)
 ;; monitor
 (straight-use-package 'monitor)
+;; goto-chg
+(straight-use-package 'goto-chg)
 ;; evil-integration for org-mode
 (straight-use-package 'org-evil)
 (require 'org-evil)
@@ -45,9 +47,11 @@
 (straight-use-package 'org-bullets)
 (require 'org-bullets)
 (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-;; telephone-line
+;; mode-line customization with evil support
 (straight-use-package 'telephone-line)
 (require 'telephone-line)
+;; smart managing of parentheses
+(straight-use-package 'paredit)
 
 ;; Settings
 ;;=========
@@ -56,14 +60,22 @@
 (setq inhibit-startup-screen t)
 
 ;; enable better defaults
-(add-to-list 'load-path "~/.emacs.d/better-defaults")
+(add-to-list 'load-path "~/.emacs.d/lisp")
 (require 'better-defaults)
+
+;; Keep backups and autosaves in /tmp
+(setq backup-directory-alist
+      `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
 
 ;; emacs appearance settings
 ;; turn on line numbers
-(global-linum-mode 1)
+(global-display-line-numbers-mode 1)
 ;; highlight current lines
 (global-hl-line-mode)
+;; Turn off unbroken single line wrap indicators
+(fringe-mode '(0 . 0))
 ;; fix emacs.app colors
 (setq ns-use-srgb-colorspace nil)
 ;; enable base16-dracula theme for emacs
@@ -81,19 +93,44 @@
 ;; Org-mode settings
 ;; Indent headings in org files
 (setq org-startup-indented t)
+;; Set image width
+(setq org-image-actual-width nil)
 ;; Set to the location of your Org files on your local system
 (setq org-directory '"~/Documents/org")
 ;; Set to the name of the file where new notes will be stored
 (setq org-mobile-inbox-for-pull "~/Documents/org/flagged.org")
 ;; Set to <your Dropbox root directory>/MobileOrg.
 (setq org-mobile-directory "~/Dropbox/Apps/MobileOrg")
+;; Turn off line numbers
+(add-hook 'org-mode-hook '(lambda ()
+                            (global-display-line-numbers-mode 0)))
+
+;; paredit settings
+;; enable paredit in lisp modes
+(autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
+(add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
+(add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
+(add-hook 'ielm-mode-hook             #'enable-paredit-mode)
+(add-hook 'lisp-mode-hook             #'enable-paredit-mode)
+(add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
+(add-hook 'scheme-mode-hook           #'enable-paredit-mode)
+
+;; Python mode
+;; Set default Python shell to python3
+(setq python-shell-interpreter "python3")
+;; C++ mode
+;; Set indenting settings
+(setq c-default-style "bsd" c-basic-offset 4)
 
 ;; Keybindings
 ;;============
 
-;; Use command as meta and preserve default macOS alt-key behavior
-(setq mac-command-modifier 'meta)
-(setq mac-option-modifier nil)
+;; Use command as meta if running on macOS
+(when
+    (string-equal system-type "darwin")
+  (progn
+    (setq mac-command-modifier 'meta
+          mac-option-modifier nil)))
 
 ;; open init.el in a new window on the right
 (global-set-key (kbd "C-c i") (lambda ()
