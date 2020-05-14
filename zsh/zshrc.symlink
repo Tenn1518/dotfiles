@@ -2,10 +2,8 @@ export DOTFILES=$HOME/dotfiles
 
 export TERM="xterm-256color"
 
-export PATH=/usr/local/bin:$PATH
-
 # Add custom scripts from dotfiles repository
-export PATH=$DOTFILES/bin:$PATH
+export PATH=/usr/local/sbin:$DOTFILES/bin:$PATH
 
 HISTFILE=~/.zsh-histfile
 HISTSIZE=500
@@ -44,7 +42,7 @@ antigen bundle zsh-users/zsh-syntax-highlighting
 antigen apply
 
 # Set zsh prompt
-PS1="%n@%m %~ $ "
+PS1="%F{6}%n%F{7}@%F{4}%m %F{2}%2~ %F{7}$ "
 
 ## Aliases
 
