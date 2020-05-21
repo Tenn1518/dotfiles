@@ -69,6 +69,11 @@
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
 
+;; Add to $PATH for eshell
+(add-to-list 'exec-path "/usr/local/bin")
+(add-to-list 'exec-path "/usr/local/sbin")
+(add-to-list 'exec-path "~/.dotfiles/bin")
+
 ;; emacs appearance settings
 ;; turn on line numbers
 (global-display-line-numbers-mode 1)
@@ -103,7 +108,7 @@
 (setq org-mobile-directory "~/Dropbox/Apps/MobileOrg")
 ;; Turn off line numbers
 (add-hook 'org-mode-hook '(lambda ()
-                            (global-display-line-numbers-mode 0)))
+                            (display-line-numbers-mode 0)))
 
 ;; paredit settings
 ;; enable paredit in lisp modes
