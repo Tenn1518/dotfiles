@@ -1,7 +1,11 @@
 [submodule "config/awesome-terminal-fonts"]
-	path = config/awesome-terminal-fonts
+	path = fonts/awesome-terminal-fonts
 	url = https://github.com/gabrielelana/awesome-terminal-fonts
 [submodule "zsh/antigen"]
 	path = zsh/antigen
 	url = https://github.com/zsh-users/antigen
+	branch = master
+[submodule "fonts/fonts"]
+	path = fonts/powerline
+	url = https://github.com/powerline/fonts
 	branch = master
