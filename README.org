@@ -15,24 +15,8 @@ Install the dotfiles with:
 #+BEGIN_SRC
 $ git clone --recursive https://github.com/Tenn1518/dotfiles ~/.dotfiles
 $ cd ~/.dotfiles
-$ ./install.sh
+$ ./install.py
 #+END_SRC
 
-This will symlink folders from their respective locations in $HOME to under ~/.dotfiles
+This will symlink folders and files from their respective locations in $HOME to under ~/.dotfiles
 
-** Emacs plugins
-
-| Plugins     | Description                            |
-|-------------+----------------------------------------|
-| straight.el | Package manager                        |
-| magit       | git integration                        |
-| evil-mode   | Vim-like keybindings and modal editing |
-| org-evil    | Evil mode integration into org-mode    |
-| undo-tree   | Needed for evil-mode                   |
-| dash        | Needed for evil-mode                   |
-| monitor     | Needed for evil-mode                   |
-
-** TO-DO
-
-+ Move neovim config into separate, archived branch and remove it from master
-+ Extend emacs more as I learn it
