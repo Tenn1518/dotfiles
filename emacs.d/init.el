@@ -69,11 +69,6 @@
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
 
-;; Add to $PATH for eshell
-(add-to-list 'exec-path "/usr/local/bin")
-(add-to-list 'exec-path "/usr/local/sbin")
-(add-to-list 'exec-path "~/.dotfiles/bin")
-
 ;; emacs appearance settings
 ;; turn on line numbers
 (global-display-line-numbers-mode 1)
@@ -94,6 +89,23 @@
 (setq telephone-line-height 24
       telephone-line-evil-use-short-tag t)
 (telephone-line-mode 1)
+
+;; eshell settings
+;; eshell prompt
+(setq eshell-prompt-function
+      (lambda ()
+        (concat
+         (propertize (user-login-name) 'face '(:foreground "CadetBlue1"))
+         (propertize "@" 'face '(:foreground "white"))
+         (propertize (system-name) 'face '(:foreground "MediumPurple1"))
+         " "
+         (propertize (eshell/pwd) 'face '(:foreground "SpringGreen1"))
+         " $ "))
+      eshell-prompt-regexp "^.+?@.+? .+ \$ ")
+;; Add to $PATH for eshell
+(add-to-list 'exec-path "/usr/local/bin")
+(add-to-list 'exec-path "/usr/local/sbin")
+(add-to-list 'exec-path "~/.dotfiles/bin")
 
 ;; Org-mode settings
 ;; Indent headings in org files
