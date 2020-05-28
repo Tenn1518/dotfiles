@@ -22,24 +22,34 @@
   (load bootstrap-file nil 'nomessage))
 
 ;; install packages
-;; base16 theme for emacs
+;; base16 themes for emacs
 (straight-use-package 'base16-theme)
 (require 'base16-theme)
-;; git integration
+;; git manager
 (straight-use-package 'magit)
 ;; undo-tree
 (straight-use-package 'undo-tree)
 (global-undo-tree-mode)
-;; vim-like bindings for emacs
-(straight-use-package 'evil)
-(require 'evil)
-(evil-mode 1)
 ;; dash
 (straight-use-package 'dash)
 ;; monitor
 (straight-use-package 'monitor)
 ;; goto-chg
 (straight-use-package 'goto-chg)
+;; vim-like bindings for emacs
+(straight-use-package 'evil)
+(require 'evil)
+(evil-mode 1)
+;; vim motions without numbers
+(straight-use-package 'evil-easymotion)
+;; inline searching with the s key
+(straight-use-package 'evil-snipe)
+(require 'evil-snipe)
+(evil-snipe-mode +1)
+(evil-snipe-override-mode +1)
+;; commenting with vim motions
+(straight-use-package 'evil-commentary)
+(evil-commentary-mode)
 ;; evil-integration for org-mode
 (straight-use-package 'org-evil)
 (require 'org-evil)
@@ -76,19 +86,30 @@
 (global-hl-line-mode)
 ;; Turn off unbroken single line wrap indicators
 (fringe-mode '(0 . 0))
-;; fix emacs.app colors
-(setq ns-use-srgb-colorspace nil)
-;; enable base16-dracula theme for emacs
-(setq custom-safe-themes t)
-(load-theme 'base16-dracula t)
-;; telephone-line settings
-(setq telephone-line-primary-left-separator 'telephone-line-cubed-left
-      telephone-line-secondary-left-separator 'telephone-line-cubed-hollow-left
-      telephone-line-primary-right-separator 'telephone-line-cubed-right
-      telephone-line-secondary-right-separator 'telephone-line-cubed-hollow-right)
-(setq telephone-line-height 24
-      telephone-line-evil-use-short-tag t)
+;; Graphical mode tweaks
+(when (display-graphic-p)
+  ;; fix emacs.app colors on macOS
+  (when (string-equal system-type 'darwin)
+    (setq ns-use-srgb-colorspace nil))
+
+  ;; enable base16-dracula theme for emacs
+  (setq custom-safe-themes t)
+  (load-theme 'base16-dracula t)
+
+  ;; telephone-line settings
+  (setq telephone-line-primary-left-separator 'telephone-line-cubed-left
+        telephone-line-secondary-left-separator 'telephone-line-cubed-hollow-left
+        telephone-line-primary-right-separator 'telephone-line-cubed-right
+        telephone-line-secondary-right-separator 'telephone-line-cubed-hollow-right)
+  (setq telephone-line-height 24
+        telephone-line-evil-use-short-tag t))
+
+;; Load telephone-line
 (telephone-line-mode 1)
+;; Font settings
+(custom-set-faces
+ ;; '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :foundry "nil" :family "Meslo LG M for Powerline"))))
+ '(default ((t (:weight normal :height 140 :width normal :foundry "nil" :family "Meslo LG M for Powerline")))))
 
 ;; eshell settings
 ;; eshell prompt
@@ -112,12 +133,6 @@
 (setq org-startup-indented t)
 ;; Set image width
 (setq org-image-actual-width nil)
-;; Set to the location of your Org files on your local system
-(setq org-directory '"~/Documents/org")
-;; Set to the name of the file where new notes will be stored
-(setq org-mobile-inbox-for-pull "~/Documents/org/flagged.org")
-;; Set to <your Dropbox root directory>/MobileOrg.
-(setq org-mobile-directory "~/Dropbox/Apps/MobileOrg")
 ;; Turn off line numbers
 (add-hook 'org-mode-hook '(lambda ()
                             (display-line-numbers-mode 0)))
@@ -144,10 +159,9 @@
 
 ;; Use command as meta if running on macOS
 (when
-    (string-equal system-type "darwin")
-  (progn
-    (setq mac-command-modifier 'meta
-          mac-option-modifier nil)))
+    (and (string-equal system-type "darwin") (display-graphic-p)
+         (setq mac-command-modifier 'meta
+               mac-option-modifier nil)))
 
 ;; open init.el in a new window on the right
 (global-set-key (kbd "C-c i") (lambda ()
@@ -155,7 +169,11 @@
                                   (interactive)
                                   (split-window-right)
                                   (other-window 1)
-                                  (find-file `"~/.emacs.d/init.el")))
+                                  (find-file '"~/.emacs.d/init.el")))
+
+;; avy bindings
+(global-set-key (kbd "C-;") 'avy-goto-char)
+(global-set-key (kbd "C-'") 'avy-goto-line)
 
 ;; evil bindings
 ;; Type 'jk' to exit insert mode
@@ -174,12 +192,6 @@
           (push event unread-command-events))
       ;; timeout exceeded
       (insert initial-key))))
-
 (evil-define-key '(insert) 'global "j" 'my-jk)
-
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :foundry "nil" :family "Meslo LG M for Powerline")))))
+;; easymotion binding
+(evilem-default-keybindings "'")
