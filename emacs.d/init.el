@@ -66,23 +66,29 @@
 ;; Settings
 ;;=========
 
-;; Stop the default startup screen
-(setq inhibit-startup-screen t)
-
-;; enable better defaults
+;; load .el files in /lisp
 (add-to-list 'load-path "~/.emacs.d/lisp")
-(require 'better-defaults)
 
-;; Keep backups and autosaves in /tmp
-(setq backup-directory-alist
-      `((".*" . ,temporary-file-directory)))
-(setq auto-save-file-name-transforms
-      `((".*" ,temporary-file-directory t)))
+(require 'uniquify)
+(ido-mode t)
+(setq uniquify-buffer-name-style 'forward
+      ido-enable-flex-matching t
+      indent-tabs-mode nil
+      mouse-yank-at-point t
+      require-final-newline t
+      inhibit-startup-screen t)
 
 ;; emacs appearance settings
-;; turn on line numbers
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(horizontal-scroll-bar-mode -1)
+(show-paren-mode 1)
+;; save and load point in files
+(save-place-mode 1)
+;; line numbers
 (global-display-line-numbers-mode 1)
-;; highlight current lines
+;; highlight current line
 (global-hl-line-mode)
 ;; Turn off unbroken single line wrap indicators
 (fringe-mode '(0 . 0))
@@ -108,8 +114,13 @@
 (telephone-line-mode 1)
 ;; Font settings
 (custom-set-faces
- ;; '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :foundry "nil" :family "Meslo LG M for Powerline"))))
  '(default ((t (:weight normal :height 140 :width normal :foundry "nil" :family "Meslo LG M for Powerline")))))
+
+;; Keep backups and autosaves in /tmp
+(setq backup-directory-alist
+      `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
 
 ;; eshell settings
 ;; eshell prompt
@@ -174,6 +185,9 @@
 ;; avy bindings
 (global-set-key (kbd "C-;") 'avy-goto-char)
 (global-set-key (kbd "C-'") 'avy-goto-line)
+
+;; use ibuffer to list buffers
+(global-set-key (kbd "C-x C-b") 'ibuffer)
 
 ;; evil bindings
 ;; Type 'jk' to exit insert mode
