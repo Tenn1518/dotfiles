@@ -1,4 +1,5 @@
 *.swp
+.#*
 plugged
 *.DS_Store
 straight/
