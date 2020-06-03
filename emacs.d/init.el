@@ -62,6 +62,8 @@
 (require 'telephone-line)
 ;; smart managing of parentheses
 (straight-use-package 'paredit)
+;; epub reader
+(straight-use-package 'nov)
 
 ;; Settings
 ;;=========
@@ -114,13 +116,18 @@
 (telephone-line-mode 1)
 ;; Font settings
 (custom-set-faces
- '(default ((t (:weight normal :height 140 :width normal :foundry "nil" :family "Meslo LG M for Powerline")))))
+;; '(default ((t (:weight normal :height 140 :width normal :foundry "nil" :family "Meslo LG M for Powerline")))))
+ '(default ((t (:weight normal :height 160 :width normal :foundry "nil" :family "Iosevka Medium")))))
 
 ;; Keep backups and autosaves in /tmp
 (setq backup-directory-alist
       `((".*" . ,temporary-file-directory)))
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
+
+;; GPG encryption
+(when (string-equal system-type 'darwin)
+    (setq epa-pinentry-mode 'loopback))
 
 ;; eshell settings
 ;; eshell prompt
@@ -144,9 +151,15 @@
 (setq org-startup-indented t)
 ;; Set image width
 (setq org-image-actual-width nil)
+;; Set font in Org buffers
+(add-hook 'org-mode-hook (lambda ()
+                            (setq buffer-face-mode-face '(:family "Iosevka Aile Medium"))
+                            (buffer-face-mode)))
 ;; Turn off line numbers
-(add-hook 'org-mode-hook '(lambda ()
+(add-hook 'org-mode-hook (lambda ()
                             (display-line-numbers-mode 0)))
+;; Set visual-line-mode
+(add-hook 'org-mode-hook 'visual-line-mode)
 
 ;; paredit settings
 ;; enable paredit in lisp modes

@@ -7,16 +7,16 @@ This project is licensed under the terms of the [[https://github.com/Tenn1518/do
 
 ** Prerequisites
 
-Install emacs, zsh, tmux, a terminal emulator with true color support, and a solarized theme for your terminal.
+Install emacs, zsh, tmux, a terminal emulator with true color support, a nice theme (dracula) for your terminal, and the Iosevka family of fonts.
 
 ** How to Install
 
 Install the dotfiles with:
-#+BEGIN_SRC
+#+BEGIN_EXAMPLE
 $ git clone --recursive https://github.com/Tenn1518/dotfiles ~/.dotfiles
 $ cd ~/.dotfiles
 $ ./install.py
-#+END_SRC
+#+END_EXAMPLE
 
 This will symlink folders and files from their respective locations in $HOME to under ~/.dotfiles
 
