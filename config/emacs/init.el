@@ -62,6 +62,8 @@
 (require 'telephone-line)
 ;; smart managing of parentheses
 (straight-use-package 'paredit)
+;; make sexps easier to distinguish
+(straight-use-package 'rainbow-delimiters)
 ;; epub reader
 (straight-use-package 'nov)
 
@@ -96,7 +98,7 @@
 (fringe-mode '(0 . 0))
 ;; Graphical mode tweaks
 (when (display-graphic-p)
-  ;; fix emacs.app colors on macOS
+  ;; macOS-specific graphical settings
   (when (string-equal system-type 'darwin)
     (setq ns-use-srgb-colorspace nil))
 
@@ -105,19 +107,17 @@
   (load-theme 'base16-dracula t)
 
   ;; telephone-line settings
-  (setq telephone-line-primary-left-separator 'telephone-line-cubed-left
-        telephone-line-secondary-left-separator 'telephone-line-cubed-hollow-left
-        telephone-line-primary-right-separator 'telephone-line-cubed-right
-        telephone-line-secondary-right-separator 'telephone-line-cubed-hollow-right)
+  (setq telephone-line-primary-left-separator 'telephone-line-tan-left
+        telephone-line-secondary-left-separator 'telephone-line-tan-hollow-left
+        telephone-line-primary-right-separator 'telephone-line-tan-right
+        telephone-line-secondary-right-separator 'telephone-line-tan-hollow-right)
   (setq telephone-line-height 24
-        telephone-line-evil-use-short-tag t))
+        telephone-line-evil-use-short-tag t)
+  ;; Font settings
+  (add-to-list 'default-frame-alist '(font . "Iosevka Medium-16")))
 
 ;; Load telephone-line
 (telephone-line-mode 1)
-;; Font settings
-(custom-set-faces
-;; '(default ((t (:weight normal :height 140 :width normal :foundry "nil" :family "Meslo LG M for Powerline")))))
- '(default ((t (:weight normal :height 160 :width normal :foundry "nil" :family "Iosevka Medium")))))
 
 ;; Keep backups and autosaves in /tmp
 (setq backup-directory-alist
@@ -131,12 +131,18 @@
 
 ;; eshell settings
 ;; eshell prompt
+(defun my-system-name ()
+  "Returns system-name without a '.*' suffix"
+    (if (cl-search "." system-name)
+	(car (split-string system-name "\\."))
+      (system-name)))
+
 (setq eshell-prompt-function
       (lambda ()
         (concat
          (propertize (user-login-name) 'face '(:foreground "CadetBlue1"))
          (propertize "@" 'face '(:foreground "white"))
-         (propertize (system-name) 'face '(:foreground "MediumPurple1"))
+         (propertize (my-system-name) 'face '(:foreground "MediumPurple1"))
          " "
          (propertize (eshell/pwd) 'face '(:foreground "SpringGreen1"))
          " $ "))
@@ -170,6 +176,15 @@
 (add-hook 'lisp-mode-hook             #'enable-paredit-mode)
 (add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
 (add-hook 'scheme-mode-hook           #'enable-paredit-mode)
+
+;; rainbow-delimiters settings
+;; enable rainbow delimiters in lisp modes
+(add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'eval-expression-minibuffer-setup-hook #'rainbow-delimiters-mode)
+(add-hook 'ielm-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'lisp-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'lisp-interaction-mode-hook #'rainbow-delimiters-mode)
+(add-hook 'scheme-mode-hook #'rainbow-delimiters-mode)
 
 ;; Python mode
 ;; Set default Python shell to python3
