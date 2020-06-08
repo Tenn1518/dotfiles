@@ -81,6 +81,7 @@
       mouse-yank-at-point t
       require-final-newline t
       inhibit-startup-screen t)
+;;      setq find-file-visit-truename t)
 
 ;; emacs appearance settings
 (menu-bar-mode -1)
@@ -130,27 +131,39 @@
     (setq epa-pinentry-mode 'loopback))
 
 ;; eshell settings
-;; eshell prompt
-(defun my-system-name ()
+(defun my/system-name ()
   "Returns system-name without a '.*' suffix"
     (if (cl-search "." system-name)
 	(car (split-string system-name "\\."))
       (system-name)))
+
+(defun my/pwd ()
+  "Returns the last two or less directories of the current working directory"
+  (let ((epwd (split-string (eshell/pwd) "/")))
+    (if (<= (length epwd) 2)
+	(mapconcat 'identity epwd "/")
+      (mapconcat 'identity (last epwd 2) "/"))))
 
 (setq eshell-prompt-function
       (lambda ()
         (concat
          (propertize (user-login-name) 'face '(:foreground "CadetBlue1"))
          (propertize "@" 'face '(:foreground "white"))
-         (propertize (my-system-name) 'face '(:foreground "MediumPurple1"))
+         (propertize (my/system-name) 'face '(:foreground "MediumPurple1"))
          " "
-         (propertize (eshell/pwd) 'face '(:foreground "SpringGreen1"))
-         " $ "))
-      eshell-prompt-regexp "^.+?@.+? .+ \$ ")
+         (propertize (my/pwd) 'face '(:foreground "SpringGreen1"))
+         " λ "))
+      eshell-prompt-regexp "^.+?@.+? .+ \λ ")
 ;; Add to $PATH for eshell
 (add-to-list 'exec-path "/usr/local/bin")
 (add-to-list 'exec-path "/usr/local/sbin")
 (add-to-list 'exec-path "~/.dotfiles/bin")
+(add-hook 'eshell-mode-hook '(lambda ()
+			       (eshell/addpath "/usr/local/bin"
+					       "/usr/local/sbin"
+					       "~/.dotfiles/bin")
+			       (set-window-margins nil 1)
+			       (display-line-numbers-mode 0)))
 
 ;; Org-mode settings
 ;; Indent headings in org files
@@ -163,7 +176,7 @@
                             (buffer-face-mode)))
 ;; Turn off line numbers
 (add-hook 'org-mode-hook (lambda ()
-                            (display-line-numbers-mode 0)))
+                           (display-line-numbers-mode 0)))
 ;; Set visual-line-mode
 (add-hook 'org-mode-hook 'visual-line-mode)
 
@@ -193,6 +206,31 @@
 ;; Set indenting settings
 (setq c-default-style "bsd" c-basic-offset 4)
 
+;; Interactive Function Definitions
+;;=================================
+;; (set-frame-size (selected-frame) 80 24)
+
+(defvar is-eterm-buffer nil
+  "If set to t, the function 'my/eshell-exit' will exit the current frame. Otherwise, it will kill the current eshell buffer.")
+
+(defun my/eterm ()
+  "Opens separate eshell frame"
+  (interactive)
+  (make-frame-command)
+  (set-frame-size (selected-frame) 90 24)
+  (eshell 'new)
+  (make-local-variable 'is-eterm-buffer)
+  (setq mode-line-format nil)
+  (setq-local is-eterm-buffer t)
+  (set-window-margins nil 1)
+  (display-line-numbers-mode 0))
+
+(defun my/eshell-exit ()
+  "Wrapper for eshell/exit that closes the frame if opened by my/eterm"
+  (if is-eterm-buffer
+      (delete-frame)
+    (eshell/exit)))
+
 ;; Keybindings
 ;;============
 
@@ -208,12 +246,10 @@
                                   (interactive)
                                   (split-window-right)
                                   (other-window 1)
-                                  (find-file '"~/.emacs.d/init.el")))
+                                  (find-file '"~/.config/emacs/init.el")))
 
-;; avy bindings
-(global-set-key (kbd "C-;") 'avy-goto-char)
-(global-set-key (kbd "C-'") 'avy-goto-line)
-
+;; open an eshell instance in a new frame, mimicking a standard terminal
+(global-set-key (kbd "C-c t") 'my/eterm)
 ;; use ibuffer to list buffers
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
@@ -235,5 +271,6 @@
       ;; timeout exceeded
       (insert initial-key))))
 (evil-define-key '(insert) 'global "j" 'my-jk)
+
 ;; easymotion binding
 (evilem-default-keybindings "'")
