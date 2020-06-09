@@ -1,11 +1,8 @@
 ;; init.el file
-;; 3-3-2020
+;; 5-3-2020
 
 ;; Straight.el package manager
 ;;============================
-
-;; emacs package manager
-(require 'package)
 
 ;; initialize straight.el
 (defvar bootstrap-version)
@@ -22,50 +19,100 @@
   (load bootstrap-file nil 'nomessage))
 
 ;; install packages
+(straight-use-package 'use-package)
+
 ;; base16 themes for emacs
-(straight-use-package 'base16-theme)
-(require 'base16-theme)
+(when (display-graphic-p)
+  (use-package base16-theme
+    :straight t
+    :init
+      (when (string-equal system-type 'darwin)
+        (setq ns-use-srgb-colorspace nil)))
+    :config
+    (load-theme 'base16-dracula t)
+  ;; highlight current line
+  (global-hl-line-mode))
+
 ;; git manager
-(straight-use-package 'magit)
+(use-package magit
+  :straight t)
+
 ;; undo-tree
-(straight-use-package 'undo-tree)
+(use-package undo-tree
+  :straight t)
 (global-undo-tree-mode)
+
 ;; dash
-(straight-use-package 'dash)
+(use-package dash
+  :straight t)
+
 ;; monitor
-(straight-use-package 'monitor)
+(use-package monitor
+  :straight t)
+
 ;; goto-chg
-(straight-use-package 'goto-chg)
+(use-package goto-chg
+  :straight t)
+
 ;; vim-like bindings for emacs
-(straight-use-package 'evil)
-(require 'evil)
-(evil-mode 1)
+(use-package evil
+  :straight t
+  :config
+  (evil-mode 1))
+
 ;; vim motions without numbers
-(straight-use-package 'evil-easymotion)
+(use-package evil-easymotion
+  :straight t)
+
 ;; inline searching with the s key
-(straight-use-package 'evil-snipe)
-(require 'evil-snipe)
-(evil-snipe-mode +1)
-(evil-snipe-override-mode +1)
+(use-package evil-snipe
+  :straight t
+  :config
+  (evil-snipe-mode +1)
+  (evil-snipe-override-mode +1))
+
 ;; commenting with vim motions
-(straight-use-package 'evil-commentary)
-(evil-commentary-mode)
+(use-package evil-commentary
+  :straight t
+  :config
+  (evil-commentary-mode))
+
 ;; evil-integration for org-mode
-(straight-use-package 'org-evil)
-(require 'org-evil)
+(use-package org-evil
+  :straight t)
+
 ;; Fancy bullets in org-mode
-(straight-use-package 'org-bullets)
-(require 'org-bullets)
-(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+(use-package org-bullets
+  :straight t
+  :hook (org-mode . org-bullets-mode))
+
 ;; mode-line customization with evil support
-(straight-use-package 'telephone-line)
-(require 'telephone-line)
+(use-package telephone-line
+  :straight t
+  :config
+  (setq telephone-line-primary-left-separator 'telephone-line-tan-left
+        telephone-line-secondary-left-separator 'telephone-line-tan-hollow-left
+        telephone-line-primary-right-separator 'telephone-line-tan-right
+        telephone-line-secondary-right-separator 'telephone-line-tan-hollow-right)
+  (setq telephone-line-height 24
+        telephone-line-evil-use-short-tag t)
+  (telephone-line-mode 1))
+
 ;; smart managing of parentheses
-(straight-use-package 'paredit)
+(use-package paredit
+  :straight t
+  :config
+  (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
+  :hook ((emacs-lisp-mode eval-expression-minibuffer-setup emacs-lisp-mode ielm-mode lisp-mode lisp-interaction-mode scheme-mode) . enable-paredit-mode))
+
 ;; make sexps easier to distinguish
-(straight-use-package 'rainbow-delimiters)
+(use-package rainbow-delimiters
+  :straight t
+  :hook ((emacs-lisp-mode eval-expression-minibuffer-setup emacs-lisp-mode ielm-mode lisp-mode lisp-interaction-mode scheme-mode) . rainbow-delimiters-mode))
+
 ;; epub reader
-(straight-use-package 'nov)
+(use-package nov
+  :straight t)
 
 ;; Settings
 ;;=========
@@ -93,32 +140,11 @@
 (save-place-mode 1)
 ;; line numbers
 (global-display-line-numbers-mode 1)
-;; highlight current line
-(global-hl-line-mode)
 ;; Turn off unbroken single line wrap indicators
 (fringe-mode '(0 . 0))
-;; Graphical mode tweaks
-(when (display-graphic-p)
-  ;; macOS-specific graphical settings
-  (when (string-equal system-type 'darwin)
-    (setq ns-use-srgb-colorspace nil))
 
-  ;; enable base16-dracula theme for emacs
-  (setq custom-safe-themes t)
-  (load-theme 'base16-dracula t)
-
-  ;; telephone-line settings
-  (setq telephone-line-primary-left-separator 'telephone-line-tan-left
-        telephone-line-secondary-left-separator 'telephone-line-tan-hollow-left
-        telephone-line-primary-right-separator 'telephone-line-tan-right
-        telephone-line-secondary-right-separator 'telephone-line-tan-hollow-right)
-  (setq telephone-line-height 24
-        telephone-line-evil-use-short-tag t)
   ;; Font settings
-  (add-to-list 'default-frame-alist '(font . "Iosevka Medium-16")))
-
-;; Load telephone-line
-(telephone-line-mode 1)
+  (add-to-list 'default-frame-alist '(font . "Iosevka Medium-16"))
 
 ;; Keep backups and autosaves in /tmp
 (setq backup-directory-alist
@@ -131,6 +157,26 @@
     (setq epa-pinentry-mode 'loopback))
 
 ;; eshell settings
+(defvar is-eterm-buffer nil
+  "If set to t, the function 'my/eshell-exit' will exit the current frame. Otherwise, it will kill the current eshell buffer.")
+
+(defun my/eterm ()
+  "Opens separate frame specifically for eshell"
+  (interactive)
+  (make-frame-command)
+  (set-frame-size (selected-frame) 90 24)
+  (eshell 'new)
+  (make-local-variable 'is-eterm-buffer)
+  (setq mode-line-format nil)
+  (setq-local is-eterm-buffer t)
+  (select-frame-set-input-focus (selected-frame)))
+
+(defun my/eshell-exit ()
+  "Wrapper for eshell/exit that closes the frame if opened by my/eterm"
+  (if is-eterm-buffer
+      (delete-frame)
+    (eshell/exit)))
+
 (defun my/system-name ()
   "Returns system-name without a '.*' suffix"
     (if (cl-search "." system-name)
@@ -154,6 +200,7 @@
          (propertize (my/pwd) 'face '(:foreground "SpringGreen1"))
          " λ "))
       eshell-prompt-regexp "^.+?@.+? .+ \λ ")
+
 ;; Add to $PATH for eshell
 (add-to-list 'exec-path "/usr/local/bin")
 (add-to-list 'exec-path "/usr/local/sbin")
@@ -180,56 +227,12 @@
 ;; Set visual-line-mode
 (add-hook 'org-mode-hook 'visual-line-mode)
 
-;; paredit settings
-;; enable paredit in lisp modes
-(autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
-(add-hook 'emacs-lisp-mode-hook       #'enable-paredit-mode)
-(add-hook 'eval-expression-minibuffer-setup-hook #'enable-paredit-mode)
-(add-hook 'ielm-mode-hook             #'enable-paredit-mode)
-(add-hook 'lisp-mode-hook             #'enable-paredit-mode)
-(add-hook 'lisp-interaction-mode-hook #'enable-paredit-mode)
-(add-hook 'scheme-mode-hook           #'enable-paredit-mode)
-
-;; rainbow-delimiters settings
-;; enable rainbow delimiters in lisp modes
-(add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
-(add-hook 'eval-expression-minibuffer-setup-hook #'rainbow-delimiters-mode)
-(add-hook 'ielm-mode-hook #'rainbow-delimiters-mode)
-(add-hook 'lisp-mode-hook #'rainbow-delimiters-mode)
-(add-hook 'lisp-interaction-mode-hook #'rainbow-delimiters-mode)
-(add-hook 'scheme-mode-hook #'rainbow-delimiters-mode)
-
 ;; Python mode
 ;; Set default Python shell to python3
 (setq python-shell-interpreter "python3")
 ;; C++ mode
 ;; Set indenting settings
 (setq c-default-style "bsd" c-basic-offset 4)
-
-;; Interactive Function Definitions
-;;=================================
-;; (set-frame-size (selected-frame) 80 24)
-
-(defvar is-eterm-buffer nil
-  "If set to t, the function 'my/eshell-exit' will exit the current frame. Otherwise, it will kill the current eshell buffer.")
-
-(defun my/eterm ()
-  "Opens separate eshell frame"
-  (interactive)
-  (make-frame-command)
-  (set-frame-size (selected-frame) 90 24)
-  (eshell 'new)
-  (make-local-variable 'is-eterm-buffer)
-  (setq mode-line-format nil)
-  (setq-local is-eterm-buffer t)
-  (set-window-margins nil 1)
-  (display-line-numbers-mode 0))
-
-(defun my/eshell-exit ()
-  "Wrapper for eshell/exit that closes the frame if opened by my/eterm"
-  (if is-eterm-buffer
-      (delete-frame)
-    (eshell/exit)))
 
 ;; Keybindings
 ;;============
