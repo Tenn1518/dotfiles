@@ -237,11 +237,9 @@
 ;; Keybindings
 ;;============
 
-;; Use command as meta if running on macOS
-(when
-    (and (string-equal system-type "darwin") (display-graphic-p)
-         (setq mac-command-modifier 'meta
-               mac-option-modifier nil)))
+;; set right command to control on macOS
+(when (eq system-type 'darwin)
+  (setq mac-right-command-modifier 'control)
 
 ;; open init.el in a new window on the right
 (global-set-key (kbd "C-c i") (lambda ()
