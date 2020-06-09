@@ -4,7 +4,8 @@
 plugged
 *.DS_Store
 config/emacs/straight/
-config/emacs/eshell/
+config/emacs/eshell/history
+config/emacs/eshell/lastdir
 config/emacs/games/
 config/emacs/ido.last
 config/emacs/places
