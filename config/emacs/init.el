@@ -127,7 +127,8 @@
       indent-tabs-mode nil
       mouse-yank-at-point t
       require-final-newline t
-      inhibit-startup-screen t)
+      inhibit-startup-screen t
+      default-directory "~")
 ;;      setq find-file-visit-truename t)
 
 ;; emacs appearance settings
