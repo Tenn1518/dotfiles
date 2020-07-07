@@ -22,16 +22,13 @@
 (straight-use-package 'use-package)
 
 ;; base16 themes for emacs
-(when (display-graphic-p)
-  (use-package base16-theme
-    :straight t
-    :init
-      (when (string-equal system-type 'darwin)
-        (setq ns-use-srgb-colorspace nil)))
-    :config
-    (load-theme 'base16-dracula t)
-  ;; highlight current line
-  (global-hl-line-mode))
+(use-package base16-theme
+  :straight t
+  :init
+    (when (string-equal system-type 'darwin)
+      (setq ns-use-srgb-colorspace nil))
+  :config
+  (load-theme 'base16-dracula t))
 
 ;; git manager
 (use-package magit
@@ -143,9 +140,11 @@
 (global-display-line-numbers-mode 1)
 ;; Turn off unbroken single line wrap indicators
 (fringe-mode '(0 . 0))
+;; highlight current line
+(global-hl-line-mode)
 
-  ;; Font settings
-  (add-to-list 'default-frame-alist '(font . "Iosevka Medium-16"))
+;; Font settings
+(add-to-list 'default-frame-alist '(font . "Iosevka Medium-12"))
 
 ;; Keep backups and autosaves in /tmp
 (setq backup-directory-alist
@@ -159,7 +158,7 @@
 
 ;; eshell settings
 (defvar is-eterm-buffer nil
-  "If set to t, the function 'my/eshell-exit' will exit the current frame. Otherwise, it will kill the current eshell buffer.")
+  "If set to t, the function 'my/eshell-exit' will exit the current frame. Otherwise, it will run 'eshell/exit' and kill the current eshell buffer.")
 
 (defun my/eterm ()
   "Opens separate frame specifically for eshell"
@@ -276,3 +275,15 @@
 
 ;; easymotion binding
 (evilem-default-keybindings "'")
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(my/evil-normal ((t (:background "dodger blue" :foreground "white" :weight ultra-bold))) t))
