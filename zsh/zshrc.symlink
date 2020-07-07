@@ -18,10 +18,10 @@ promptinit
 # Export BROWSER variable for default browser
 export BROWSER=firefox
 
-# Sets default editor for programs which check the EDITOR variable
-# export EDITOR=/usr/bin/nano
-export EDITOR=/usr/bin/emacs
-# export EDITOR=/usr/local/bin/nvim
+# Sets default editor to emacs in terminal mode
+export ALTERNATE_EDITOR=""
+export EDITOR="emacsclient -t"
+export VISUAL="emacsclient -c -a ''"
 
 # Set XDG_CONFIG_HOME variable
 export XDG_CONFIG_HOME="/Users/$USER/.config"
@@ -46,30 +46,16 @@ PS1="%F{6}%n%F{7}@%F{4}%m %F{2}%2~ %F{7}$ "
 
 ## Aliases
 
-# Edit and source zsh configuration file
-alias zshrc="nvim ~/.zshrc"
-alias srczshrc="source ~/.zshrc"
-# alias ep="emacs ~/.zshrc"
-
-# Edit nvim configuration file
-alias nvrc="nvim ~/.config/nvim/init.vim"
-
 # Shorten common commands
-alias nv="nvim"
+# Launch a new terminal emacs frame
+alias em="emacsclient -t"
+# Launch a new graphical emacs frame
+alias ef="emacsclient -c -a ''"
 alias py="/usr/local/bin/python3"
-alias vimrc="nvim ~/.config/nvim/init.vim"
-alias zshrc="emacs ~/.zshrc"
-
-# alias git to hub if hub is found
-if hash hub 2>/dev/null; then
-    eval "$(hub alias -s)"
-fi
+alias nv="nvim"
+alias zshrc="emacsclient -t ~/.zshrc"
 
 # find localrc file for local-only zsh configurations
 if [[ -a ~/.localrc ]]; then
     source ~/.localrc
 fi
-
-# Start powerline for zsh shell (disabled)
-#powerline-daemon -q
-#. /usr/local/lib/python3.7/site-packages/powerline/bindings/zsh/powerline.zsh
