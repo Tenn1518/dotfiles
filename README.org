@@ -20,3 +20,4 @@ $ ./install.py
 
 This will symlink folders and files from their respective locations in $HOME to under ~/.dotfiles
 
+Upon entering emacs, run ~M-x all-the-icons-install-fonts~.
