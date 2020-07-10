@@ -83,18 +83,6 @@
   :straight t
   :hook (org-mode . org-bullets-mode))
 
-;; mode-line customization with evil support
-(use-package telephone-line
-  :straight t
-  :config
-  (setq telephone-line-primary-left-separator 'telephone-line-tan-left
-        telephone-line-secondary-left-separator 'telephone-line-tan-hollow-left
-        telephone-line-primary-right-separator 'telephone-line-tan-right
-        telephone-line-secondary-right-separator 'telephone-line-tan-hollow-right)
-  (setq telephone-line-height 24
-        telephone-line-evil-use-short-tag t)
-  (telephone-line-mode 1))
-
 ;; smart managing of parentheses
 (use-package paredit
   :straight t
@@ -107,6 +95,10 @@
   :straight t
   :hook ((emacs-lisp-mode eval-expression-minibuffer-setup emacs-lisp-mode ielm-mode lisp-mode lisp-interaction-mode scheme-mode) . rainbow-delimiters-mode))
 
+;; fancy icons
+(use-package all-the-icons
+  :straight t)
+
 ;; epub reader
 (use-package nov
   :straight t)
@@ -116,6 +108,7 @@
 
 ;; load .el files in /lisp
 (add-to-list 'load-path "~/.emacs.d/lisp")
+(require 'mode-line)
 
 (require 'uniquify)
 (ido-mode t)
@@ -280,7 +273,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(custom-safe-themes
+   (quote
+    ("b8929cff63ffc759e436b0f0575d15a8ad7658932f4b2c99415f3dde09b32e97" "99c86852decaeb0c6f51ce8bd46e4906a4f28ab4c5b201bdc3fdf85b24f88518" default))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
