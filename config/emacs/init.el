@@ -1,125 +1,21 @@
 ;; init.el file
 ;; 5-3-2020
 
-;; Straight.el package manager
-;;============================
-
-;; initialize straight.el
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
-
-;; install packages
-(straight-use-package 'use-package)
-
-;; base16 themes for emacs
-(use-package base16-theme
-  :straight t
-  :init
-    (when (string-equal system-type 'darwin)
-      (setq ns-use-srgb-colorspace nil))
-  :config
-  (load-theme 'base16-dracula t))
-
-;; git manager
-(use-package magit
-  :straight t)
-
-;; undo-tree
-(use-package undo-tree
-  :straight t)
-(global-undo-tree-mode)
-
-;; dash
-(use-package dash
-  :straight t)
-
-;; monitor
-(use-package monitor
-  :straight t)
-
-;; goto-chg
-(use-package goto-chg
-  :straight t)
-
-;; vim-like bindings for emacs
-(use-package evil
-  :straight t
-  :config
-  (evil-mode 1))
-
-;; vim motions without numbers
-(use-package evil-easymotion
-  :straight t)
-
-;; inline searching with the s key
-(use-package evil-snipe
-  :straight t
-  :config
-  (evil-snipe-mode +1)
-  (evil-snipe-override-mode +1))
-
-;; commenting with vim motions
-(use-package evil-commentary
-  :straight t
-  :config
-  (evil-commentary-mode))
-
-;; evil-integration for org-mode
-(use-package org-evil
-  :straight t)
-
-;; Fancy bullets in org-mode
-(use-package org-bullets
-  :straight t
-  :hook (org-mode . org-bullets-mode))
-
-;; smart managing of parentheses
-(use-package paredit
-  :straight t
-  :config
-  (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
-  :hook ((emacs-lisp-mode eval-expression-minibuffer-setup emacs-lisp-mode ielm-mode lisp-mode lisp-interaction-mode scheme-mode) . enable-paredit-mode))
-
-;; make sexps easier to distinguish
-(use-package rainbow-delimiters
-  :straight t
-  :hook ((emacs-lisp-mode eval-expression-minibuffer-setup emacs-lisp-mode ielm-mode lisp-mode lisp-interaction-mode scheme-mode) . rainbow-delimiters-mode))
-
-;; fancy icons
-(use-package all-the-icons
-  :straight t)
-
-;; epub reader
-(use-package nov
-  :straight t)
-
 ;; Settings
 ;;=========
 
-;; load .el files in /lisp
-(add-to-list 'load-path "~/.emacs.d/lisp")
-(require 'mode-line)
-
 (require 'uniquify)
-(ido-mode t)
 (setq uniquify-buffer-name-style 'forward
-      ido-enable-flex-matching t
       indent-tabs-mode nil
       mouse-yank-at-point t
       require-final-newline t
       inhibit-startup-screen t
       default-directory "~")
 ;;      setq find-file-visit-truename t)
+(setq-default tab-width 4)
+
+;; reenable disabled commands
+(put 'narrow-to-region 'disabled nil)
 
 ;; emacs appearance settings
 (menu-bar-mode -1)
@@ -198,6 +94,7 @@
 (add-to-list 'exec-path "/usr/local/bin")
 (add-to-list 'exec-path "/usr/local/sbin")
 (add-to-list 'exec-path "~/.dotfiles/bin")
+(add-to-list 'exec-path "~/.local/bin")
 (add-hook 'eshell-mode-hook '(lambda ()
 			       (eshell/addpath "/usr/local/bin"
 					       "/usr/local/sbin"
@@ -226,6 +123,141 @@
 ;; C++ mode
 ;; Set indenting settings
 (setq c-default-style "bsd" c-basic-offset 4)
+;; MHTML mode
+;; Set default HTML indentation to 4 spaces
+(add-hook 'html-mode-hook
+		  (lambda ()
+			(set (make-local-variable 'sgml-basic-offset) 4)))
+
+;; load .el files in .emacs.d//lisp
+(add-to-list 'load-path (concat user-emacs-directory "lisp"))
+(require 'mode-line)
+
+;; Straight.el package manager
+;;============================
+
+;; initialize straight.el
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+;; install packages
+(straight-use-package 'use-package)
+
+;; base16 themes for emacs
+(use-package base16-theme
+  :straight t
+  :init
+    (when (string-equal system-type 'darwin)
+      (setq ns-use-srgb-colorspace nil))
+  :config
+  (load-theme 'base16-dracula t))
+
+;; autocompletion
+(use-package company
+  :straight t
+  :init
+    (add-hook 'after-init-hook 'global-company-mode))
+
+;; check errors on the fly
+(use-package flycheck
+  :straight t
+  :init
+    (add-hook 'after-init-hook 'global-flycheck-mode))
+
+;; autocompletion for emacs commands
+(use-package ivy
+  :straight t
+  :config
+  (ivy-mode))
+
+;; ivy replacements for emacs commands
+(use-package counsel
+  :straight t
+  :config
+  (counsel-mode))
+
+;; git manager
+(use-package magit
+  :straight t)
+
+;; undo-tree
+(use-package undo-tree
+  :straight t)
+(global-undo-tree-mode)
+
+;; dash
+(use-package dash
+  :straight t)
+
+;; monitor
+(use-package monitor
+  :straight t)
+
+;; goto-chg
+(use-package goto-chg
+  :straight t)
+
+;; vim-like bindings for emacs
+(use-package evil
+  :straight t
+  :config
+  (evil-mode 1))
+
+;; vim motions without numbers
+(use-package evil-easymotion
+  :straight t)
+
+;; inline searching with the s key
+(use-package evil-snipe
+  :straight t
+  :config
+  (evil-snipe-mode +1)
+  (evil-snipe-override-mode +1))
+
+;; commenting with vim motions
+(use-package evil-commentary
+  :straight t
+  :config
+  (evil-commentary-mode))
+
+;; evil-integration for org-mode
+(use-package org-evil
+  :straight t)
+
+;; Fancy bullets in org-mode
+(use-package org-bullets
+  :straight t
+  :hook (org-mode . org-bullets-mode))
+
+;; smart managing of parentheses
+(use-package paredit
+  :straight t
+  :config
+  (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
+  :hook ((emacs-lisp-mode eval-expression-minibuffer-setup emacs-lisp-mode ielm-mode lisp-mode lisp-interaction-mode scheme-mode) . enable-paredit-mode))
+
+;; make sexps easier to distinguish
+(use-package rainbow-delimiters
+  :straight t
+  :hook ((emacs-lisp-mode eval-expression-minibuffer-setup emacs-lisp-mode ielm-mode lisp-mode lisp-interaction-mode scheme-mode) . rainbow-delimiters-mode))
+
+;; fancy icons
+(use-package all-the-icons
+  :straight t)
+
+;; epub reader
+(use-package nov
+  :straight t)
 
 ;; Keybindings
 ;;============
@@ -268,17 +300,3 @@
 
 ;; easymotion binding
 (evilem-default-keybindings "'")
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   (quote
-    ("b8929cff63ffc759e436b0f0575d15a8ad7658932f4b2c99415f3dde09b32e97" "99c86852decaeb0c6f51ce8bd46e4906a4f28ab4c5b201bdc3fdf85b24f88518" default))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(my/evil-normal ((t (:background "dodger blue" :foreground "white" :weight ultra-bold))) t))

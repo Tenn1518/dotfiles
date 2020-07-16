@@ -15,6 +15,7 @@
 ;; window taken from https://emacs.stackexchange.com/a/26345
 
 (require 'battery)
+(require 'cl-lib)
 
 (defvar tnml-selected-window nil)
 
@@ -65,8 +66,7 @@
     (propertize " OPERATOR "
 		'face '(:background "SeaGreen1"
 			:foreground "gray10"
-			:weight ultra-bold)))
-   ))
+			:weight ultra-bold)))))
 
 (defun tnml/writable-module ()
   "Returns a formatted string consisting of an icon representing the current buffer's status and its name"
@@ -88,6 +88,12 @@
 	  (propertize (concat " " (buffer-name) " ")
 		      'face '(:background "dark magenta"
 			      :foreground "white"))))
+
+(defun tnml/major-mode-module ()
+  (concat " "
+		  (let ((mode-string (symbol-name (symbol-value 'major-mode)))) 
+			(substring mode-string 0 (string-match "-mode$" mode-string)))
+		  " "))
                                                                                                                                                           
 (defun tnml/position-module ()
   "Returns a formatted string of percentage of where point is in buffer, line number, and column number"
@@ -96,11 +102,9 @@
 				      (* (/ (float (point))
 					    (point-max))
 					 100)))
-		      "%% L"
+		      "%% "
 		      (int-to-string (line-number-at-pos))
 		      ":"
-		      (int-to-string (line-number-at-pos (point-max)))
-		      " C"
 		      (int-to-string (current-column))
 		      " ")
 	      'face '(:background "gold3"
@@ -115,41 +119,48 @@
 		      (format-time-string "%I:%M %p "))
 	      'face '(:background "gray87"
 		      :foreground "gray20"
-		      :weight ultrabold)
-	      ))
+		      :weight ultrabold)))
 
-(defun tnml/format-string-left ()
-  "Concatenates the string output from multiple mode-line modules
-to be displayed on the right side of the modeline"
-  (concat (tnml/evil-module)
-	  (tnml/writable-module)))
+(defvar tnml/format-left
+  '((tnml/evil-module)
+	(tnml/writable-module)
+	""))
 
-(defun tnml/format-string-right ()
-  "Concatenates the string output from multiple mode-line modules
-to be displayed on the right side of the modeline"
-  (concat " "
-	  (let ((mode-string (symbol-name (symbol-value 'major-mode)))) 
-	    (substring mode-string 0 (string-match "-mode$" mode-string)))
-	  " "
-	  (tnml/position-module)
-          (if (eq tnml-selected-window (selected-window))
-	      (tnml/system-module)
-	    " ")))
+(defvar tnml/format-right
+  '((tnml/major-mode-module)
+	(tnml/position-module)
+	(if (eq tnml-selected-window (selected-window))
+		(tnml/system-module)
+	  " ")))
 
-(defun tnml/format-string (left right)
-  "Combines the output from LEFT string and RIGHT string while
-inserting enough spaces in the middle to completely fill the
-window-width"
+(defun tnml/format-string ()
+  (setq avail-chars (window-width))
+  (setq left "")
+  (setq right "")
+  (cl-mapcar '(lambda (l-str r-str)
+				(setq new-l-module (eval l-str))
+				(setq new-r-module (eval r-str))
+				(if (>= (- avail-chars
+						   (length new-l-module))
+						0)
+					(progn (setq left (concat left new-l-module))
+						   (setq avail-chars (- avail-chars (length new-l-module)))))
+				(if (>= (- avail-chars
+						   (length new-r-module))
+						0)
+					(progn (setq right (concat right new-r-module))
+						   (setq avail-chars (- avail-chars (length new-r-module))))))
+			 tnml/format-left
+			 tnml/format-right)
   (setq tnml/spaces (+ (- (window-width)
-			  (length left)
-			  (length right))
-		       1)) ;; TODO - find number of occurences of %%
+						  (length left)
+						  (length right))
+					   1)) ;; TODO - find number of occurences of %%
 			   ;; escape characters to add lost spaces
 	(concat left (make-string tnml/spaces ? ) right))
 
 (setq-default mode-line-format
-	      '(:eval (tnml/format-string (tnml/format-string-left)
-					  (tnml/format-string-right))))
+	      '(:eval (tnml/format-string)))
 
 (provide 'mode-line)
 
