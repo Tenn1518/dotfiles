@@ -3,7 +3,7 @@ export DOTFILES=$HOME/dotfiles
 export TERM="xterm-256color"
 
 # Add custom scripts from dotfiles repository
-export PATH=/usr/local/sbin:$DOTFILES/bin:$PATH
+export PATH=/usr/local/sbin:$DOTFILES/bin:$PATH:$HOME/.local/bin
 
 HISTFILE=~/.zsh-histfile
 HISTSIZE=500
