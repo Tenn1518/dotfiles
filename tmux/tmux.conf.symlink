@@ -52,8 +52,8 @@ unbind p
 set-option -g allow-rename off
 
 # Run powerline-daemon
-run-shell "powerline-daemon -q"
+# run-shell "powerline-daemon -q"
 
 # Use tmux-powerline for status bar
-source /usr/local/lib/python3.7/site-packages/powerline/bindings/tmux/powerline.conf
+# source /usr/local/lib/python3.7/site-packages/powerline/bindings/tmux/powerline.conf
 
