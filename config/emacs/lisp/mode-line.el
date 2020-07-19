@@ -1,5 +1,7 @@
-;;; mode-line.el -*- lexical-binding: t; -*-
+;;; mode-line.el --- a mode line more reminiscent of vim-airline -*- lexical-binding: t; -*-
 ;; 2020-7-6
+
+;;; Commentary:
 
 ;; structure of mode-line
 ;; evil-module for vi mode
@@ -13,6 +15,8 @@
 
 ;; code to discern whether mode line is being rendered on the active
 ;; window taken from https://emacs.stackexchange.com/a/26345
+
+;;; Code:
 
 (require 'battery)
 (require 'cl-lib)
@@ -30,7 +34,7 @@
 (add-hook 'buffer-list-update-hook 'tnml-update-all)
 
 (defun tnml/evil-module ()
-  "Returns the current evil-state"
+  "Returns the current evil-state."
   (cond
    ((string-equal evil-state 'normal)
     (propertize " NORMAL "
@@ -69,35 +73,39 @@
 			:weight ultra-bold)))))
 
 (defun tnml/writable-module ()
-  "Returns a formatted string consisting of an icon representing the current buffer's status and its name"
-  (mapcar (lambda (icon-pair)
+  "Return a formatted string consisting of an icon representing the current buffer's status and its name."
+  (mapc (lambda (icon-pair)
 	    (if (eval (car icon-pair))
-		(setq module-icon (cdr icon-pair))))
+			(setq module-icon (propertize (eval (cdr icon-pair))
+										  'face `(:family ,(all-the-icons-octicon-family)
+														  :height 1.0)
+										  'display '(raise -0.1)))))
 	  '((t . (all-the-icons-material "edit"))
 	    (buffer-read-only . (all-the-icons-material "lock"))
 	    ((buffer-modified-p) . (all-the-icons-material "save"))
 	    ((string-equal (symbol-name (symbol-value 'major-mode)) "eshell-mode") . (all-the-icons-alltheicon "terminal"))))
-  (concat (propertize " " 'face '(:background "dark magenta"
-				  :foreground "white"))
-	  (propertize (eval module-icon)
-		      'face `(:family ,(all-the-icons-octicon-family)
-		              :height 1.0
-		              :background "dark magenta"
-		              :foreground "white")
-		      'display '(raise -0.1))
-	  (propertize (concat " " (buffer-name) " ")
-		      'face '(:background "dark magenta"
-			      :foreground "white"))))
+
+  (setq unformatted-string (concat " "
+								   module-icon
+								   " " (buffer-name) " "))
+
+  (if (eq tnml-selected-window (selected-window))
+	  (propertize unformatted-string
+				   'face '(:background "dark magenta"
+									   :foreground "white"))
+	(propertize unformatted-string
+				'face 'mode-line-inactive)))
 
 (defun tnml/major-mode-module ()
+  "Return the current major mode without the '-mode' suffix."
   (concat " "
-		  (let ((mode-string (symbol-name (symbol-value 'major-mode)))) 
+		  (let ((mode-string (symbol-name (symbol-value 'major-mode))))
 			(substring mode-string 0 (string-match "-mode$" mode-string)))
 		  " "))
-                                                                                                                                                          
+
 (defun tnml/position-module ()
-  "Returns a formatted string of percentage of where point is in buffer, line number, and column number"
-  (propertize (concat " "
+  "Return a formatted string of percentage of where point is in buffer, line number, and column number."
+  (setq unf-str (concat " "
 		      (int-to-string (floor
 				      (* (/ (float (point))
 					    (point-max))
@@ -106,12 +114,14 @@
 		      (int-to-string (line-number-at-pos))
 		      ":"
 		      (int-to-string (current-column))
-		      " ")
-	      'face '(:background "gold3"
-		      :foreground "gray18")))
+		      " "))
+  (if (equal (selected-window) tnml-selected-window)
+	  (propertize unf-str 'face '(:background "gold3"
+											  :foreground "gray18"))
+	(propertize unf-str 'face 'mode-line-inactive)))
 
 (defun tnml/system-module ()
-  "Returns a formatted string of battery percentage and time"
+  "Return a formatted string of battery percentage and time."
   (propertize (concat " "
 		      (battery-format "%p"
 				      (funcall battery-status-function))
@@ -134,6 +144,7 @@
 	  " ")))
 
 (defun tnml/format-string ()
+  "Evaluate tnml/format-left and tnml/format-right, and add enough space in between to take up the entire window width."
   (setq avail-chars (window-width))
   (setq left "")
   (setq right "")
@@ -163,5 +174,4 @@
 	      '(:eval (tnml/format-string)))
 
 (provide 'mode-line)
-
 ;;; mode-line.el ends here
