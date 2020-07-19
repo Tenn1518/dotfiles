@@ -1,5 +1,15 @@
-;; init.el file
+;;; init.el --- my emacs config
 ;; 5-3-2020
+
+;;; Commentary:
+
+;; A handrolled Emacs config.
+;; TODO
+;;=====
+;; configure company, ivy, and flycheck more
+;; counsel-yank-pop
+
+;;; Code:
 
 ;; Settings
 ;;=========
@@ -37,7 +47,7 @@
 
 ;; Keep backups and autosaves in /tmp
 (setq backup-directory-alist
-      `((".*" . ,temporary-file-directory)))
+      `(("." . ,temporary-file-directory)))
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
 
@@ -47,10 +57,10 @@
 
 ;; eshell settings
 (defvar is-eterm-buffer nil
-  "If set to t, the function 'my/eshell-exit' will exit the current frame. Otherwise, it will run 'eshell/exit' and kill the current eshell buffer.")
+  "If set to t, the function 'my/eshell-exit' will exit the current frame.  Otherwise, it will run 'eshell/exit' and kill the current eshell buffer.")
 
 (defun my/eterm ()
-  "Opens separate frame specifically for eshell"
+  "Opens separate frame specifically for eshell."
   (interactive)
   (make-frame-command)
   (set-frame-size (selected-frame) 90 24)
@@ -61,19 +71,19 @@
   (select-frame-set-input-focus (selected-frame)))
 
 (defun my/eshell-exit ()
-  "Wrapper for eshell/exit that closes the frame if opened by my/eterm"
+  "Wrapper for eshell/exit that closes the frame if opened by my/eterm."
   (if is-eterm-buffer
       (delete-frame)
     (eshell/exit)))
 
 (defun my/system-name ()
-  "Returns system-name without a '.*' suffix"
+  "Return system-name without a '.*' suffix."
     (if (cl-search "." system-name)
 	(car (split-string system-name "\\."))
       (system-name)))
 
 (defun my/pwd ()
-  "Returns the last two or less directories of the current working directory"
+  "Return the last two or less directories of the current working directory."
   (let ((epwd (split-string (eshell/pwd) "/")))
     (if (<= (length epwd) 2)
 	(mapconcat 'identity epwd "/")
@@ -129,10 +139,6 @@
 		  (lambda ()
 			(set (make-local-variable 'sgml-basic-offset) 4)))
 
-;; load .el files in .emacs.d//lisp
-(add-to-list 'load-path (concat user-emacs-directory "lisp"))
-(require 'mode-line)
-
 ;; Straight.el package manager
 ;;============================
 
@@ -152,6 +158,15 @@
 
 ;; install packages
 (straight-use-package 'use-package)
+
+;; better, vim-like keybindings
+(use-package general
+  :straight t
+  :demand
+  :config
+  (general-create-definer tn/leader-def
+	:keymaps 'override
+	:prefix "SPC"))
 
 ;; base16 themes for emacs
 (use-package base16-theme
@@ -174,26 +189,56 @@
   :init
     (add-hook 'after-init-hook 'global-flycheck-mode))
 
+;; Language Server Protocol support
+(use-package lsp-mode
+  :straight t
+  :hook python-mode)
+
+;; UI for LSP
+(use-package lsp-ui
+  :straight t
+  :hook python-mode)
+
+;; python
+(use-package lsp-python-ms
+  :straight t
+  :after (lsp-mode)
+  :hook python-mode)
+
 ;; autocompletion for emacs commands
 (use-package ivy
   :straight t
+  :demand
   :config
-  (ivy-mode))
+  (setq ivy-re-builders-alist
+		'((swiper-isearch . ivy--regex-plus)
+		  (t . ivy--regex-fuzzy)))
+  (ivy-mode)
+  :general
+  (ivy-minibuffer-map
+   "C-j" 'ivy-next-line
+   "C-k" 'ivy-previous-line))
+
+;; ivy-like replacement for isearch
+(use-package swiper
+  :straight t
+  :demand
+  :after (ivy)
+  :general
+  (:states 'normal
+  "/" 'swiper-isearch))
 
 ;; ivy replacements for emacs commands
 (use-package counsel
   :straight t
+  :demand
+  :after (ivy)
   :config
-  (counsel-mode))
-
-;; git manager
-(use-package magit
-  :straight t)
-
-;; undo-tree
-(use-package undo-tree
-  :straight t)
-(global-undo-tree-mode)
+  (counsel-mode)
+  :general
+  (tn/leader-def
+	:keymaps 'normal
+	"p" 'counsel-yank-pop))
 
 ;; dash
 (use-package dash
@@ -210,16 +255,41 @@
 ;; vim-like bindings for emacs
 (use-package evil
   :straight t
+  :demand
+  :after (dash goto-chg general)
   :config
-  (evil-mode 1))
-
+  (evil-mode 1)
+  (general-evil-setup)
+  :general
+  (:state 'insert
+		  "j" (general-key-dispatch 'self-insert-command
+				:timeout 0.10
+				"k" 'evil-normal-state))
+  (general-unbind 'motion
+	"SPC")
+  (tn/leader-def
+	'(normal motion visual)
+	:keymaps 'override
+	"h" 'evil-window-left
+	"j" 'evil-window-down
+	"k" 'evil-window-up
+	"l" 'evil-window-right
+	"1" 'delete-other-windows
+	"2" 'split-window-below
+	"3" 'split-window-right
+	"0" 'delete-window))
+  
 ;; vim motions without numbers
 (use-package evil-easymotion
-  :straight t)
+  :straight t
+  :after (evil)
+  :config
+  (evilem-default-keybindings "'"))
 
 ;; inline searching with the s key
 (use-package evil-snipe
   :straight t
+  :after (evil)
   :config
   (evil-snipe-mode +1)
   (evil-snipe-override-mode +1))
@@ -227,23 +297,45 @@
 ;; commenting with vim motions
 (use-package evil-commentary
   :straight t
+  :after (evil)
   :config
   (evil-commentary-mode))
 
 ;; evil-integration for org-mode
 (use-package org-evil
+  :straight t
+  :after (evil org))
+
+;; better ivy?
+(use-package ivy-rich
+  :straight t
+  :after (ivy)
+  :config
+  (ivy-rich-mode 1))
+
+;; git manager
+(use-package magit
   :straight t)
+
+;; undo-tree
+(use-package undo-tree
+  :straight t
+  :config
+  (global-undo-tree-mode))
 
 ;; Fancy bullets in org-mode
 (use-package org-bullets
   :straight t
-  :hook (org-mode . org-bullets-mode))
+  :after (org)
+  :hook org-mode)
 
 ;; smart managing of parentheses
 (use-package paredit
   :straight t
-  :config
-  (autoload 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of Lisp code." t)
+  :after (org)
+  :commands enable-paredit-mode
+  ;;:config
+  ;;(autoload 'enable-paredit-mode "paredit" nil t)
   :hook ((emacs-lisp-mode eval-expression-minibuffer-setup emacs-lisp-mode ielm-mode lisp-mode lisp-interaction-mode scheme-mode) . enable-paredit-mode))
 
 ;; make sexps easier to distinguish
@@ -255,9 +347,52 @@
 (use-package all-the-icons
   :straight t)
 
+;; fancy icons for dired
+(use-package all-the-icons-dired
+  :straight t
+  :hook (dired-mode . all-the-icons-dired-mode)
+  :after (all-the-icons dired))
+
+;; dependence for dired-hacks-*
+(use-package dired-hacks-utils
+  :straight t
+  :after (dired))
+
+;; dired colors
+(use-package dired-rainbow
+  :straight t
+  :after (dired dired-hacks-utils)
+  :config
+  (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
+  (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html" "jhtm" "mht" "eml" "mustache" "xhtml"))
+  (dired-rainbow-define xml "#f2d024" ("xml" "xsd" "xsl" "xslt" "wsdl" "bib" "json" "msg" "pgn" "rss" "yaml" "yml" "rdata"))
+  (dired-rainbow-define document "#9561e2" ("docm" "doc" "docx" "odb" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub" "odp" "ppt" "pptx"))
+  (dired-rainbow-define markdown "#ffed4a" ("org" "etx" "info" "markdown" "md" "mkd" "nfo" "pod" "rst" "tex" "textfile" "txt"))
+  (dired-rainbow-define database "#6574cd" ("xlsx" "xls" "csv" "accdb" "db" "mdb" "sqlite" "nc"))
+  (dired-rainbow-define media "#de751f" ("mp3" "mp4" "MP3" "MP4" "avi" "mpeg" "mpg" "flv" "ogg" "mov" "mid" "midi" "wav" "aiff" "flac"))
+  (dired-rainbow-define image "#f66d9b" ("tiff" "tif" "cdr" "gif" "ico" "jpeg" "jpg" "png" "psd" "eps" "svg"))
+  (dired-rainbow-define log "#c17d11" ("log"))
+  (dired-rainbow-define shell "#f6993f" ("awk" "bash" "bat" "sed" "sh" "zsh" "vim"))
+  (dired-rainbow-define interpreted "#38c172" ("py" "ipynb" "rb" "pl" "t" "msql" "mysql" "pgsql" "sql" "r" "clj" "cljs" "scala" "js"))
+  (dired-rainbow-define compiled "#4dc0b5" ("asm" "cl" "lisp" "el" "c" "h" "c++" "h++" "hpp" "hxx" "m" "cc" "cs" "cp" "cpp" "go" "f" "for" "ftn" "f90" "f95" "f03" "f08" "s" "rs" "hi" "hs" "pyc" ".java"))
+  (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
+  (dired-rainbow-define compressed "#51d88a" ("7z" "zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
+  (dired-rainbow-define packaged "#faad63" ("deb" "rpm" "apk" "jad" "jar" "cab" "pak" "pk3" "vdf" "vpk" "bsp"))
+  (dired-rainbow-define encrypted "#ffed4a" ("gpg" "pgp" "asc" "bfe" "enc" "signature" "sig" "p12" "pem"))
+  (dired-rainbow-define fonts "#6cb2eb" ("afm" "fon" "fnt" "pfb" "pfm" "ttf" "otf"))
+  (dired-rainbow-define partition "#e3342f" ("dmg" "iso" "bin" "nrg" "qcow" "toast" "vcd" "vmdk" "bak"))
+  (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
+  (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
+
 ;; epub reader
 (use-package nov
   :straight t)
+
+;; my modeline
+(use-package mode-line
+  :straight nil
+  :load-path "lisp"
+  :after (all-the-icons))
 
 ;; Keybindings
 ;;============
@@ -279,24 +414,4 @@
 ;; use ibuffer to list buffers
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
-;; evil bindings
-;; Type 'jk' to exit insert mode
-(defun my-jk ()
-  "When j is typed in evil insert mode, wait 0.5 seconds for a k before switching to normal mode"
-  (interactive)
-  (let* ((initial-key ?j)
-         (final-key ?k)
-         (timeout 0.5)
-         (event (read-event nil nil timeout)))
-    (if event
-        ;; timeout met
-        (if (and (characterp event) (= event final-key))
-            (evil-normal-state)
-          (insert initial-key)
-          (push event unread-command-events))
-      ;; timeout exceeded
-      (insert initial-key))))
-(evil-define-key '(insert) 'global "j" 'my-jk)
-
-;; easymotion binding
-(evilem-default-keybindings "'")
+;;; init.el ends here
