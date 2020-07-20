@@ -3,11 +3,7 @@
 
 ;;; Commentary:
 
-;; A handrolled Emacs config.
-;; TODO
-;;=====
-;; configure company, ivy, and flycheck more
-;; counsel-yank-pop
+;; A personal Emacs config.
 
 ;;; Code:
 
@@ -17,7 +13,6 @@
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'forward
       indent-tabs-mode nil
-      mouse-yank-at-point t
       require-final-newline t
       inhibit-startup-screen t
       default-directory "~")
@@ -76,17 +71,15 @@
       (delete-frame)
     (eshell/exit)))
 
-(defun my/system-name ()
-  "Return system-name without a '.*' suffix."
-    (if (cl-search "." system-name)
-	(car (split-string system-name "\\."))
-      (system-name)))
-
 (defun my/pwd ()
   "Return the last two or less directories of the current working directory."
-  (let ((epwd (split-string (eshell/pwd) "/")))
-    (if (<= (length epwd) 2)
-	(mapconcat 'identity epwd "/")
+  (let ((epwd (split-string (eshell/pwd)
+							"/"))
+		(home (getenv "HOME")))
+	(if )
+    (if (<= (length epwd)
+			2)
+		(mapconcat 'identity epwd "/")
       (mapconcat 'identity (last epwd 2) "/"))))
 
 (setq eshell-prompt-function
@@ -94,7 +87,7 @@
         (concat
          (propertize (user-login-name) 'face '(:foreground "CadetBlue1"))
          (propertize "@" 'face '(:foreground "white"))
-         (propertize (my/system-name) 'face '(:foreground "MediumPurple1"))
+         (propertize (system-name) 'face '(:foreground "MediumPurple1"))
          " "
          (propertize (my/pwd) 'face '(:foreground "SpringGreen1"))
          " λ "))
@@ -111,21 +104,6 @@
 					       "~/.dotfiles/bin")
 			       (set-window-margins nil 1)
 			       (display-line-numbers-mode 0)))
-
-;; Org-mode settings
-;; Indent headings in org files
-(setq org-startup-indented t)
-;; Set image width
-(setq org-image-actual-width nil)
-;; Set font in Org buffers
-(add-hook 'org-mode-hook (lambda ()
-                            (setq buffer-face-mode-face '(:family "Iosevka Aile Medium"))
-                            (buffer-face-mode)))
-;; Turn off line numbers
-(add-hook 'org-mode-hook (lambda ()
-                           (display-line-numbers-mode 0)))
-;; Set visual-line-mode
-(add-hook 'org-mode-hook 'visual-line-mode)
 
 ;; Python mode
 ;; Set default Python shell to python3
@@ -215,7 +193,7 @@
 		  (t . ivy--regex-fuzzy)))
   (ivy-mode)
   :general
-  (ivy-minibuffer-map
+  (:keymaps '(ivy-minibuffer-map override)
    "C-j" 'ivy-next-line
    "C-k" 'ivy-previous-line))
 
@@ -301,6 +279,19 @@
   :config
   (evil-commentary-mode))
 
+;; org-mode
+(use-package org
+  :straight t
+  :config
+  (setq org-startup-indented t
+		org-image-actual-width nil
+		org-M-RET-may-split-line nil)
+  :hook (org-mode-hook . (lambda ()
+						   (buffer-face-mode)
+						   (setq buffer-face-mode-face '(:family "Iosevka Aile Medium"))
+						   (display-line-numbers-mode 0)
+						   (visual-line-mode))))
+
 ;; evil-integration for org-mode
 (use-package org-evil
   :straight t
@@ -384,6 +375,13 @@
   (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
   (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
 
+;; indenting guide
+(use-package highlight-indent-guides
+  :straight t
+  :hook (prog-mode . highlight-indent-guides-mode)
+  :config
+  (setq highlight-indent-guides-method 'character))
+
 ;; epub reader
 (use-package nov
   :straight t)
@@ -391,6 +389,7 @@
 ;; my modeline
 (use-package mode-line
   :straight nil
+  :demand
   :load-path "lisp"
   :after (all-the-icons))
 
@@ -400,14 +399,6 @@
 ;; set right command to control on macOS
 (when (eq system-type 'darwin)
   (setq mac-right-command-modifier 'control))
-
-;; open init.el in a new window on the right
-(global-set-key (kbd "C-c i") (lambda ()
-                                  "Opens init.el in a new window on the right"
-                                  (interactive)
-                                  (split-window-right)
-                                  (other-window 1)
-                                  (find-file '"~/.config/emacs/init.el")))
 
 ;; open an eshell instance in a new frame, mimicking a standard terminal
 (global-set-key (kbd "C-c t") 'my/eterm)
