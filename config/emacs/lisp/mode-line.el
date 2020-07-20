@@ -24,9 +24,11 @@
 (defvar tnml-selected-window nil)
 
 (defun tnml-record-selected-window ()
+  "Record current window in variable."
   (setq tnml-selected-window (selected-window)))
 
 (defun tnml-update-all ()
+  "Force mode line update."
   (force-mode-line-update t))
 
 (add-hook 'post-command-hook 'tnml-record-selected-window)
@@ -34,7 +36,7 @@
 (add-hook 'buffer-list-update-hook 'tnml-update-all)
 
 (defun tnml/evil-module ()
-  "Returns the current evil-state."
+  "Return current evil-state."
   (cond
    ((string-equal evil-state 'normal)
     (propertize " NORMAL "
@@ -74,47 +76,59 @@
 
 (defun tnml/writable-module ()
   "Return a formatted string consisting of an icon representing the current buffer's status and its name."
+  ;; If the condition of the alist item is true, set writable-module icon
+  ;; Conditions get more specific lower in the alist
   (mapc (lambda (icon-pair)
 	    (if (eval (car icon-pair))
 			(setq module-icon (propertize (eval (cdr icon-pair))
 										  'face `(:family ,(all-the-icons-octicon-family)
-														  :height 1.0)
+												  :height 1.0)
 										  'display '(raise -0.1)))))
 	  '((t . (all-the-icons-material "edit"))
+		((derived-mode-p 'prog-mode) . (all-the-icons-octicon "code"))
 	    (buffer-read-only . (all-the-icons-material "lock"))
 	    ((buffer-modified-p) . (all-the-icons-material "save"))
-	    ((string-equal (symbol-name (symbol-value 'major-mode)) "eshell-mode") . (all-the-icons-alltheicon "terminal"))))
-
-  (setq unformatted-string (concat " "
-								   module-icon
-								   " " (buffer-name) " "))
-
+	    ((derived-mode-p 'eshell-mode) . (all-the-icons-alltheicon "terminal"))))
+  (setq unf-str (format " %s %s "
+						module-icon
+						(buffer-name)))
   (if (eq tnml-selected-window (selected-window))
-	  (propertize unformatted-string
+	  (propertize unf-str
 				   'face '(:background "dark magenta"
 									   :foreground "white"))
-	(propertize unformatted-string
+	(propertize unf-str
 				'face 'mode-line-inactive)))
 
 (defun tnml/major-mode-module ()
   "Return the current major mode without the '-mode' suffix."
-  (concat " "
+  (format " %s "
 		  (let ((mode-string (symbol-name (symbol-value 'major-mode))))
-			(substring mode-string 0 (string-match "-mode$" mode-string)))
-		  " "))
+			(substring mode-string
+					   0
+					   (string-match "-mode$"
+									 mode-string)))))
 
 (defun tnml/position-module ()
   "Return a formatted string of percentage of where point is in buffer, line number, and column number."
-  (setq unf-str (concat " "
-		      (int-to-string (floor
-				      (* (/ (float (point))
-					    (point-max))
-					 100)))
-		      "%% "
-		      (int-to-string (line-number-at-pos))
-		      ":"
-		      (int-to-string (current-column))
-		      " "))
+  (setq unf-str (format " %s%%%% %s:%s "
+						(floor (* (/ (float (point))
+									 (point-max))
+								  100))
+						(line-number-at-pos)
+						(int-to-string (current-column))))
+  (if (equal (selected-window) tnml-selected-window)
+	  (propertize unf-str 'face '(:background "gold3"
+											  :foreground "gray18"))
+	(propertize unf-str 'face 'mode-line-inactive)))
+
+(defun tnml/position-module ()
+  "Return a formatted string of percentage of where point is in buffer, line number, and column number."
+  (setq unf-str (format " %s%%%% %s:%s "
+						(floor (* (/ (float (point))
+									 (point-max))
+								  100))
+						(line-number-at-pos)
+						(int-to-string (current-column))))
   (if (equal (selected-window) tnml-selected-window)
 	  (propertize unf-str 'face '(:background "gold3"
 											  :foreground "gray18"))
@@ -122,14 +136,13 @@
 
 (defun tnml/system-module ()
   "Return a formatted string of battery percentage and time."
-  (propertize (concat " "
-		      (battery-format "%p"
-				      (funcall battery-status-function))
-		      "%% "
-		      (format-time-string "%I:%M %p "))
-	      'face '(:background "gray87"
-		      :foreground "gray20"
-		      :weight ultrabold)))
+  (propertize (format " %s%%%% %s "
+					  (battery-format "%p"
+									  (funcall battery-status-function))
+					  (format-time-string "%I:%M %p")) 
+			  'face '(:background "gray87"
+					  :foreground "gray20"
+					  :weight ultrabold)))
 
 (defvar tnml/format-left
   '((tnml/evil-module)
