@@ -2,6 +2,8 @@
 .#*
 *~
 plugged
+plug.vim
+plug.vim.old
 *.DS_Store
 config/emacs/straight/
 config/emacs/eshell/history

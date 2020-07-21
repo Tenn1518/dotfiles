@@ -9,7 +9,7 @@ HISTFILE=~/.zsh-histfile
 HISTSIZE=500
 SAVEHIST=500
 bindkey -v
-zstyle :compinstall filename '/home/tnazmee/.zshrc'
+zstyle :compinstall filename '$HOME/.zshrc'
 autoload -Uz compinit
 compinit
 autoload -U promptinit
@@ -24,7 +24,7 @@ export EDITOR="emacsclient -t"
 export VISUAL="emacsclient -c -a ''"
 
 # Set XDG_CONFIG_HOME variable
-export XDG_CONFIG_HOME="/Users/$USER/.config"
+export XDG_CONFIG_HOME="$HOME/.config"
 
 # Antigen
 source ~/.antigen/antigen.zsh
