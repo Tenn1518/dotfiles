@@ -3,13 +3,11 @@
 
 ;;; Commentary:
 
-;; A personal Emacs config.
+;; A personal Emacs config.  Slower than Doom Emacs on startup, but only by a few seconds.
 
 ;;; Code:
 
 ;; Settings
-;;=========
-
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'forward
       indent-tabs-mode nil
@@ -98,12 +96,13 @@
 (add-to-list 'exec-path "/usr/local/sbin")
 (add-to-list 'exec-path "~/.dotfiles/bin")
 (add-to-list 'exec-path "~/.local/bin")
+(setenv "PAGER" "cat")
 (add-hook 'eshell-mode-hook '(lambda ()
-			       (eshell/addpath "/usr/local/bin"
-					       "/usr/local/sbin"
-					       "~/.dotfiles/bin")
-			       (set-window-margins nil 1)
-			       (display-line-numbers-mode 0)))
+							   (eshell/addpath "/usr/local/bin"
+											   "/usr/local/sbin"
+											   "~/.dotfiles/bin")
+							   (set-window-margins nil 1)
+							   (display-line-numbers-mode 0)))
 
 ;; Python mode
 ;; Set default Python shell to python3
@@ -286,10 +285,11 @@
   (setq org-startup-indented t
 		org-image-actual-width nil
 		org-M-RET-may-split-line nil)
-  :hook (org-mode-hook . (lambda ()
+  :hook (org-mode . (lambda ()
 						   (buffer-face-mode)
 						   (setq buffer-face-mode-face '(:family "Iosevka Aile Medium"))
 						   (display-line-numbers-mode 0)
+						   (set-window-margins nil 1)
 						   (visual-line-mode))))
 
 ;; evil-integration for org-mode
@@ -318,7 +318,7 @@
 (use-package org-bullets
   :straight t
   :after (org)
-  :hook org-mode)
+  :hook (org-mode . org-bullets-mode))
 
 ;; smart managing of parentheses
 (use-package paredit
