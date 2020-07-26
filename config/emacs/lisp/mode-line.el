@@ -76,22 +76,15 @@
 
 (defun tnml/writable-module ()
   "Return a formatted string consisting of an icon representing the current buffer's status and its name."
-  ;; If the condition of the alist item is true, set writable-module icon
-  ;; Conditions get more specific lower in the alist
-  (mapc (lambda (icon-pair)
-	    (if (eval (car icon-pair))
-			(setq module-icon (propertize (eval (cdr icon-pair))
-										  'face `(:family ,(all-the-icons-octicon-family)
-												  :height 1.0)
-										  'display '(raise -0.1)))))
-	  '((t . (all-the-icons-material "edit"))
-		((derived-mode-p 'prog-mode) . (all-the-icons-octicon "code"))
-	    (buffer-read-only . (all-the-icons-material "lock"))
-	    ((buffer-modified-p) . (all-the-icons-material "save"))
-	    ((derived-mode-p 'eshell-mode) . (all-the-icons-alltheicon "terminal"))))
-  (setq unf-str (format " %s %s "
-						module-icon
-						(buffer-name)))
+  (setq unf-str (format
+				 " %s %s "
+				 (cond
+				  ((derived-mode-p 'eshell-mode) (all-the-icons-alltheicon "terminal" :height 1.0 :v-adjust 0.0))
+				  ((buffer-modified-p) (all-the-icons-material "save" :height 1.0 :v-adjust 0.0))
+				  (buffer-read-only (all-the-icons-material "lock" :height 1.0 :v-adjust 0.0))
+				  ((derived-mode-p 'prog-mode) (all-the-icons-octicon "code" :height 1.0 :v-adjust 0.0))
+				  (t (all-the-icons-material "edit" :height 1.0 :v-adjust 0.0)))
+				 (buffer-name)))
   (if (eq tnml-selected-window (selected-window))
 	  (propertize unf-str
 				   'face '(:background "dark magenta"
