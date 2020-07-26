@@ -3,18 +3,38 @@
 
 ;;; Commentary:
 
-;; A personal Emacs config.  Slower than Doom Emacs on startup, but only by a few seconds.
+;; A personal Emacs config.
 
 ;;; Code:
 
 ;; Settings
-(require 'uniquify)
-(setq uniquify-buffer-name-style 'forward
+
+;; disable garbage collection until after init
+(setq gc-cons-threshold-original gc-cons-threshold
+	  gc-cons-threshold (* 1024 1024 100)
+	  uniquify-buffer-name-style 'forward
       indent-tabs-mode nil
       require-final-newline t
       inhibit-startup-screen t
+	  frame-inhibit-implied-resize t
+	  backup-directory-alist `(("." . ,temporary-file-directory))
+	  auto-save-file-name-transforms `((".*" ,temporary-file-directory t))
       default-directory "~")
-;;      setq find-file-visit-truename t)
+
+;; Font settings
+(add-to-list 'default-frame-alist '(font . "Iosevka Medium-12"))
+(set-face-attribute 'default nil :family "Iosevka Medium" :height 120)
+(set-face-attribute 'fixed-pitch nil :family "Iosevka Medium" :height 120)
+(set-face-attribute 'variable-pitch nil :family "Iosevka Aile Medium" :height 120)
+;; modeline
+(set-face-attribute 'mode-line nil :family "Iosevka Medium")
+
+;; variable pitch in text-mode buffers
+(add-hook 'text-mode-hook 'variable-pitch-mode)
+;; frame size
+(set-frame-size (selected-frame) 80 35)
+
+(require 'uniquify)
 (setq-default tab-width 4)
 
 ;; reenable disabled commands
@@ -31,18 +51,15 @@
 ;; line numbers
 (global-display-line-numbers-mode 1)
 ;; Turn off unbroken single line wrap indicators
-(fringe-mode '(0 . 0))
+(fringe-mode '(1 . 1))
 ;; highlight current line
 (global-hl-line-mode)
+;; set right command to control on macOS
+(when (eq system-type 'darwin)
+  (setq mac-right-command-modifier 'control))
 
-;; Font settings
-(add-to-list 'default-frame-alist '(font . "Iosevka Medium-12"))
-
-;; Keep backups and autosaves in /tmp
-(setq backup-directory-alist
-      `(("." . ,temporary-file-directory)))
-(setq auto-save-file-name-transforms
-      `((".*" ,temporary-file-directory t)))
+;; use ibuffer to list buffers
+(global-set-key (kbd "C-x C-b") 'ibuffer)
 
 ;; GPG encryption
 (when (string-equal system-type 'darwin)
@@ -74,7 +91,6 @@
   (let ((epwd (split-string (eshell/pwd)
 							"/"))
 		(home (getenv "HOME")))
-	(if )
     (if (<= (length epwd)
 			2)
 		(mapconcat 'identity epwd "/")
@@ -116,6 +132,10 @@
 		  (lambda ()
 			(set (make-local-variable 'sgml-basic-offset) 4)))
 
+;; youtube-dl
+(defun tn/ytdl (url)
+  "Call youtube-dl with argument URL and opens folder of files in wdired-mode.")
+
 ;; Straight.el package manager
 ;;============================
 
@@ -141,7 +161,10 @@
   :straight t
   :demand
   :config
+  (general-unbind '(normal visual motion)
+				  "SPC")
   (general-create-definer tn/leader-def
+	:states '(normal motion)
 	:keymaps 'override
 	:prefix "SPC"))
 
@@ -157,8 +180,12 @@
 ;; autocompletion
 (use-package company
   :straight t
-  :init
-    (add-hook 'after-init-hook 'global-company-mode))
+  :hook (after-init . global-company-mode))
+
+;; better ui for autocompletion
+(use-package company-box
+  :straight t
+  :hook (company-mode . company-box-mode))
 
 ;; check errors on the fly
 (use-package flycheck
@@ -169,32 +196,51 @@
 ;; Language Server Protocol support
 (use-package lsp-mode
   :straight t
-  :hook python-mode)
+  :hook
+  (python-mode . lsp)
+  (mhtml-mode . lsp))
 
 ;; UI for LSP
 (use-package lsp-ui
   :straight t
-  :hook python-mode)
+  :after (lsp-mode)
+  :custom
+  (lsp-ui-doc-position 'bottom)
+  (lsp-ui-imenu-window-width 35)
+  (lsp-ui-sideline-delay 2)
+  (lsp-ui-sideline-show-diagnostics nil)
+  :config
+  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+  :hook (lsp-mode . lsp-ui-mode))
 
 ;; python
 (use-package lsp-python-ms
   :straight t
-  :after (lsp-mode)
-  :hook python-mode)
+  :after (lsp-mode))
 
 ;; autocompletion for emacs commands
 (use-package ivy
   :straight t
   :demand
+  :custom
+  (ivy-re-builders-alist
+   '((swiper-isearch . ivy--regex-plus)
+	 (t . ivy--regex-fuzzy)))
   :config
-  (setq ivy-re-builders-alist
-		'((swiper-isearch . ivy--regex-plus)
-		  (t . ivy--regex-fuzzy)))
   (ivy-mode)
   :general
-  (:keymaps '(ivy-minibuffer-map override)
+  (:states '(normal insert)
+   :keymaps '(override ivy-minibuffer-map)
    "C-j" 'ivy-next-line
    "C-k" 'ivy-previous-line))
+
+;; better ivy?
+(use-package ivy-rich
+  :straight t
+  :after (ivy)
+  :config
+  (ivy-rich-mode 1))
 
 ;; ivy-like replacement for isearch
 (use-package swiper
@@ -213,9 +259,8 @@
   :config
   (counsel-mode)
   :general
-  (tn/leader-def
-	:keymaps 'normal
-	"p" 'counsel-yank-pop))
+  ('normal
+	"C-p" 'counsel-yank-pop))
 
 ;; dash
 (use-package dash
@@ -234,19 +279,17 @@
   :straight t
   :demand
   :after (dash goto-chg general)
+  :init
+  (setq evil-want-keybinding nil)
   :config
   (evil-mode 1)
   (general-evil-setup)
   :general
   (:state 'insert
 		  "j" (general-key-dispatch 'self-insert-command
-				:timeout 0.10
+				:timeout 0.15
 				"k" 'evil-normal-state))
-  (general-unbind 'motion
-	"SPC")
   (tn/leader-def
-	'(normal motion visual)
-	:keymaps 'override
 	"h" 'evil-window-left
 	"j" 'evil-window-down
 	"k" 'evil-window-up
@@ -255,7 +298,15 @@
 	"2" 'split-window-below
 	"3" 'split-window-right
 	"0" 'delete-window))
-  
+
+(use-package evil-collection
+  :straight t
+  :after evil
+  :custom
+  (evil-collection-setup-minibuffer t)
+  (evil-collection-company-use-tng nil)
+  :init (evil-collection-init))
+
 ;; vim motions without numbers
 (use-package evil-easymotion
   :straight t
@@ -278,16 +329,25 @@
   :config
   (evil-commentary-mode))
 
+;; mix variable- and fixed-width fonts when editing both text and code
+(use-package mixed-pitch
+  :straight t
+  :hook
+  (text-mode . mixed-pitch-mode))
+
 ;; org-mode
 (use-package org
   :straight t
-  :config
-  (setq org-startup-indented t
-		org-image-actual-width nil
-		org-M-RET-may-split-line nil)
+  :custom
+  (org-startup-indented t)
+  (org-startup-with-inline-images t)
+  (org-image-actual-width nil)
+  (org-M-RET-may-split-line nil)
+  (org-indent-indentation-per-level 1)
+  (org-adapt-indentation nil)
+  (org-hide-emphasis-markers t)
   :hook (org-mode . (lambda ()
 						   (buffer-face-mode)
-						   (setq buffer-face-mode-face '(:family "Iosevka Aile Medium"))
 						   (display-line-numbers-mode 0)
 						   (set-window-margins nil 1)
 						   (visual-line-mode))))
@@ -295,17 +355,23 @@
 ;; evil-integration for org-mode
 (use-package org-evil
   :straight t
-  :after (evil org))
+  :after (evil org evil-collection))
 
-;; better ivy?
-(use-package ivy-rich
+;; Fancy bullets in org-mode
+(use-package org-bullets
   :straight t
-  :after (ivy)
-  :config
-  (ivy-rich-mode 1))
+  :after (org)
+  :hook (org-mode . org-bullets-mode))
 
 ;; git manager
 (use-package magit
+  :straight t
+  :general
+  (tn/leader-def
+	"g" 'magit))
+
+;; evil integration for magit
+(use-package evil-magit
   :straight t)
 
 ;; undo-tree
@@ -314,11 +380,21 @@
   :config
   (global-undo-tree-mode))
 
-;; Fancy bullets in org-mode
-(use-package org-bullets
+;; project manager
+(use-package projectile
   :straight t
-  :after (org)
-  :hook (org-mode . org-bullets-mode))
+  :config
+  (projectile-mode)
+  :custom
+  (projectile-project-search-path '("~/Code/"))
+  :general
+  (tn/leader-def
+	:keymaps '(override projectile-mode-map)
+	"p" 'projectile-command-map))
+
+;; counsel integration for projectile
+(use-package counsel-projectile
+  :straight t)
 
 ;; smart managing of parentheses
 (use-package paredit
@@ -341,7 +417,8 @@
 ;; fancy icons for dired
 (use-package all-the-icons-dired
   :straight t
-  :hook (dired-mode . all-the-icons-dired-mode)
+  :hook (dired-mode . (lambda () (all-the-icons-dired-mode 1)))
+  (wdired-mode . (lambda () (all-the-icons-dired-mode 0)))
   :after (all-the-icons dired))
 
 ;; dependence for dired-hacks-*
@@ -386,6 +463,12 @@
 (use-package nov
   :straight t)
 
+;; features for editing common lisp
+(use-package slime
+  :straight t
+  :config
+  (setq inferior-lisp-program "sbcl"))
+
 ;; my modeline
 (use-package mode-line
   :straight nil
@@ -393,16 +476,46 @@
   :load-path "lisp"
   :after (all-the-icons))
 
-;; Keybindings
-;;============
+;; dashboard
+(use-package dashboard
+  :straight t
+  :demand
+  :config
+  (dashboard-setup-startup-hook)
+  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*"))
+		dashboard-center-content t
+		dashboard-banner-logo-title "Tanzeem's Emacs"
+		dashboard-startup-banner 'logo
+		dashboard-set-heading-icons t
+		dashboard-set-file-icons t
+		dashboard-set-navigator t
+		dashboard-footer-messages '("I showed you my source code, pls respond"
+									"epic gamer moment")
+		dashboard-footer-icon (all-the-icons-fileicon "emacs"
+													  :height 1.0
+													  :v-adjust -0.05
+													  :face 'font-lock-keyword-face)
 
-;; set right command to control on macOS
-(when (eq system-type 'darwin)
-  (setq mac-right-command-modifier 'control))
+		dashboard-navigator-buttons
+		`(;; line 1
+		  ((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
+			"Github"
+			"Open https://github.com/Tenn1518"
+			(lambda (&rest _) (browse-url "https://github.com/Tenn1518"))
+			))
+		  ;; line 2
+		  ((,(all-the-icons-fileicon "elisp" :height 1.0 :v-adjust 0.0)
+			"init.el"
+			,(format "Open %s" user-init-file)
+			(lambda (&rest _) (find-file user-init-file))
+			))
+		  )))
 
-;; open an eshell instance in a new frame, mimicking a standard terminal
-(global-set-key (kbd "C-c t") 'my/eterm)
-;; use ibuffer to list buffers
-(global-set-key (kbd "C-x C-b") 'ibuffer)
+;; reenable garbage collection during idle
+(run-with-idle-timer
+ 5 nil
+ (lambda ()
+   (setq gc-cons-threshold gc-cons-threshold-original)
+   (makunbound 'gc-cons-threshold-original)))
 
 ;;; init.el ends here
