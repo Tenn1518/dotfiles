@@ -19,3 +19,8 @@ config/emacs/transient/
 config/emacs/nov-places/
 config/emacs/requests/
 config/emacs/tramp/
+.cache
+/config/emacs/.lsp-session-v1
+/config/emacs/projectile-bookmarks.eld
+/config/emacs/recentf
+/config/emacs/tramp
