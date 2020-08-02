@@ -1,0 +1,45 @@
+* {
+    font-family: Iosevka;
+    font-size: 16px;
+    background-color: #282a36;
+    color: #f8f8f2;
+}
+
+#workspaces button {
+    padding: 0 10px;
+}
+
+#workspaces button.focused {
+    border-bottom: 3px solid #bd93f9;
+}
+
+#clock,
+#battery,
+#cpu,
+#memory,
+#temperature,
+#backlight,
+#network,
+#pulseaudio,
+#custom-media,
+#tray,
+#mode,
+#idle_inhibitor,
+#mpd {
+    padding: 0 10px;
+    margin: 0 4px;
+}
+
+#network {
+    background-color: #bd93f9;
+    color: #282a36;
+}
+
+#battery {
+    background-color: #8be9fd;
+    color: #282a36;
+}
+#clock {
+    background-color: #f8f8f2;
+    color: #282a36;
+}
