@@ -1,16 +1,24 @@
-* {
-    font-family: Iosevka;
-    font-size: 14px;
+window#waybar {
+    font-family: Iosevka, Monospace;
+    font-size: 16px;
     background-color: #282a36;
-    color: #f8f8f2;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+window > box {
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 #workspaces button {
     padding: 0 6px;
+    border-radius: 0px;
 }
 
 #workspaces button.focused {
-    border-bottom: 3px solid #bd93f9;
+    background-color: #bd93f9;
+    color: #282a36;
 }
 
 #clock,
@@ -27,21 +35,25 @@
 #idle_inhibitor,
 #mpd {
     padding: 0 6;
-    padding-left: 10px;
-    padding-right: 10px;
-    margin-left: 16px;
+    margin-left: 10px;
+}
+
+#pulseaudio {
+    color: #f1fa8c;
+    border-bottom: 2px solid #f1fa8c;
 }
 
 #network {
-    background-color: #bd93f9;
-    color: #282a36;
+    color: #8be9fd;
+    border-bottom: 2px solid #8be9fd;
 }
 
 #battery {
-    background-color: #8be9fd;
-    color: #282a36;
+    color: #ff79c6;
+    border-bottom: 2px solid #ff79c6;
 }
+
 #clock {
-    background-color: #f8f8f2;
-    color: #282a36;
+    color: #bd93f9;
+    border-bottom: 2px solid #bd93f9;
 }

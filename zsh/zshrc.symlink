@@ -2,19 +2,6 @@ export DOTFILES=$HOME/.dotfiles
 
 export TERM="xterm-256color"
 
-# Add custom scripts from dotfiles repository
-export PATH=/usr/local/sbin:$DOTFILES/bin:$PATH:$HOME/.local/bin
-
-HISTFILE=~/.zsh-histfile
-HISTSIZE=500
-SAVEHIST=500
-bindkey -v
-zstyle :compinstall filename '$HOME/.zshrc'
-autoload -Uz compinit
-compinit
-autoload -U promptinit
-promptinit
-
 # Export BROWSER variable for default browser
 export BROWSER=firefox
 
@@ -25,6 +12,24 @@ export VISUAL="emacsclient -c -a ''"
 
 # Set XDG_CONFIG_HOME variable
 export XDG_CONFIG_HOME="$HOME/.config"
+# Spicetify
+export SPICETIFY_INSTALL="/home/tnazmee/.opt/spicetify-cli"
+# Add custom scripts from dotfiles repository
+export PATH=$SPICETIFY_INSTALL:/usr/local/sbin:$DOTFILES/bin:$PATH:$HOME/.local/bin
+
+# C header file export
+export LD_LIBRARY_PATH=/usr/local/lib
+export C_INCLUDE_PATH=/usr/local/include
+
+HISTFILE=~/.zsh-histfile
+HISTSIZE=500
+SAVEHIST=500
+bindkey -v
+zstyle :compinstall filename '$HOME/.zshrc'
+autoload -Uz compinit
+compinit
+autoload -U promptinit
+promptinit
 
 # Antigen
 source ~/.antigen/antigen.zsh
@@ -42,7 +47,7 @@ antigen bundle zsh-users/zsh-syntax-highlighting
 antigen apply
 
 # Set zsh prompt
-PS1="%F{6}%n%F{7}@%F{4}%m %F{2}%2~ %F{7}$ "
+PS1="%F{4}%n%F{7}@%F{5}%m %F{2}%2~ %F{7}$ "
 
 ## Aliases
 

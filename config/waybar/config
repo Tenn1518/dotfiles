@@ -1,6 +1,6 @@
 {
     "layer": "bottom",
-    "height": 20,
+    "height": 30,
     "modules-left": ["sway/workspaces", "sway/mode"],
     "modules-center": ["sway/window"],
     "modules-right": ["pulseaudio", "network", "battery", "clock"],
@@ -9,11 +9,13 @@
         "disable-scroll": true,
         "persistent_workspaces": {
             "1": [],
-            "2": []
+            "2": [],
+            "3": []
         },
         "format-icons": {
             "1": "",
-            "2": ""
+            "2": "<span font_desc='file-icons'></span>",
+            "3": "<span font_desc='file-icons'></span>"
         },
         "format": "{icon}"
     },
