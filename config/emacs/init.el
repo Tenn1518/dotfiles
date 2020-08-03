@@ -13,21 +13,29 @@
 (setq gc-cons-threshold-original gc-cons-threshold
 	  gc-cons-threshold (* 1024 1024 100)
 	  uniquify-buffer-name-style 'forward
-      indent-tabs-mode nil
       require-final-newline t
       inhibit-startup-screen t
 	  frame-inhibit-implied-resize t
 	  backup-directory-alist `(("." . ,temporary-file-directory))
 	  auto-save-file-name-transforms `((".*" ,temporary-file-directory t))
-      default-directory "~")
+      default-directory "~"
+      frame-title-format "%b")
+
+(set-frame-parameter nil 'internal-border-width 10)
+(fringe-mode nil)
+
+(setq-default indent-tabs-mode nil
+              tab-width 4)
 
 ;; Font settings
 (add-to-list 'default-frame-alist '(font . "Iosevka Medium-12"))
-(set-face-attribute 'default nil :family "Iosevka Medium" :height 120)
-(set-face-attribute 'fixed-pitch nil :family "Iosevka Medium" :height 120)
-(set-face-attribute 'variable-pitch nil :family "Iosevka Aile Medium" :height 120)
+(set-face-attribute 'default nil :family "Iosevka Medium" :height 120 :weight 'normal)
+(set-face-attribute 'fixed-pitch nil :family "Iosevka Medium" :height 120 :weight 'normal)
+(set-face-attribute 'variable-pitch nil :family "Iosevka Aile Medium" :height 120 :weight 'normal)
 ;; modeline
 (set-face-attribute 'mode-line nil :family "Iosevka Medium")
+;; fringe
+(set-face-attribute 'fringe nil :background nil)
 
 ;; variable pitch in text-mode buffers
 (add-hook 'text-mode-hook 'variable-pitch-mode)
@@ -35,7 +43,6 @@
 (set-frame-size (selected-frame) 80 35)
 
 (require 'uniquify)
-(setq-default tab-width 4)
 
 ;; reenable disabled commands
 (put 'narrow-to-region 'disabled nil)
@@ -54,6 +61,7 @@
 (fringe-mode '(1 . 1))
 ;; highlight current line
 (global-hl-line-mode)
+
 ;; set right command to control on macOS
 (when (eq system-type 'darwin)
   (setq mac-right-command-modifier 'control))
@@ -132,10 +140,6 @@
 		  (lambda ()
 			(set (make-local-variable 'sgml-basic-offset) 4)))
 
-;; youtube-dl
-(defun tn/ytdl (url)
-  "Call youtube-dl with argument URL and opens folder of files in wdired-mode.")
-
 ;; Straight.el package manager
 ;;============================
 
@@ -166,10 +170,15 @@
   (general-create-definer tn/leader-def
 	:states '(normal motion)
 	:keymaps 'override
-	:prefix "SPC"))
+	:prefix "SPC")
+  (general-create-definer tn/go-def
+    :states '(normal motion)
+    :keymaps 'override
+    :prefix "SPC g"))
 
 ;; base16 themes for emacs
 (use-package base16-theme
+  :disabled
   :straight t
   :init
     (when (string-equal system-type 'darwin)
@@ -198,15 +207,31 @@
   :straight t
   :hook
   (python-mode . lsp)
-  (mhtml-mode . lsp))
+  (mhtml-mode . lsp)
+  (c-mode . lsp)
+  :general
+  (:states '(normal motion)
+   :keymaps 'override
+   :prefix "SPC l"
+   "l" 'lsp
+   "k" 'lsp-find-declaration
+   "r" 'lsp-workspace-restart))
+
+(use-package dap-mode
+  :straight t
+  :custom
+  (dap-auto-configure-features '(sessions locals controls tooltip))
+  :config
+  (dap-auto-configure-mode)
+  :hook (dap-stopped . (lambda (arg) (call-interactively #'dap-hydra))))
 
 ;; UI for LSP
 (use-package lsp-ui
   :straight t
   :after (lsp-mode)
   :custom
-  (lsp-ui-doc-position 'bottom)
-  (lsp-ui-imenu-window-width 35)
+  (lsp-ui-doc-position 'top)
+  (lsp-ui-imenu-window-width 0)
   (lsp-ui-sideline-delay 2)
   (lsp-ui-sideline-show-diagnostics nil)
   :config
@@ -218,6 +243,16 @@
 (use-package lsp-python-ms
   :straight t
   :after (lsp-mode))
+
+;; c/c++
+(use-package irony
+  :straight t
+  :hook (c-mode . irony-mode))
+
+(use-package company-irony
+  :straight t
+  :config
+  (add-to-list 'company-backends 'company-irony))
 
 ;; autocompletion for emacs commands
 (use-package ivy
@@ -234,13 +269,6 @@
    :keymaps '(override ivy-minibuffer-map)
    "C-j" 'ivy-next-line
    "C-k" 'ivy-previous-line))
-
-;; better ivy?
-(use-package ivy-rich
-  :straight t
-  :after (ivy)
-  :config
-  (ivy-rich-mode 1))
 
 ;; ivy-like replacement for isearch
 (use-package swiper
@@ -261,6 +289,38 @@
   :general
   ('normal
 	"C-p" 'counsel-yank-pop))
+
+;; ivy integration for projectile
+(use-package counsel-projectile
+  :straight t
+  :after (ivy counsel projectile)
+  :config
+  (counsel-projectile-mode))
+
+;; better ivy?
+(use-package ivy-rich
+  :straight t
+  :after (ivy counsel)
+  :config
+  (ivy-rich-mode 1))
+
+;; snippets
+(use-package yasnippet
+  :straight t
+  :config
+  (yas-global-mode 1))
+
+;; snippet integration with ivy
+(use-package ivy-yasnippet
+  :straight t
+  :after (ivy yasnippet))
+
+;; multiple cursors-like functionality for code refactoring
+(use-package iedit
+  :straight t
+  :general
+  (tn/leader-def
+	"/" 'iedit-mode))
 
 ;; dash
 (use-package dash
@@ -290,14 +350,9 @@
 				:timeout 0.15
 				"k" 'evil-normal-state))
   (tn/leader-def
-	"h" 'evil-window-left
-	"j" 'evil-window-down
-	"k" 'evil-window-up
-	"l" 'evil-window-right
-	"1" 'delete-other-windows
 	"2" 'split-window-below
 	"3" 'split-window-right
-	"0" 'delete-window))
+	"d" '(lambda () (interactive) (dired "."))))
 
 (use-package evil-collection
   :straight t
@@ -329,11 +384,44 @@
   :config
   (evil-commentary-mode))
 
+;; better window movement
+(use-package ace-window
+  :straight t
+  :custom
+  ;; use [asdfjkl;'] on the home row for selecting windows
+  (aw-keys '(?a ?s ?d ?f ?j ?k ?l ?\; ?'))
+  (aw-scope 'frame)
+  :general
+  (tn/leader-def
+	"SPC" 'ace-window
+	"0" 'ace-delete-window
+	"1" 'ace-delete-other-windows))
+
+(use-package lispyville
+  :straight t
+  :after (evil)
+  :hook ((emacs-lisp-mode eval-expression-minibuffer-setup emacs-lisp-mode ielm-mode lisp-mode lisp-interaction-mode scheme-mode) . lispyville-mode))
+
+;; manage delimiters across languages
+(use-package smartparens
+  :straight t
+  :hook (prog-mode . smartparens-mode))
+
 ;; mix variable- and fixed-width fonts when editing both text and code
 (use-package mixed-pitch
   :straight t
   :hook
   (text-mode . mixed-pitch-mode))
+
+;; swap window positions
+(use-package windswap
+  :straight t
+  :general
+  (tn/leader-def
+	"H" 'windswap-left
+	"J" 'windswap-up
+	"K" 'windswap-down
+	"L" 'windswap-right))
 
 ;; org-mode
 (use-package org
@@ -346,16 +434,44 @@
   (org-indent-indentation-per-level 1)
   (org-adapt-indentation nil)
   (org-hide-emphasis-markers t)
+
+  (org-directory "~/Documents/org")
+  (org-agenda-files `(,org-directory))
+  (org-default-notes-file (concat org-directory "/tasks.org"))
+  (org-capture-templates
+   '(("t" "Task" entry (file+headline org-default-notes-file "TASKS")
+	  "* TODO %?\nDEADLINE: %^{Deadline}T" :time-prompt t)
+	 ("u" "Upcoming Event" entry (file+headline org-default-notes-file "UPCOMING EVENTS")
+	  "* TODO %?\nSCHEDULED: %^{Scheduled}t" :time-prompt t)
+	 ("n" "Note" item (file+headline org-default-notes-file "NOTES")
+	  "  + %?\n" :unnarrowed t)))
+
   :hook (org-mode . (lambda ()
 						   (buffer-face-mode)
 						   (display-line-numbers-mode 0)
 						   (set-window-margins nil 1)
-						   (visual-line-mode))))
+						   (visual-line-mode)))
+  :general
+  (general-def
+	:states '(normal motion)
+	:keymaps 'override
+	:prefix "SPC o"
+	"d" (lambda () (interactive) (dired org-directory))
+	"a" 'org-agenda
+	"c" 'org-capture
+	"l" 'org-store-link
+	"L" 'org-insert-last-stored-link))
 
-;; evil-integration for org-mode
-(use-package org-evil
+(use-package evil-org
   :straight t
-  :after (evil org evil-collection))
+  :after (org evil)
+  :config
+  (add-hook 'org-mode-hook 'evil-org-mode)
+  (add-hook 'evil-org-mode-hook
+            (lambda ()
+              (evil-org-set-key-theme)))
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
 
 ;; Fancy bullets in org-mode
 (use-package org-bullets
@@ -363,11 +479,31 @@
   :after (org)
   :hook (org-mode . org-bullets-mode))
 
+;; journalling in org mode
+(use-package org-journal
+  :straight t
+  :after org
+  :custom
+  (org-journal-dir (expand-file-name "journal" org-directory))
+  (org-journal-date-format "%A, %d %B %Y")
+  (org-journal-file-type "monthly")
+  :general
+  (general-def
+	:states '(normal motion)
+	:keymaps 'override
+	:prefix "SPC o j"
+	"j" 'org-journal-new-entry
+	"r" 'org-journal-read-entry
+	"n" 'org-journal-next-entry
+	"p" 'org-journal-previous-entry
+	"/" 'org-journal-search
+	"o" 'org-journal-open-current-journal-file))
+
 ;; git manager
 (use-package magit
   :straight t
   :general
-  (tn/leader-def
+  (tn/go-def
 	"g" 'magit))
 
 ;; evil integration for magit
@@ -391,19 +527,6 @@
   (tn/leader-def
 	:keymaps '(override projectile-mode-map)
 	"p" 'projectile-command-map))
-
-;; counsel integration for projectile
-(use-package counsel-projectile
-  :straight t)
-
-;; smart managing of parentheses
-(use-package paredit
-  :straight t
-  :after (org)
-  :commands enable-paredit-mode
-  ;;:config
-  ;;(autoload 'enable-paredit-mode "paredit" nil t)
-  :hook ((emacs-lisp-mode eval-expression-minibuffer-setup emacs-lisp-mode ielm-mode lisp-mode lisp-interaction-mode scheme-mode) . enable-paredit-mode))
 
 ;; make sexps easier to distinguish
 (use-package rainbow-delimiters
@@ -459,7 +582,7 @@
   :config
   (setq highlight-indent-guides-method 'character))
 
-;; epub reader
+;; .epub reader
 (use-package nov
   :straight t)
 
@@ -469,6 +592,31 @@
   :config
   (setq inferior-lisp-program "sbcl"))
 
+;; terminal emulator
+(use-package vterm
+  :straight t
+  :defer t
+  :config
+  (set-face-attribute 'term-color-green nil :foreground "#00f769" :background "#00f769")
+  (set-face-attribute 'term-color-yellow nil :foreground "#ebff87" :background "#ebff87")
+    ;; vterm settings
+    (defun my/vterm ()
+    "Opens separate frame specifically for vterm."
+    (interactive)
+    ;; (make-frame-command) (make-frame '((width . 90)
+    ;;                                   (height . 24)
+    ;;                                   (minibuffer . nil)))
+    (vterm)
+    ;; (setq mode-line-format nil)
+    (set-frame-size (selected-frame) 90 24)
+    (select-frame-set-input-focus (selected-frame)))
+  :hook (vterm-mode . (lambda ()
+                   (display-line-numbers-mode 0)))
+  :general
+  (tn/go-def
+    "v" 'vterm
+    "V" 'vterm-other-window))
+
 ;; my modeline
 (use-package mode-line
   :straight nil
@@ -476,40 +624,75 @@
   :load-path "lisp"
   :after (all-the-icons))
 
+;; dracula theme for emacs
+(use-package dracula-theme
+  :straight t
+  :config
+  (load-theme 'dracula t))
+
+;; tab bar settings
+(use-package tab-bar
+  :config
+    (set-face-attribute 'tab-bar-tab nil
+                        :box nil
+                        :inherit 'mode-line)
+    (set-face-attribute 'tab-bar-tab-inactive nil
+                        :background nil
+                        :foreground nil
+                        :box nil
+                        :inherit 'default)
+    (set-face-attribute 'tab-bar nil
+                        :box nil
+                        :inherit 'default
+                        :foreground nil
+                        :background nil)
+    (tab-bar-mode t)
+  :custom
+  (tab-bar-show 1)
+  (tab-bar-new-button-show nil)
+  (tab-bar-close-button-show nil)
+  :general
+  (:states '(normal motion)
+           :keymaps 'override
+           :prefix "SPC t"
+           "0" 'tab-bar-close-tab
+           "1" 'tab-bar-close-other
+           "2" 'tab-bar-new-tab
+           "r" 'tab-rename
+           "t" 'tab-bar-select-tab-by-name))
+
 ;; dashboard
 (use-package dashboard
   :straight t
   :demand
+  :custom
+  (initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+  (dashboard-center-content t)
+  (dashboard-banner-logo-title "Tanzeem's Emacs")
+  (dashboard-startup-banner 'logo)
+  (dashboard-items '((recents . 5) (projects . 5) (agenda . 5)))
+  (dashboard-set-heading-icons t)
+  (dashboard-set-file-icons t)
+  (dashboard-set-navigator t)
+  (dashboard-footer-messages '("I showed you my source code, pls respond"
+							   "epic gamer moment"))
+  (dashboard-footer-icon (all-the-icons-fileicon "emacs"
+												 :height 1.0
+												 :v-adjust -0.05
+												 :face 'font-lock-keyword-face))
+  (dashboard-navigator-buttons
+   `(;; line 1
+	 ((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
+	   "Github"
+	   "Open https://github.com/Tenn1518"
+	   (lambda (&rest _) (browse-url "https://github.com/Tenn1518"))))
+	 ;; line 2
+	 ((,(all-the-icons-fileicon "elisp" :height 1.0 :v-adjust 0.0)
+	   "init.el"
+	   ,(format "Open %s" user-init-file)
+	   (lambda (&rest _) (find-file user-init-file))))))
   :config
-  (dashboard-setup-startup-hook)
-  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*"))
-		dashboard-center-content t
-		dashboard-banner-logo-title "Tanzeem's Emacs"
-		dashboard-startup-banner 'logo
-		dashboard-set-heading-icons t
-		dashboard-set-file-icons t
-		dashboard-set-navigator t
-		dashboard-footer-messages '("I showed you my source code, pls respond"
-									"epic gamer moment")
-		dashboard-footer-icon (all-the-icons-fileicon "emacs"
-													  :height 1.0
-													  :v-adjust -0.05
-													  :face 'font-lock-keyword-face)
-
-		dashboard-navigator-buttons
-		`(;; line 1
-		  ((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
-			"Github"
-			"Open https://github.com/Tenn1518"
-			(lambda (&rest _) (browse-url "https://github.com/Tenn1518"))
-			))
-		  ;; line 2
-		  ((,(all-the-icons-fileicon "elisp" :height 1.0 :v-adjust 0.0)
-			"init.el"
-			,(format "Open %s" user-init-file)
-			(lambda (&rest _) (find-file user-init-file))
-			))
-		  )))
+  (dashboard-setup-startup-hook))
 
 ;; reenable garbage collection during idle
 (run-with-idle-timer
