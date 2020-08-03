@@ -1,13 +1,15 @@
 #+TITLE: dotfiles
 #+AUTHOR: Tenn1518
 
-Configuration files for programs such as emacs, zsh, etc.
+Configuration files for programs such as emacs, zsh, etc to bootstrap onto a UNIX-like operating system.
 
 This project is licensed under the terms of the [[https://github.com/Tenn1518/dotfiles/blob/master/LICENSE][MIT license]].
 
 ** Prerequisites
 
-Install emacs, zsh, tmux, a terminal emulator with true color support, a nice theme (dracula) for your terminal, and the Iosevka family of fonts.
+Linux: ~Light~ (tool to change backlight)
+macOS: ~Homebrew~
+\*: ~emacs~, ~zsh~, ~alacritty~, Dracula themes for as many things as possible, and the Iosevka family of fonts
 
 ** How to Install
 
@@ -20,12 +22,14 @@ $ ./install.py
 
 This will symlink folders and files from their respective locations in $HOME to under ~/.dotfiles
 
-Upon entering emacs, run ~M-x all-the-icons-install-fonts~.
+Upon entering emacs, run ~M-x all-the-icons-install-fonts~. This will install icon fonts not only for emacs, but also for ~waybar~.
 
 ** What's included?
 
-| Program | Why?                                                                                                                                                                                                                                        |
-|---------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| emacs   | Personal favorite text editor/OS that can do whatever I need to do during development. Representing everything in text and manipulating it with Lisp functions is a great idea, and all of the benefits of vim are included with evil-mode. |
-| Sway    | I usually use GNOME, but there is no way to bootstrap my GNOME configuration from .dotfiles, so I've started working on exwm and Sway configs for use on other computers                                                                    |
-| neovim  | Legacy configuration from before I started using emacs. I don't even need it for quick edits because I've aliased ~em~ to ~emacsclient -t~ to quickly connect to the emacs daemon. But there's no reason to get rid of it.                      |
+| Program | Description                                                                                          |
+|---------+------------------------------------------------------------------------------------------------------|
+| emacs   | Text editor/IDE/operating system with my personal configuration with a hefty amount of vim bindings. |
+| Sway    | i3 but on Wayland.                                                                                   |
+| Waybar  | Bar displaying information and workspaces in SwayWM.                                                 |
+| rofi    | Dmenu alternative that works better with Sway and Wayland.                                           |
+| neovim  | Legacy configuration from before I started using emacs. Not maintained or useful.                    |

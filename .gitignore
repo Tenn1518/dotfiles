@@ -24,3 +24,6 @@ config/emacs/tramp/
 /config/emacs/projectile-bookmarks.eld
 /config/emacs/recentf
 /config/emacs/tramp
+/config/emacs/irony/
+/config/emacs/bookmarks
+/config/emacs/.dap-breakpoints
