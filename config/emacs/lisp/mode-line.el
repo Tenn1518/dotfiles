@@ -73,20 +73,21 @@
 
 (defun tnml/writable-module ()
   "Return a formatted string consisting of an icon representing the current buffer's status and its name."
-  (setq unf-str (format
+  (let ((unf-str (format
 				 " %s %s "
 				 (cond
 				  ((derived-mode-p 'eshell-mode) (all-the-icons-alltheicon "terminal" :height 1.0 :v-adjust 0.0))
-				  ((buffer-modified-p) (all-the-icons-material "save" :height 1.0 :v-adjust 0.0))
+				  ((buffer-modified-p) (propertize (all-the-icons-material "save" :height 1.0 :v-adjust 0.0)
+                                                   'face `(:family ,(all-the-icons-material-family))))
 				  (buffer-read-only (all-the-icons-material "lock" :height 1.0 :v-adjust 0.0))
 				  ((derived-mode-p 'prog-mode) (all-the-icons-octicon "code" :height 1.0 :v-adjust 0.0))
 				  (t (all-the-icons-material "edit" :height 1.0 :v-adjust 0.0)))
-				 (buffer-name)))
-  (if (eq tnml-selected-window (selected-window))
-	  (propertize unf-str
-				   'face '(:background "dark magenta"
-									   :foreground "white"))
-	unf-str))
+				 (buffer-name))))
+    (if (eq tnml-selected-window (selected-window))
+	    (propertize unf-str
+				    'face '(:background "dark magenta"
+									    :foreground "white"))
+	  unf-str)))
 
 (defun tnml/major-mode-module ()
   "Return the current major mode without the '-mode' suffix."
