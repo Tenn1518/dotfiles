@@ -384,6 +384,11 @@
   :config
   (evil-commentary-mode))
 
+;; text objects for delimiters
+(use-package evil-surround
+  :straight t
+  :after (evil))
+
 ;; better window movement
 (use-package ace-window
   :straight t
@@ -396,6 +401,9 @@
 	"SPC" 'ace-window
 	"0" 'ace-delete-window
 	"1" 'ace-delete-other-windows))
+
+(use-package lispy
+  :straight t)
 
 (use-package lispyville
   :straight t
@@ -434,6 +442,7 @@
   (org-indent-indentation-per-level 1)
   (org-adapt-indentation nil)
   (org-hide-emphasis-markers t)
+  (org-image-actual-width 400)
 
   (org-directory "~/Documents/org")
   (org-agenda-files `(,org-directory))
@@ -445,7 +454,6 @@
 	  "* TODO %?\nSCHEDULED: %^{Scheduled}t" :time-prompt t)
 	 ("n" "Note" item (file+headline org-default-notes-file "NOTES")
 	  "  + %?\n" :unnarrowed t)))
-
   :hook (org-mode . (lambda ()
 						   (buffer-face-mode)
 						   (display-line-numbers-mode 0)
@@ -632,31 +640,57 @@
 
 ;; tab bar settings
 (use-package tab-bar
+  :if (>= emacs-major-version 27)
   :config
-    (set-face-attribute 'tab-bar-tab nil
-                        :box nil
-                        :inherit 'mode-line)
-    (set-face-attribute 'tab-bar-tab-inactive nil
-                        :background nil
-                        :foreground nil
-                        :box nil
-                        :inherit 'default)
-    (set-face-attribute 'tab-bar nil
-                        :box nil
-                        :inherit 'default
-                        :foreground nil
-                        :background nil)
-    (tab-bar-mode t)
+  (custom-set-faces
+   '(tab-bar ((t ( :inherit fixed-pitch
+                   :background "#22232e"
+                   :foreground "#bd93f9"
+                   :box ( :line-width (4 . 4)
+                          :color "#22232e")
+                   :height 120))))
+   '(tab-bar-tab ((t ( :inherit tab-bar
+                       :background "#282a36"
+                       :foreground "#ff79c6"
+                       :box ( :line-width (4 . 2)
+                              :color "#282a36")))))
+   '(tab-bar-tab-inactive ((t ( :inherit tab-bar
+                                :background "#22232e"
+                                :foreground "#bd93f9"
+                                :box ( :line-width (2 . 4)
+                                       :color "#22232e")
+                                :family "Iosevka Medium")))))
+    (tab-bar-mode)
+    ;; This function is used by tab-bar mode when designating names to tabs
+    (defun tab-bar-tab-name-current ()
+      "Generate tab name from the buffer of the selected window."
+      (let* ((project-root (projectile-project-root))
+             (bufname (buffer-name (window-buffer
+                                    (minibuffer-selected-window))))
+             (icon (all-the-icons-icon-for-file bufname
+                                                :v-adjust 0
+                                                :height 1.0)))
+        (if project-root
+            (format " %s %s " icon (car (last (split-string
+                                               project-root
+                                               "/") 2)))
+          (format " %s %s " icon bufname))))
+    (defun tn/tab-bar-rename ()
+      "Pass the inputted name with extra spaces to tab-bar-rename."
+      (interactive)
+      (let ((input (read-from-minibuffer "New name for tab: ")))
+        (tab-bar-rename)))
   :custom
-  (tab-bar-show 1)
+  (tab-bar-show t)
   (tab-bar-new-button-show nil)
   (tab-bar-close-button-show nil)
+  (tab-bar-separator "|")
   :general
   (:states '(normal motion)
            :keymaps 'override
            :prefix "SPC t"
            "0" 'tab-bar-close-tab
-           "1" 'tab-bar-close-other
+           "1" 'tab-bar-close-other-tabs
            "2" 'tab-bar-new-tab
            "r" 'tab-rename
            "t" 'tab-bar-select-tab-by-name))
