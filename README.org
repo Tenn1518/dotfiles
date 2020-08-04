@@ -8,8 +8,10 @@ This project is licensed under the terms of the [[https://github.com/Tenn1518/do
 ** Prerequisites
 
 Linux: ~Light~ (tool to change backlight)
+
 macOS: ~Homebrew~
-\*: ~emacs~, ~zsh~, ~alacritty~, Dracula themes for as many things as possible, and the Iosevka family of fonts
+
+*: ~emacs~, ~zsh~, ~alacritty~, Dracula themes for as many things as possible, and the Iosevka family of fonts
 
 ** How to Install
 
@@ -24,12 +26,13 @@ This will symlink folders and files from their respective locations in $HOME to 
 
 Upon entering emacs, run ~M-x all-the-icons-install-fonts~. This will install icon fonts not only for emacs, but also for ~waybar~.
 
-** What's included?
+** Notes for what's included
 
-| Program | Description                                                                                          |
-|---------+------------------------------------------------------------------------------------------------------|
-| emacs   | Text editor/IDE/operating system with my personal configuration with a hefty amount of vim bindings. |
-| Sway    | i3 but on Wayland.                                                                                   |
-| Waybar  | Bar displaying information and workspaces in SwayWM.                                                 |
-| rofi    | Dmenu alternative that works better with Sway and Wayland.                                           |
-| neovim  | Legacy configuration from before I started using emacs. Not maintained or useful.                    |
+| Program   | Description                                                                                                                                                                              |
+|-----------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| emacs     | Text editor/IDE/operating system with my personal configuration with a hefty amount of vim bindings. If on Wayland/Sway, try using the pure-gtk branch of emacs for better compatibility |
+| Sway      | i3 but on Wayland.                                                                                                                                                                       |
+| Waybar    | Bar displaying system information and workspaces in SwayWM.                                                                                                                              |
+| rofi      | Dmenu alternative that works better with Sway and Wayland.                                                                                                                               |
+| alacritty | Fast, gpu-based, cross-platform terminal emulator                                                                                                                                        |
+| neovim    | Legacy configuration from before I started using emacs. Not maintained or useful.                                                                                                        |
