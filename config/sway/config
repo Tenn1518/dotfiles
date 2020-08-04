@@ -39,7 +39,7 @@ for_window [class="^.*"] border pixel 3
 #class                   border       background    text    indicator   child_border			
 client.focused	         #bd93f9      #bd93f9       #bd93f9 #bd93f9     #bd93f9
 #client.focused_inactive #333333	  #5f676a	    #ffffff	#484e50	    #5f676a
-client.unfocused         #f8f8f2      #f8f8f2       #f8f8f2 #f8f8f2	    #f8f8f2
+client.unfocused         #44475a      #44475a       #44475a #44475a	    #44475a
 
 # Default gaps
 gaps inner 5
@@ -96,6 +96,9 @@ input * {
 
     # Reload the configuration file
     bindsym $mod+Shift+c reload
+
+    # Screenshot
+    bindsym $mod+F12 exec grim ~/Pictures/screenshots/$(date +'%Y%m%d-%H%M%S-%N').png
 
     # Exit sway (logs you out of your Wayland session)
     bindsym $mod+Shift+q exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -b 'Yes, exit sway' 'swaymsg exit'
