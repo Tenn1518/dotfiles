@@ -35,59 +35,83 @@
 
 (add-hook 'buffer-list-update-hook 'tnml-update-all)
 
+(custom-set-faces '(mode-line-inactive ((t ( :background "#373844"
+                                             :foreground "#f8f8f2"))))
+                  '(mode-line ((t ( :background "#44475a"
+                                    :foreground "unspecified-fg"
+                                    :inverse-video nil)))))
+
+(defface tnml-evil-normal '((t :background "dodger blue"
+                                :foreground "white"
+                                :inherit 'mode-line)) nil
+                                :group 'tn/mode-line)
+(defface tnml-evil-insert '((t :background "yellow"
+								:foreground "gray10"
+                                :inherit 'mode-line)) nil
+                                :group 'tn/mode-line)
+(defface tnml-evil-visual '((t :background "MediumPurple4"
+								:foreground "seashell1"
+                                :inherit 'mode-line)) nil
+                                :group 'tn/mode-line)
+(defface tnml-evil-emacs '((t :background "plum1"
+							   :foreground "gray10"
+                               :inherit 'mode-line)) nil
+                               :group 'tn/mode-line)
+(defface tnml-evil-replace '((t :background "dark red"
+								  :foreground "white smoke"
+                                  :inherit 'mode-line)) nil
+                                  :group 'tn/mode-line)
+(defface tnml-evil-motion '((t :background "navy"
+								:foreground "seashell1"
+                                :inherit 'mode-line)) nil
+                                :group 'tn/mode-line)
+(defface tnml-evil-operator '((t :background "SeaGreen1"
+								  :foreground "gray10"
+                                  :inherit 'mode-line)) nil
+                                  :group 'tn/mode-line)
 (defun tnml/evil-module ()
   "Return current evil-state."
   (cond
    ((string-equal evil-state 'normal)
-	(propertize " NORMAL "
-				'face '(:background "dodger blue"
-									:foreground "white")))
+	(propertize " NORMAL " 'face 'tnml-evil-normal))
    ((string-equal evil-state 'insert)
-	(propertize " INSERT "
-				'face '(:background "yellow"
-									:foreground "gray10")))
+	(propertize " INSERT " 'face 'tnml-evil-insert))
    ((string-equal evil-state 'visual)
-	(propertize " VISUAL "
-				'face'(:background "MediumPurple4"
-								   :foreground "seashell1")))
+	(propertize " VISUAL " 'face 'tnml-evil-visual))
    ((string-equal evil-state 'emacs)
-	(propertize " EMACS "
-				'face '(:background "plum1"
-									:foreground "gray10")))
+	(propertize " EMACS " 'face 'tnml-evil-emacs))
    ((string-equal evil-state 'replace)
-	(propertize " REPLACE "
-				'face '(:background "dark red"
-									:foreground "white smoke")))
+	(propertize " REPLACE " 'face 'tnml-evil-replace))
    ((string-equal evil-state 'motion)
-	(propertize " MOTION "
-				'face '(:background "navy"
-									:foreground "seashell1")))
+	(propertize " MOTION " 'face 'tnml-evil-motion))
    ((string-equal evil-state 'operator)
-	(propertize " OPERATOR "
-				'face '(:background "SeaGreen1"
-									:foreground "gray10")))
-   ((string-equal evil-state 'lispy)
-	(propertize " LISPY "
-				'face '(:background "dark violet"
-									:foreground "white smoke")))))
+	(propertize " OPERATOR " 'face 'tnml-evil-operator))))
+
+(defface tnml-writable '((t :background "dark magenta"
+						   :foreground "white"
+                           :inherit 'mode-line)) nil
+                           :group 'tn/mode-line)
+
 
 (defun tnml/writable-module ()
   "Return a formatted string consisting of an icon representing the current buffer's status and its name."
-  (let ((unf-str (format
-				 " %s %s "
-				 (cond
-				  ((derived-mode-p 'eshell-mode) (all-the-icons-alltheicon "terminal" :height 1.0 :v-adjust 0.0))
-				  ((buffer-modified-p) (propertize (all-the-icons-material "save" :height 1.0 :v-adjust 0.0)
-                                                   'face `(:family ,(all-the-icons-material-family))))
-				  (buffer-read-only (all-the-icons-material "lock" :height 1.0 :v-adjust 0.0))
-				  ((derived-mode-p 'prog-mode) (all-the-icons-octicon "code" :height 1.0 :v-adjust 0.0))
-				  (t (all-the-icons-material "edit" :height 1.0 :v-adjust 0.0)))
-				 (buffer-name))))
-    (if (eq tnml-selected-window (selected-window))
-	    (propertize unf-str
-				    'face '(:background "dark magenta"
-									    :foreground "white"))
-	  unf-str)))
+  (let* ((selectedp (eq tnml-selected-window (selected-window)))
+         (iconface (if selectedp
+                       'tnml-writable
+                     nil))
+         (icon (if (buffer-modified-p)
+                   (all-the-icons-material "save"
+                                           :height 0.85
+                                           :v-adjust -0.15
+                                           :face iconface)
+                 (all-the-icons-icon-for-mode major-mode
+                                              :height 0.8
+                                              :v-adjust -0.1
+                                              :face iconface))))
+    (format "%s%s%s"
+            (propertize " " 'face iconface)
+            icon
+            (propertize (format " %s " (buffer-name)) 'face iconface))))
 
 (defun tnml/major-mode-module ()
   "Return the current major mode without the '-mode' suffix."
@@ -97,19 +121,6 @@
 					   0
 					   (string-match "-mode$"
 									 mode-string)))))
-
-(defun tnml/position-module ()
-  "Return a formatted string of percentage of where point is in buffer, line number, and column number."
-  (setq unf-str (format " %s%%%% %s:%s "
-						(floor (* (/ (float (point))
-									 (point-max))
-								  100))
-						(line-number-at-pos)
-						(int-to-string (current-column))))
-  (if (equal (selected-window) tnml-selected-window)
-	  (propertize unf-str 'face '(:background "gold3"
-											  :foreground "gray18"))
-	(propertize unf-str 'face 'mode-line-inactive)))
 
 (defun tnml/position-module ()
   "Return a formatted string of percentage of where point is in buffer, line number, and column number."

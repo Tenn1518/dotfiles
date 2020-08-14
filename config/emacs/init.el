@@ -7,8 +7,6 @@
 
 ;;; Code:
 
-;; Settings
-
 ;; disable garbage collection until after init
 (setq gc-cons-threshold-original gc-cons-threshold
 	  gc-cons-threshold (* 1024 1024 100)
@@ -19,11 +17,10 @@
 	  backup-directory-alist `(("." . ,temporary-file-directory))
 	  auto-save-file-name-transforms `((".*" ,temporary-file-directory t))
       default-directory "~"
-      frame-title-format "%b")
+      frame-title-format "%b"
+      create-lockfiles nil)
 
-(set-frame-parameter nil 'internal-border-width 10)
 (fringe-mode nil)
-
 (setq-default indent-tabs-mode nil
               tab-width 4)
 
@@ -33,7 +30,7 @@
 (set-face-attribute 'fixed-pitch nil :family "Iosevka Medium" :height 120 :weight 'normal)
 (set-face-attribute 'variable-pitch nil :family "Iosevka Aile Medium" :height 120 :weight 'normal)
 ;; modeline
-(set-face-attribute 'mode-line nil :family "Iosevka Medium")
+(set-face-attribute 'mode-line nil :family nil)
 ;; fringe
 (set-face-attribute 'fringe nil :background nil)
 
@@ -169,12 +166,29 @@
 				  "SPC")
   (general-create-definer tn/leader-def
 	:states '(normal motion)
-	:keymaps 'override
+    :keymaps 'override
 	:prefix "SPC")
   (general-create-definer tn/go-def
     :states '(normal motion)
     :keymaps 'override
     :prefix "SPC g"))
+
+;; hydra
+(use-package hydra
+  :straight t
+  :config
+  (defhydra tn/hydra-resize (nil nil)
+    "Resize mode"
+    ("b" (window-resize nil -2 t) "shrink horizontally")
+    ("B" (window-resize nil 2 t) "grow horizontally")
+    ("v" (window-resize nil -1 nil) "shrink vertically")
+    ("V" (window-resize nil 1 nil) "grow vertically")
+    ("t" #'windower-toggle-split "toggle split")
+    ("=" balance-windows "balance windows")
+    ("SPC" (ace-select-window) "ace-window"))
+  :general
+  (tn/leader-def
+    "r" 'tn/hydra-resize/body))
 
 ;; base16 themes for emacs
 (use-package base16-theme
@@ -257,7 +271,6 @@
 ;; autocompletion for emacs commands
 (use-package ivy
   :straight t
-  :demand
   :custom
   (ivy-re-builders-alist
    '((swiper-isearch . ivy--regex-plus)
@@ -266,14 +279,14 @@
   (ivy-mode)
   :general
   (:states '(normal insert)
-   :keymaps '(override ivy-minibuffer-map)
+   :keymaps 'ivy-minibuffer-map
    "C-j" 'ivy-next-line
    "C-k" 'ivy-previous-line))
 
 ;; ivy-like replacement for isearch
 (use-package swiper
   :straight t
-  :demand
+  :commands (swiper-isearch)
   :after (ivy)
   :general
   (:states 'normal
@@ -282,20 +295,13 @@
 ;; ivy replacements for emacs commands
 (use-package counsel
   :straight t
-  :demand
   :after (ivy)
+  :commands (counsel-find-file find-file)
   :config
   (counsel-mode)
   :general
   ('normal
 	"C-p" 'counsel-yank-pop))
-
-;; ivy integration for projectile
-(use-package counsel-projectile
-  :straight t
-  :after (ivy counsel projectile)
-  :config
-  (counsel-projectile-mode))
 
 ;; better ivy?
 (use-package ivy-rich
@@ -308,6 +314,8 @@
 (use-package yasnippet
   :straight t
   :config
+  (use-package yasnippet-snippets
+    :straight t)
   (yas-global-mode 1))
 
 ;; snippet integration with ivy
@@ -393,8 +401,6 @@
 (use-package ace-window
   :straight t
   :custom
-  ;; use [asdfjkl;'] on the home row for selecting windows
-  (aw-keys '(?a ?s ?d ?f ?j ?k ?l ?\; ?'))
   (aw-scope 'frame)
   :general
   (tn/leader-def
@@ -402,12 +408,19 @@
 	"0" 'ace-delete-window
 	"1" 'ace-delete-other-windows))
 
+(use-package windower
+  :straight t
+  :general
+  (tn/leader-def
+    "f" 'windower-toggle-single))
+
+;; structural lisp editing
 (use-package lispy
   :straight t)
 
 (use-package lispyville
   :straight t
-  :after (evil)
+  :after (evil lispy)
   :hook ((emacs-lisp-mode eval-expression-minibuffer-setup emacs-lisp-mode ielm-mode lisp-mode lisp-interaction-mode scheme-mode) . lispyville-mode))
 
 ;; manage delimiters across languages
@@ -434,6 +447,7 @@
 ;; org-mode
 (use-package org
   :straight t
+  :defer t
   :custom
   (org-startup-indented t)
   (org-startup-with-inline-images t)
@@ -460,9 +474,8 @@
 						   (set-window-margins nil 1)
 						   (visual-line-mode)))
   :general
-  (general-def
-	:states '(normal motion)
-	:keymaps 'override
+  ( :states '(normal motion)
+    :keymaps 'override
 	:prefix "SPC o"
 	"d" (lambda () (interactive) (dired org-directory))
 	"a" 'org-agenda
@@ -473,8 +486,8 @@
 (use-package evil-org
   :straight t
   :after (org evil)
+  :hook (org-mode . evil-org-mode)
   :config
-  (add-hook 'org-mode-hook 'evil-org-mode)
   (add-hook 'evil-org-mode-hook
             (lambda ()
               (evil-org-set-key-theme)))
@@ -491,6 +504,7 @@
 (use-package org-journal
   :straight t
   :after org
+  :commands (org-journal-read-entry org-journal-new-entry org-journal-search)
   :custom
   (org-journal-dir (expand-file-name "journal" org-directory))
   (org-journal-date-format "%A, %d %B %Y")
@@ -498,7 +512,7 @@
   :general
   (general-def
 	:states '(normal motion)
-	:keymaps 'override
+    :keymaps 'override
 	:prefix "SPC o j"
 	"j" 'org-journal-new-entry
 	"r" 'org-journal-read-entry
@@ -510,6 +524,7 @@
 ;; git manager
 (use-package magit
   :straight t
+  :commands (magit magit-status)
   :general
   (tn/go-def
 	"g" 'magit))
@@ -527,13 +542,18 @@
 ;; project manager
 (use-package projectile
   :straight t
+  :commands (projectile-find-file projectile-switch-project)
   :config
   (projectile-mode)
+  (use-package counsel-projectile
+    :straight t
+    :config
+    (counsel-projectile-mode))
   :custom
   (projectile-project-search-path '("~/Code/"))
   :general
   (tn/leader-def
-	:keymaps '(override projectile-mode-map)
+	:keymaps 'projectile-mode-map
 	"p" 'projectile-command-map))
 
 ;; make sexps easier to distinguish
@@ -549,7 +569,6 @@
 (use-package all-the-icons-dired
   :straight t
   :hook (dired-mode . (lambda () (all-the-icons-dired-mode 1)))
-  (wdired-mode . (lambda () (all-the-icons-dired-mode 0)))
   :after (all-the-icons dired))
 
 ;; dependence for dired-hacks-*
@@ -561,6 +580,7 @@
 (use-package dired-rainbow
   :straight t
   :after (dired dired-hacks-utils)
+  :commands (dired)
   :config
   (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
   (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html" "jhtm" "mht" "eml" "mustache" "xhtml"))
@@ -597,18 +617,18 @@
 ;; features for editing common lisp
 (use-package slime
   :straight t
+  :commands (slime)
+  :hook (common-lisp . slime)
   :config
   (setq inferior-lisp-program "sbcl"))
 
 ;; terminal emulator
 (use-package vterm
   :straight t
-  :defer t
+  :commands (vterm vterm-other-window)
   :config
-  (set-face-attribute 'term-color-green nil :foreground "#00f769" :background "#00f769")
-  (set-face-attribute 'term-color-yellow nil :foreground "#ebff87" :background "#ebff87")
-    ;; vterm settings
-    (defun my/vterm ()
+  ;; vterm settings
+  (defun my/vterm ()
     "Opens separate frame specifically for vterm."
     (interactive)
     ;; (make-frame-command) (make-frame '((width . 90)
@@ -619,7 +639,8 @@
     (set-frame-size (selected-frame) 90 24)
     (select-frame-set-input-focus (selected-frame)))
   :hook (vterm-mode . (lambda ()
-                   (display-line-numbers-mode 0)))
+                        (display-line-numbers-mode 0)
+                        (set-window-margins nil 2)))
   :general
   (tn/go-def
     "v" 'vterm
@@ -642,24 +663,6 @@
 (use-package tab-bar
   :if (>= emacs-major-version 27)
   :config
-  (custom-set-faces
-   '(tab-bar ((t ( :inherit fixed-pitch
-                   :background "#22232e"
-                   :foreground "#bd93f9"
-                   :box ( :line-width (4 . 4)
-                          :color "#22232e")
-                   :height 120))))
-   '(tab-bar-tab ((t ( :inherit tab-bar
-                       :background "#282a36"
-                       :foreground "#ff79c6"
-                       :box ( :line-width (4 . 2)
-                              :color "#282a36")))))
-   '(tab-bar-tab-inactive ((t ( :inherit tab-bar
-                                :background "#22232e"
-                                :foreground "#bd93f9"
-                                :box ( :line-width (2 . 4)
-                                       :color "#22232e")
-                                :family "Iosevka Medium")))))
     (tab-bar-mode)
     ;; This function is used by tab-bar mode when designating names to tabs
     (defun tab-bar-tab-name-current ()
@@ -685,15 +688,34 @@
   (tab-bar-new-button-show nil)
   (tab-bar-close-button-show nil)
   (tab-bar-separator "|")
+  :custom-face
+  (tab-bar ((t ( :inherit fixed-pitch
+                   :background "#22232e"
+                   :foreground "#ff79c6";"#bd93f9"
+                   :box ( :line-width (4 . 4)
+                          :color "#22232e")
+                   :height 120))))
+  (tab-bar-tab ((t ( :inherit tab-bar
+                     :background "#282a36"
+                     :foreground "#bd93f9";"#ff79c6"
+                     :overline t
+                     :box ( :line-width (4 . 2)
+                            :color "#282a36")))))
+  (tab-bar-tab-inactive ((t ( :inherit tab-bar
+                              :background "#22232e"
+                              :foreground "#ff79c6"
+                              :box ( :line-width (2 . 4)
+                                     :color "#22232e")
+                              :family "Iosevka Medium"))))
   :general
-  (:states '(normal motion)
-           :keymaps 'override
-           :prefix "SPC t"
-           "0" 'tab-bar-close-tab
-           "1" 'tab-bar-close-other-tabs
-           "2" 'tab-bar-new-tab
-           "r" 'tab-rename
-           "t" 'tab-bar-select-tab-by-name))
+  ( :states '(normal motion)
+    :keymaps 'override
+    :prefix "SPC t"
+    "0" 'tab-bar-close-tab
+    "1" 'tab-bar-close-other-tabs
+    "2" 'tab-bar-new-tab
+    "r" 'tab-rename
+    "t" 'tab-bar-select-tab-by-name))
 
 ;; dashboard
 (use-package dashboard
@@ -704,7 +726,7 @@
   (dashboard-center-content t)
   (dashboard-banner-logo-title "Tanzeem's Emacs")
   (dashboard-startup-banner 'logo)
-  (dashboard-items '((recents . 5) (projects . 5) (agenda . 5)))
+  (dashboard-items '((projects . 4) (agenda . 4)))
   (dashboard-set-heading-icons t)
   (dashboard-set-file-icons t)
   (dashboard-set-navigator t)
@@ -719,14 +741,27 @@
 	 ((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
 	   "Github"
 	   "Open https://github.com/Tenn1518"
-	   (lambda (&rest _) (browse-url "https://github.com/Tenn1518"))))
+	   (lambda (&rest _) (browse-url "https://github.com/Tenn1518"))
+       'dashboard-heading "[" "]"))
 	 ;; line 2
 	 ((,(all-the-icons-fileicon "elisp" :height 1.0 :v-adjust 0.0)
 	   "init.el"
 	   ,(format "Open %s" user-init-file)
-	   (lambda (&rest _) (find-file user-init-file))))))
+	   (lambda (&rest _) (find-file user-init-file))
+       'dashboard-heading "[" "]"))))
+  :custom-face
+  (dashboard-banner-logo-title ((t ( :height 180
+                                     :foreground "#bd93f9"
+                                     :inherit default))))
   :config
-  (dashboard-setup-startup-hook))
+  (dashboard-setup-startup-hook)
+  :hook (dashboard-mode . (lambda ()
+                            (set-window-margins (get-buffer-window (get-buffer "*dashboard*")) 2 2)))
+  :general
+  ( :states 'normal
+    :keymaps 'dashboard-mode-map
+    "j" 'widget-forward
+    "k" 'widget-backward))
 
 ;; reenable garbage collection during idle
 (run-with-idle-timer
@@ -734,5 +769,5 @@
  (lambda ()
    (setq gc-cons-threshold gc-cons-threshold-original)
    (makunbound 'gc-cons-threshold-original)))
-
+asdf
 ;;; init.el ends here
