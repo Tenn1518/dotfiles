@@ -77,13 +77,15 @@ input * {
     bindsym $mod+Return exec $term
 
     # Kill focused window
-    bindsym $mod+Shift+x kill
+    bindsym $mod+x kill
 
     # Start your launcher
     bindsym $mod+d exec $menu
 
     # Start emacs
     bindsym $mod+e exec emacsclient -c
+    # Org-capture
+    bindsym $mod+shift+x exec GDK_BACKEND=wayland sh ~/.config/emacs/bin/org-capture
 
     # Start firefox
     bindsym $mod+w exec MOZ_ENABLE_WAYLAND=1 firefox
@@ -183,14 +185,18 @@ input * {
 # Resizing containers:
 #
 mode "resize" {
-    # left will shrink the containers width
-    # right will grow the containers width
-    # up will shrink the containers height
-    # down will grow the containers height
-    bindsym $left resize shrink width 10px
-    bindsym $down resize grow height 10px
-    bindsym $up resize shrink height 10px
-    bindsym $right resize grow width 10px
+    # h shrinks and H grows horizontally
+    # v shrinks and V grows vertically
+    bindsym b resize shrink width 10px
+    bindsym shift+b resize grow width 10px
+    bindsym v resize shrink height 10px
+    bindsym shift+v resize grow height 10px
+
+    # move without holding $mod
+    bindsym $left focus left
+    bindsym $right focus right
+    bindsym $up focus up
+    bindsym $down focus down
 
     # gaps
     bindsym minus gaps inner all minus 5
@@ -201,6 +207,7 @@ mode "resize" {
     # Return to default mode
     bindsym Return mode "default"
     bindsym Escape mode "default"
+    bindsym Control+g mode "default"
 }
 bindsym $mod+r mode "resize"
 

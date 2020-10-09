@@ -7,23 +7,23 @@ window:
   # Specified in number of columns/lines, not pixels.
   # If both are `0`, this setting is ignored.
   dimensions:
-    columns: 0
-    lines: 0
+    columns: 90
+    lines: 24
 
   # Window padding (changes require restart)
   #
   # Blank space added around the window in pixels. This padding is not scaled
   # by DPI and the specified value is always added at both opposing sides.
   padding:
-    x: 15
-    y: 15
+    x: 5
+    y: 5
 
   # Window decorations
   #
   # Values for `decorations`:
   #     - full: Borders and title bar
   #     - none: Neither borders nor title bar
-  decorations: none
+  decorations: full
 
 # Font configuration (changes require restart)
 font:
@@ -41,7 +41,7 @@ font:
     family: Iosevka Term
 
   # Point size of the font
-  size: 12.0
+  size: 11.0
 
   # Offset is the extra space around each character. offset.y can be thought of
   # as modifying the linespacing, and offset.x as modifying the letter spacing.

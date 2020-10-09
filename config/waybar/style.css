@@ -1,5 +1,6 @@
 window#waybar {
     font-family: Iosevka, Monospace;
+    font-weight: bold;
     font-size: 16px;
     background-color: #282a36;
     padding-left: 20px;
