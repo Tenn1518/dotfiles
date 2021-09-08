@@ -20,7 +20,7 @@
 ;; They all accept either a font-spec, font string ("Input Mono-12"), or xlfd
 ;; font string. You generally only need these two:
  (setq doom-font (font-spec :family "Iosevka" :size 11.0 :weight 'semi-light)
-       doom-variable-pitch-font (font-spec :family "Source Sans Pro" :size 11.0)
+       doom-variable-pitch-font (font-spec :family "Source Sans 3" :size 11.0)
        doom-big-font (font-spec :family "Iosevka" :size 14.0 :weight 'bold))
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
@@ -30,7 +30,7 @@
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/Dropbox/org")
+(setq org-directory "~/Dropbox/Notes/")
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
@@ -63,7 +63,7 @@
          org-startup-with-latex-preview t
          org-archive-default-command #'org-archive-to-archive-sibling
 
-         org-directory "~/Dropbox/org/"
+         org-directory "~/Dropbox/Notes/"
          org-journal-dir (concat org-directory "journal/")
          org-agenda-files (list org-directory org-journal-dir)
          tn/tasks-file (concat org-directory "tasks.org")
@@ -120,6 +120,11 @@
            ("sn" "Class-related notes" entry
             (file+headline tn/school-file "Inbox")
             "* %U %^{Title} :%^{Type|notes|class-info}:\n** %^{First heading}\n+ %?"
+            :prepend t)
+
+           ("x" "Class-related todo" entry
+            (file+headline tn/school-file "Inbox")
+            "* TODO %:description%? :%^{Type|hw|study}:\nDEADLINE: %^{Deadline}t\n+ [[%:link][%:description]]\n"
             :prepend t))
 
          org-deadline-warning-days 3
@@ -140,20 +145,14 @@
   (setq org-preview-latex-image-directory (concat "~/.cache/emacs/" "ltximg")
         org-format-latex-options '( :foreground "White"
                                     :background "#282a36"
-                                    :scale 3.0
+                                    :scale 1.0
                                     :html-foreground "Black"
                                     :html-background "Transparent"
                                     :html-scale 1.0
-                                    :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
-  (add-hook 'org-capture-mode-hook 'evil-insert))
+                                    :matchers ("begin" "$1" "$" "$$" "\\(" "\\["))))
 
 ;; better org-agenda
 ;; (use-package org-super-agenda)
-
-;; Smarter usage of variable and fixed pitch fonts for org-mode
-(use-package org-variable-pitch
-  :disabled
-  :hook (org-mode . org-variable-pitch-minor-mode))
 
 (use-package! org-roam
   :init
@@ -291,3 +290,6 @@
 
 (unless (featurep! :tn exwm)
   (mouse-avoidance-mode 'banish))
+
+;; fix for weird problem that prevents helm usage on startup
+(setq browse-url-mosaic-program nil)

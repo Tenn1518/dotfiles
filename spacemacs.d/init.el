@@ -1,6 +1,4 @@
 ;; -*- mode: emacs-lisp; lexical-binding: t -*-
-;; This file is loaded by Spacemacs at startup.
-;; It must be stored in your home directory.
 
 (defun dotspacemacs/layers ()
   "Layer configuration:
@@ -16,15 +14,17 @@
    '(yaml
      sql
      csv
-     auto-completion
+     (auto-completion :variables
+                      auto-completion-enable-snippets-in-popup t)
      ;; better-defaults
      emacs-lisp
      emoji
      git
-     ;; helm
+     (helm :variables
+           hybrid-style-enable-hjkl-bindings t)
      imenu-list
-     (ivy :variables
-          ivy-enable-advanced-buffer-information t)
+     ;;(ivy :variables
+     ;;     ivy-enable-advanced-buffer-information t)
      lsp
      ;; markdown
      multiple-cursors
@@ -72,11 +72,26 @@
    ;; Also include the dependencies as they will not be resolved automatically.
    dotspacemacs-additional-packages '(all-the-icons-dired
                                       company-box
+                                      dash
+                                      deft
                                       evil-collection
                                       highlight-indent-guides
+                                      ht
+                                      ;; ivy-posframe
+                                      (ligature :location
+                                                (recipe :fetcher github
+                                                        :repo "mickeynp/ligature.el"))
                                       mixed-pitch
+                                      nov
+                                      org-super-agenda
                                       org-variable-pitch
-                                      solaire-mode)
+                                      org-roam
+                                      org-roam-server
+                                      org-noter
+                                      s
+                                      solaire-mode
+                                      ts
+                                      )
 
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
@@ -110,7 +125,7 @@ It should only modify the values of Spacemacs settings."
    ;; portable dumper in the cache directory under dumps sub-directory.
    ;; To load it when starting Emacs add the parameter `--dump-file'
    ;; when invoking Emacs 27.1 executable on the command line, for instance:
-   ;;   ./emacs --dump-file=$HOME/.emacs.d/.cache/dumps/spacemacs-27.1.pdmp
+   ;;   ./emacs --dump-file$HOME/.emacs.d/.cache/dumps/spacemacs-27.1.pdmp
    ;; (default spacemacs-27.1.pdmp)
    dotspacemacs-emacs-dumper-dump-file (format "spacemacs-%s.pdmp" emacs-version)
 
@@ -135,8 +150,9 @@ It should only modify the values of Spacemacs settings."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press `SPC T n' to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(doom-dracula
-                         doom-solarized-light)
+   dotspacemacs-themes '(dracula
+                         spacemacs-dark
+                         spacemacs-light)
    ;; Set the theme for the Spaceline. Supported themes are `spacemacs',
    ;; `all-the-icons', `custom', `doom', `vim-powerline' and `vanilla'. The
    ;; first three are spaceline themes. `doom' is the doom-emacs mode-line.
@@ -144,13 +160,13 @@ It should only modify the values of Spacemacs settings."
    ;; refer to the DOCUMENTATION.org for more info on how to create your own
    ;; spaceline theme. Value can be a symbol or list with additional properties.
    ;; (default '(spacemacs :separator wave :separator-scale 1.5))
-   dotspacemacs-mode-line-theme '(spacemacs :separator wave :separator-scale 1.5)
+   dotspacemacs-mode-line-theme '(spacemacs :separator box :separator-scale 1.0)
    ;; If non-nil the cursor color matches the state color in GUI Emacs.
    ;; (default t)
    dotspacemacs-colorize-cursor-according-to-state t
    ;; Default font or prioritized list of fonts.
    dotspacemacs-default-font '("Iosevka Medium"
-                               :size 32
+                               :size 18
                                :weight normal
                                :width normal)
    ;; The leader key (default "SPC")
@@ -416,20 +432,42 @@ This function is called at the very end of Spacemacs startup, after layer
 configuration.
 Put your configuration code here, except for variables that should be set
 before packages are loaded."
-  (setq default-frame-alist '((font . "Iosevka Medium")
-                              (size . 160)
-                              (buffer-predicate . spacemacs/useful-buffer-p)
-                              (vertical-scroll-bars)))
+  ;; (setq default-frame-alist '(
+  ;;                             (font . "Jetbrains Mono")
+  ;;                             (size . 120)
+  ;;                             (buffer-predicate . spacemacs/useful-buffer-p)
+  ;;                             (vertical-scroll-bars)))
   (setq-default evil-escape-key-sequence "jk"
-                powerline-height 32
-                powerline-separator 'box)
+                powerline-height 32)
 
   (set-face-attribute 'fixed-pitch nil :family "Iosevka Medium")
   (set-face-attribute 'variable-pitch nil :family "Source Sans Pro")
+  (evil-snipe-override-mode)
+  (global-display-line-numbers-mode)
+  (spacemacs/toggle-mode-line-minor-modes-off)
+  (spacemacs/toggle-golden-ratio)
+  (mouse-avoidance-mode 'banish)
+
+  ;; Workspace management binds unshamefully copied from Doom Emacs
+  (evil-define-key nil evil-normal-state-map
+    "gt" 'eyebrowse-next-window-config
+    "gT" 'eyebrowse-prev-window-config)
+  (spacemacs/set-leader-keys "TAB" (lambda () (interactive)
+                                     (run-with-idle-timer
+                                      0 nil '(lambda () (execute-kbd-macro (kbd "C-c C-w"))))
+                                     (setq unread-command-events
+                                           (listify-key-sequence (kbd "C-c C-w")))))
 
   ;; color non-file-visiting buffers darker
   (use-package solaire-mode
     :config
+    ;; shitty workaround to prevent spacemacs themes with solaire-mode altering
+    ;; file-visiting buffer faces
+    (defun tn/solaire-mode--real-buffer-p ()
+      "Return t if the BUF is a file-visiting buffer."
+      (not (buffer-file-name (buffer-base-buffer))))
+    (setq solaire-mode-real-buffer-fn #'tn/solaire-mode--real-buffer-p)
+
     (solaire-global-mode +1))
 
   ;; evil everywhere
@@ -453,14 +491,16 @@ before packages are loaded."
     (org-hide-emphasis-markers t)
     (org-startup-indented t)
     (org-startup-with-inline-images t)
-    (org-startup-with-latex-preview)
-    (org-format-latex-options '( :foreground default
+    (org-startup-with-latex-preview t)
+    (org-preview-latex-image-directory (concat spacemacs-cache-directory "ltximg"))
+    (org-format-latex-options '( :foreground "White"
                                  :background "#282a36"
-                                 :scale 4.0
+                                 :scale 3.0
                                  :html-foreground "Black"
                                  :html-background "Transparent"
                                  :html-scale 1.0
                                  :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
+    (org-archive-default-command #'org-archive-to-archive-sibling)
 
     (org-directory "~/Dropbox/org/")
     (org-journal-dir (concat org-directory "journal/"))
@@ -472,11 +512,16 @@ before packages are loaded."
     (org-todo-keywords
      '((sequence "TODO(t)"
                  "NEXT(n)"
-                 "IN-PROGRESS(i)"
-                 "WAITING(w)"
                  "|"
-                 "DONE(d!)"
+                 "DONE(d)"
                  "CANCELLED(c!)")
+       (type "IN-PROGRESS(i)"
+             "WAITING(w)"
+             "|"
+             "DONE(d)"
+             "CANCELLED(c)")
+       (sequence "UNREAD(u)"
+                 "READ(r)")
        (sequence "EVENT(e)"
                  "OVER(o)")))
     (org-tag-persistent-alist
@@ -493,7 +538,7 @@ before packages are loaded."
         "* %u %? :note:" :prepend t)
        ("e" "Upcoming event" entry
         (file+headline tn/tasks-file "Inbox")
-        "* %? :event:\nSCHEDULED: %^{Event Date}t")
+        "* EVENT %? :event:\nSCHEDULED: %^{Event Date}t")
 
        ("p" "Templates for projects")
        ("pt" "Project-local todo" entry
@@ -509,16 +554,21 @@ before packages are loaded."
        ("s" "Templates for school")
        ("st" "Class-related todo" entry
         (file+headline tn/school-file "Inbox")
-        "* TODO %? %^{Type|hw|study}g\nDEADLINE: %^{Deadline}t" :prepend t)
+        "* TODO %^{Title} :%^{Type|hw|study}:\nDEADLINE: %^{Deadline}t\n+ [[%x][Turn-In]]\n+ %?"
+        :prepend t)
        ("sn" "Class-related notes" entry
         (file+headline tn/school-file "Inbox")
-        "* %U %? %^{Type|notes|class-info}g" :prepend t)
+        "* %U %^{Title} :%^{Type|notes|class-info}:\n** %^{First heading}\n+ %?"
+        :prepend t)
        ))
     :config
     (set-face-attribute 'org-level-1 nil :height 160)
     (set-face-attribute 'org-level-2 nil :height 135)
     (set-face-attribute 'org-level-3 nil :height 130)
     (add-hook 'org-capture-mode-hook 'evil-insert-state))
+
+  ;; better org-agenda
+  (use-package org-super-agenda)
 
   ;; Mixed usage of variable and fixed pitch fonts
   (use-package mixed-pitch
@@ -530,32 +580,122 @@ before packages are loaded."
   (use-package org-variable-pitch
     :hook (org-mode . org-variable-pitch-minor-mode))
 
+  (use-package org-roam
+    :custom
+    (org-roam-directory (concat org-directory "roam"))
+    (org-roam-capture-templates '(( "d"
+                                    "default"
+                                    plain #'org-roam-capture--get-point
+                                    "%?"
+                                    :file-name "%<%Y%m%d%H%M%S>-${slug}"
+                                    :head "#+title: ${title}\n#+STARTUP: showeverything"
+                                    :unnarrowed t)
+                                  ( "m"
+                                    "math note"
+                                    plain #'org-roam-capture--get-point
+                                    "%?"
+                                    :file-name "%<%Y%m%d%H%M%S>-${slug}"
+                                    :head "#+title: ${title}\n#+roam_tags: math\n#+STARTUP: latexpreview showeverything"
+                                    :unnarrowed t)
+                                  ( "s"
+                                    "school note"
+                                    plain #'org-roam-capture--get-point
+                                    "%?"
+                                    :file-name "%<%Y%m%d%H%M%S>-${slug}"
+                                    :head "#+title: ${title}\n#+roam_tags: %^{engl|fsci|pltw|art|gym|phys|psych}\n#+STARTUP: showeverything"
+                                    :unnarrowed t)))
+    :init
+    (spacemacs/declare-prefix "ar" "org-roam")
+    (spacemacs/set-leader-keys
+      "ari" 'org-roam-insert
+      "arl" 'org-roam
+      "art" 'org-roam-dailies-today
+      "arm" 'org-roam-dailies-tomorrow
+      "ary" 'org-roam-dailies-yesterday
+      "arf" 'org-roam-find-file
+      "arg" 'org-roam-graph
+      "ars" 'org-roam-server-mode)
+
+    (spacemacs/declare-prefix-for-mode 'org-mode "mr" "org-roam")
+    (spacemacs/set-leader-keys-for-major-mode 'org-mode
+      "rl" 'org-roam
+      "rb" 'org-roam-switch-to-buffer
+      "rf" 'org-roam-find-file
+      "ry" 'org-roam-dailies-yesterday
+      "rm" 'org-roam-dailies-tomorrow
+      "rt" 'org-roam-dailies-today
+      "ri" 'org-roam-insert
+      "rg" 'org-roam-graph)
+    :config
+    (org-roam-mode)
+    (require 'org-roam-protocol))
+
+  (use-package org-roam-server
+    :config
+    (setq org-roam-server-host "127.0.0.1"
+          org-roam-server-port 8080
+          org-roam-server-authenticate nil
+          org-roam-server-export-inline-images t
+          org-roam-server-serve-files nil
+          org-roam-server-served-file-extensions '("pdf" "mp4" "ogv")
+          org-roam-server-network-poll t
+          org-roam-server-network-arrows nil
+          org-roam-server-network-label-truncate t
+          org-roam-server-network-label-truncate-length 60
+          org-roam-server-network-label-wrap-length 20))
+
+  (use-package deft
+    :after org
+    :custom
+    (deft-recursive t)
+    (deft-use-filter-string-for-filename t)
+    (deft-default-extension "org")
+    (deft-directory org-directory)
+    :config
+    (spacemacs/set-leader-keys
+      "aod" 'deft))
+
   (use-package all-the-icons-dired
     :init
-    (remove-hook 'dired-mode-hook 'treemacs-icons-dired--enable-highlight-correction)
+    (remove-hook 'dired-mode-hook
+                 'treemacs-icons-dired--enable-highlight-correction)
     (remove-hook 'dired-mode-hook 'treemacs-icons-dired-mode)
     (remove-hook 'dired-mode-hook 'treemacs--select-icon-set)
-    :hook (dired-mode . all-the-icons-dired-mode))
+    (global-ligature-mode t))
 
-  (use-package company-box
-    :hook (company-mode . company-box-mode))
+  (use-package helm
+    :config
+    (evil-define-key 'insert helm-map (kbd "C-j") #'helm-next-line)
+    (evil-define-key 'insert helm-map (kbd "C-k") #'helm-previous-line))
 
-  (evil-snipe-override-mode)
-  (global-display-line-numbers-mode)
+  ;; ide-like window viewer
+  (use-package treemacs
+    :custom
+    (treemacs-width 23)
+    :config
+    (add-hook 'treemacs-mode-hook (lambda ()
+                                    (spacemacs/toggle-mode-line))))
 
-  ;; Workspace management binds unshamefully copied from Doom Emacs
-  (evil-define-key nil evil-normal-state-map
-    "gt" 'eyebrowse-next-window-config
-    "gT" 'eyebrowse-prev-window-config)
-  (spacemacs/set-leader-keys "TAB" (lambda () (interactive)
-                                     (run-with-idle-timer
-                                      0 nil '(lambda () (execute-kbd-macro (kbd "C-c C-w"))))
-                                     (setq unread-command-events
-                                           (listify-key-sequence (kbd "C-c C-w")))))
+  ;; cooler ivy
+  (use-package ivy-posframe
+    :disabled
+    :config
+    (set-face-attribute 'ivy-posframe nil :background "#212026")
+    :custom
+    (ivy-posframe-min-width 120)
+    (ivy-posframe-width 120)
+    (ivy-posframe-display-functions-alist
+    '((swiper             . ivy-display-function-fallback)
+      (counsel-find-file  . ivy-display-function-fallback)
+      (counsel-load-theme . ivy-display-function-fallback)
+      (org-capture-refile . ivy-display-function-fallback)
+      (t                  . ivy-posframe-display-at-frame-center))))
 
-  (spacemacs/toggle-mode-line-minor-modes-off)
-  (spacemacs/toggle-vi-tilde-fringe-off)
-  (spacemacs/toggle-golden-ratio))
+  ;; better unicode support
+  (use-package unicode-fonts
+    :disabled
+    :config
+    (unicode-fonts-setup)))
 
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
@@ -573,8 +713,10 @@ This function is called at the very end of Spacemacs initialization."
  '(evil-escape-mode t)
  '(evil-want-Y-yank-to-eol nil)
  '(helm-completion-style 'emacs)
+ '(ivy-posframe-mode t)
+ '(ivy-posframe-style ''window-bottom-left)
  '(package-selected-packages
-   '(flyspell-correct-ivy flyspell-correct auto-dictionary org-variable-pitch company-box all-the-icons-dired mixed-pitch sqlup-mode sql-indent csv-mode pandoc-mode ox-pandoc engine-mode highlight-indent-guides ivy-rich helm helm-core zenburn-theme zen-and-art-theme yaml-mode white-sand-theme web-mode web-beautify utop underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme tuareg caml toxi-theme tide typescript-mode tao-theme tangotango-theme tango-plus-theme tango-2-theme tagedit sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme slime-company slime slim-mode seti-theme seeing-is-believing scss-mode sass-mode rvm ruby-tools ruby-test-mode ruby-refactor ruby-hash-syntax rubocopfmt rubocop rspec-mode robe reverse-theme rebecca-theme rbenv rake rainbow-mode rainbow-identifiers railscasts-theme purple-haze-theme pug-mode professional-theme prettier-js planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme ocp-indent occidental-theme obsidian-theme ob-elixir nodejs-repl noctilux-theme naquadah-theme mvn mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme modus-vivendi-theme modus-operandi-theme minitest minimal-theme merlin-eldoc meghanada maven-test-mode material-theme majapahit-theme madhat2r-theme lush-theme lsp-java livid-mode skewer-mode light-soap-theme kaolin-themes json-navigator hierarchy json-mode json-snatcher json-reformat js2-refactor multiple-cursors js2-mode js-doc jbeans-theme jazz-theme ir-black-theme insert-shebang inkpot-theme impatient-mode simple-httpd heroku-theme hemisu-theme helm-rtags helm-css-scss hc-zenburn-theme haml-mode gruvbox-theme gruber-darker-theme groovy-mode groovy-imports pcache grandshell-theme gotham-theme google-c-style gandalf-theme flycheck-ycmd flycheck-rtags flycheck-ocaml merlin flycheck-credo flycheck-bashate flatui-theme flatland-theme fish-mode farmhouse-theme eziam-theme exotica-theme espresso-theme emojify emoji-cheat-sheet-plus emmet-mode dune dracula-theme doom-themes django-theme disaster darktooth-theme darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme cpp-auto-include company-ycmd ycmd request-deferred company-web web-completion-data company-shell company-rtags rtags company-emoji company-c-headers common-lisp-snippets color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized color-identifiers-mode clues-theme chruby chocolate-theme autothemer cherry-blossom-theme ccls busybee-theme bundler inf-ruby bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes alchemist elixir-mode afternoon-theme org-journal treemacs-all-the-icons evil-collection annalist yapfify stickyfunc-enhance pytest pyenv-mode py-isort pippel pipenv pyvenv pip-requirements lsp-python-ms live-py-mode importmagic epc ctable concurrent deferred helm-pydoc helm-gtags helm-cscope xcscope ggtags cython-mode counsel-gtags counsel swiper ivy company-anaconda blacken anaconda-mode pythonic yasnippet-snippets xterm-color vterm unfill treemacs-magit terminal-here smeargle shell-pop orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download org-cliplink org-brain mwim multi-term magit-svn magit-section magit-gitflow magit-popup lsp-ui htmlize helm-org-rifle helm-org helm-lsp helm-gitignore helm-git-grep helm-company helm-c-yasnippet gnuplot gitignore-templates gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ fringe-helper git-gutter+ fuzzy flycheck-pos-tip pos-tip evil-snipe evil-org evil-magit magit git-commit with-editor transient eshell-z eshell-prompt-extras esh-help dap-mode posframe lsp-treemacs bui lsp-mode markdown-mode dash-functional company browse-at-remote auto-yasnippet yasnippet ac-ispell auto-complete ws-butler writeroom-mode winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package treemacs-projectile treemacs-persp treemacs-icons-dired treemacs-evil toc-org symon symbol-overlay string-inflection spaceline-all-the-icons restart-emacs request rainbow-delimiters popwin pcre2el password-generator paradox overseer org-superstar open-junk-file nameless move-text macrostep lorem-ipsum link-hint indent-guide hybrid-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-xref helm-themes helm-swoop helm-purpose helm-projectile helm-mode-manager helm-make helm-ls-git helm-flx helm-descbinds helm-ag google-translate golden-ratio font-lock+ flycheck-package flycheck-elsa flx-ido fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state evil-goggles evil-exchange evil-escape evil-ediff evil-cleverparens evil-args evil-anzu eval-sexp-fu emr elisp-slime-nav editorconfig dumb-jump dotenv-mode diminish devdocs define-word column-enforce-mode clean-aindent-mode centered-cursor-mode auto-highlight-symbol auto-compile aggressive-indent ace-link ace-jump-helm-line))
+   '(org-noter nov esxml org-roam-server deft org-roam emacsql-sqlite3 emacsql company-box flyspell-correct-helm org-super-agenda ts frame-local unicode-fonts ucs-utils font-utils persistent-soft flyspell-correct-ivy flyspell-correct auto-dictionary org-variable-pitch all-the-icons-dired mixed-pitch sqlup-mode sql-indent csv-mode pandoc-mode ox-pandoc engine-mode highlight-indent-guides ivy-rich helm helm-core zenburn-theme zen-and-art-theme yaml-mode white-sand-theme web-mode web-beautify utop underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme tuareg caml toxi-theme tide typescript-mode tao-theme tangotango-theme tango-plus-theme tango-2-theme tagedit sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme slime-company slime slim-mode seti-theme seeing-is-believing scss-mode sass-mode rvm ruby-tools ruby-test-mode ruby-refactor ruby-hash-syntax rubocopfmt rubocop rspec-mode robe reverse-theme rebecca-theme rbenv rake rainbow-mode rainbow-identifiers railscasts-theme purple-haze-theme pug-mode professional-theme prettier-js planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme ocp-indent occidental-theme obsidian-theme ob-elixir nodejs-repl noctilux-theme naquadah-theme mvn mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme modus-vivendi-theme modus-operandi-theme minitest minimal-theme merlin-eldoc meghanada maven-test-mode material-theme majapahit-theme madhat2r-theme lush-theme lsp-java livid-mode skewer-mode light-soap-theme kaolin-themes json-navigator hierarchy json-mode json-snatcher json-reformat js2-refactor multiple-cursors js2-mode js-doc jbeans-theme jazz-theme ir-black-theme insert-shebang inkpot-theme impatient-mode simple-httpd heroku-theme hemisu-theme helm-rtags helm-css-scss hc-zenburn-theme haml-mode gruvbox-theme gruber-darker-theme groovy-mode groovy-imports pcache grandshell-theme gotham-theme google-c-style gandalf-theme flycheck-ycmd flycheck-rtags flycheck-ocaml merlin flycheck-credo flycheck-bashate flatui-theme flatland-theme fish-mode farmhouse-theme eziam-theme exotica-theme espresso-theme emojify emoji-cheat-sheet-plus emmet-mode dune dracula-theme doom-themes django-theme disaster darktooth-theme darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme cpp-auto-include company-ycmd ycmd request-deferred company-web web-completion-data company-shell company-rtags rtags company-emoji company-c-headers common-lisp-snippets color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized color-identifiers-mode clues-theme chruby chocolate-theme autothemer cherry-blossom-theme ccls busybee-theme bundler inf-ruby bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes alchemist elixir-mode afternoon-theme org-journal treemacs-all-the-icons evil-collection annalist yapfify stickyfunc-enhance pytest pyenv-mode py-isort pippel pipenv pyvenv pip-requirements lsp-python-ms live-py-mode importmagic epc ctable concurrent deferred helm-pydoc helm-gtags helm-cscope xcscope ggtags cython-mode counsel-gtags counsel swiper ivy company-anaconda blacken anaconda-mode pythonic yasnippet-snippets xterm-color vterm unfill treemacs-magit terminal-here smeargle shell-pop orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download org-cliplink org-brain mwim multi-term magit-svn magit-section magit-gitflow magit-popup lsp-ui htmlize helm-org-rifle helm-org helm-lsp helm-gitignore helm-git-grep helm-company helm-c-yasnippet gnuplot gitignore-templates gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ fringe-helper git-gutter+ fuzzy flycheck-pos-tip pos-tip evil-snipe evil-org evil-magit magit git-commit with-editor transient eshell-z eshell-prompt-extras esh-help dap-mode posframe lsp-treemacs bui lsp-mode markdown-mode dash-functional company browse-at-remote auto-yasnippet yasnippet ac-ispell auto-complete ws-butler writeroom-mode winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package treemacs-projectile treemacs-persp treemacs-icons-dired treemacs-evil toc-org symon symbol-overlay string-inflection spaceline-all-the-icons restart-emacs request rainbow-delimiters popwin pcre2el password-generator paradox overseer org-superstar open-junk-file nameless move-text macrostep lorem-ipsum link-hint indent-guide hybrid-mode hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation helm-xref helm-themes helm-swoop helm-purpose helm-projectile helm-mode-manager helm-make helm-ls-git helm-flx helm-descbinds helm-ag google-translate golden-ratio font-lock+ flycheck-package flycheck-elsa flx-ido fancy-battery eyebrowse expand-region evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-textobj-line evil-surround evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-lion evil-indent-plus evil-iedit-state evil-goggles evil-exchange evil-escape evil-ediff evil-cleverparens evil-args evil-anzu eval-sexp-fu emr elisp-slime-nav editorconfig dumb-jump dotenv-mode diminish devdocs define-word column-enforce-mode clean-aindent-mode centered-cursor-mode auto-highlight-symbol auto-compile aggressive-indent ace-link ace-jump-helm-line))
  '(powerline-default-separator 'box)
  '(powerline-height 32)
  '(treemacs-width 25)
@@ -586,3 +728,9 @@ This function is called at the very end of Spacemacs initialization."
  ;; If there is more than one, they won't work right.
  '(default ((t (:background nil)))))
 )
+  (custom-set-faces
+   ;; custom-set-faces was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   '(default ((t (:background nil)))))

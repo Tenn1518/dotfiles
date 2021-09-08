@@ -53,7 +53,6 @@
 ;; (package! windower)
 ;; (package! highlight-indent-guides)
 (package! mixed-pitch)
-(package! org-variable-pitch)
 (package! org-roam)
 (package! org-roam-server)
 (package! org-super-agenda)

@@ -181,3 +181,6 @@
        :tn
        ;;exwm
        )
+
+;; Make j/k move by visual line instead
+(setq evil-respect-visual-line-mode t)
