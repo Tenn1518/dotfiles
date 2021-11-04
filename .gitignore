@@ -28,3 +28,5 @@ config/emacs/tramp/
 /config/emacs/bookmarks
 /config/emacs/.dap-breakpoints
 /config/emacs/elpa/
+.var/
+/config/emacs/etc/
