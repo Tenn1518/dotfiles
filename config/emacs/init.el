@@ -271,40 +271,37 @@ newlines and double spaces."
     ivy-height 15
     ;; control search style per command
     ivy-re-builders-alist
-    '((counsel-M-x . ivy--regex-fuzzy)
+    '((counsel-M-x . ivy--regex-ignore-order)
       (counsel-find-file . ivy--regex-fuzzy)
       (t . ivy--regex-plus))))
 
 ;; more informative completion candidates
 (use-package ivy-rich
-  :straight t)
+  :straight t
+  :after (ivy counsel)
+  :config
+  (ivy-rich-mode))
 
 ;; enhance common emacs commands
 (use-package counsel
   :straight t
-  :after (ivy)
-  :config
-  (global-set-key (kbd "C-h b") #'counsel-descbinds)
-  (global-set-key (kbd "C-h f") #'counsel-describe-function)
-  (global-set-key (kbd "C-h v") #'counsel-describe-variable)
-  (global-set-key (kbd "C-h a") #'counsel-apropos)
-  (global-set-key (kbd "C-x C-f") #'counsel-find-file)
-  (global-set-key (kbd "C-x r b") #'counsel-bookmark)
-  (global-set-key (kbd "C-c c i") #'counsel-imenu)
-  (global-set-key (kbd "M-x") #'counsel-M-x)
-  (global-set-key (kbd "C-c y") #'counsel-yank-pop)
-  (global-set-key (kbd "C-c s") #'counsel-grep-or-swiper))
+  :after ivy
+  :bind
+  ("C-h b" . #'counsel-descbinds)
+  ("C-h f" .  #'counsel-describe-function)
+  ("C-h v" . #'counsel-describe-variable)
+  ("C-h a" . #'counsel-apropos)
+  ("C-x C-f" . #'counsel-find-file)
+  ("C-x r b" . #'counsel-bookmark)
+  ("C-c c i" . #'counsel-imenu)
+  ("M-x" . #'counsel-M-x)
+  ("C-c y" . #'counsel-yank-pop)
+  ("C-c s" . #'counsel-grep-or-swiper))
 
 ;; enhanced isearch alternative with ivy
 (use-package swiper
   :straight t
-  :after (ivy counsel))
-
-;; enhanced M-x
-(use-package amx
-  :straight t
-  :config
-  (amx-mode))
+  :after (ivy))
 
 
 ;; Programming
@@ -378,7 +375,8 @@ lsp-enabled buffers."
 
 ;; terminal emulator
 (use-package vterm
-  :straight t)
+  :straight t
+  :commands vterm)
 
 
 ;; Org-mode
