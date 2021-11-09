@@ -5,6 +5,16 @@
 
 ;; A personal Emacs config.
 
+;; The config is split into multiple sections:
+;; 1. Package Management
+;; 2. Appearance
+;; 3. Emacs Lisp settings
+;; 4. Navigation/Editing
+;; 5. Completion
+;; 6. Programming
+;; 7. Org-mode
+;; 8. Miscellaneous
+
 ;;; Code:
 
 ;; disable garbage collection until post-init
@@ -49,6 +59,7 @@
 
 ;; ensure buffer titles are unique
 (use-package uniquify
+  :defer 2
   :config
   (setq uniquify-buffer-name-style 'forward))
 
@@ -72,7 +83,8 @@
   "Turn on line numbers if major mode is programming-related."
   (unless (or (minibufferp)
               ;;(member major-mode display-line-numbers-exempt-modes)
-	      (not (derived-mode-p 'prog-mode)))
+	      (not (derived-mode-p 'prog-mode))
+	      (not popper-popup-status))
     (display-line-numbers-mode)))
 (global-display-line-numbers-mode)
 
@@ -126,10 +138,10 @@
 ;; enhanced C-h help system
 (use-package helpful
   :straight t
-  :config
+  :bind ("C-h k" . #'helpful-key)
+  :init
   (setq counsel-describe-function-function #'helpful-callable
-	counsel-describe-variable-function #'helpful-variable)
-  (global-set-key (kbd "C-h k") #'helpful-key))
+	counsel-describe-variable-function #'helpful-variable))
 
 
 ;; Navigation/Editing
@@ -137,32 +149,47 @@
 ;; acceptable line length
 (setq-default fill-column 80)
 
+;; don't permanently delete files
+(setq delete-by-moving-to-trash t)
+
 ;; set macOS modifier keys
-;; command is switched with control
 (when (eq system-type 'darwin)
+  ;; command is switched with control
   (setq mac-right-option-modifier 'meta
 	mac-right-command-modifier 'control
 	mac-command-modifier 'control
-	mac-control-modifier 'super))
+	mac-control-modifier 'super)
+  ;; prevent accidental press
+  (global-unset-key (kbd "s-g")))
+
+;; point dired to correct ls binary on macOS
+(when (eq system-type 'darwin)
+  (setq dired-use-ls-dired t
+        insert-directory-program "/usr/local/bin/gls"
+        dired-listing-switches "-aBhl --group-directories-first"))
 
 ;; neuter annoying escape key
 (define-key key-translation-map (kbd "ESC") (kbd "C-g"))
 
 ;; replaces unnecessary suspend command
 (global-set-key (kbd "C-z") #'zap-up-to-char)
+
 ;; ibuffer for listing buffers
 (global-set-key (kbd "C-x C-b") #'ibuffer)
+
 ;; Edit emacs directory
 (defun t/edit-emacs-dir ()
   "Edit file from Emacs configuration directory."
   (interactive)
   (counsel-find-file user-emacs-directory))
 (global-set-key (kbd "C-c f p") #'t/edit-emacs-dir)
+
 ;; Open scratch buffer
 (defun t/open-scratch ()
   (interactive)
   (pop-to-buffer "*scratch*"))
 (global-set-key (kbd "C-c x") #'t/open-scratch)
+
 ;; Toggles
 (global-set-key (kbd "C-c t l") #'display-line-numbers-mode)
 (global-set-key (kbd "C-c t f") #'toggle-frame-fullscreen)
@@ -205,17 +232,28 @@ newlines and double spaces."
   ;; prefer right side, then bottom for popup
   (which-key-setup-side-window-right-bottom))
 
-;; replace annoying splits with popups
-(use-package popwin
+;; Popup manager
+(use-package popper
   :straight t
-  :config
-  (popwin-mode 1)
-  (push '(helpful-mode :height 20 :stick t)
-	popwin:special-display-config)
-  (push '(vterm-mode :height 20
-		     :stick t
-		     :dedicated t)
-	popwin:special-display-config))
+  :bind (("C-`"   . popper-toggle-latest)
+         ("M-`"   . popper-cycle)
+         ("C-M-`" . popper-toggle-type))
+  :init
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "Output\\*$"
+          "\\*Async Shell Command\\*"
+          help-mode
+	  helpful-mode
+	  vterm-mode
+          compilation-mode
+	  "^\\*eshell.*\\*$" eshell-mode
+          "^\\*shell.*\\*$"  shell-mode
+          "^\\*term.*\\*$"   term-mode
+          "^\\*vterm.*\\*$"  vterm-mode)
+	popper-mode-line nil)
+  ;;(popper-echo-mode +1)
+  (popper-mode +1))
 
 
 ;; Completion
@@ -276,6 +314,7 @@ newlines and double spaces."
 
 ;; help emacs find executables
 (add-to-list 'exec-path "/Library/TeX/texbin/")
+(add-to-list 'exec-path "/usr/local/bin")
 
 ;; highlight and auto-create matching parentheses
 (show-paren-mode 1)
@@ -289,18 +328,18 @@ newlines and double spaces."
 
 ;; automatic formatting of program buffers on save
 (use-package format-all
+  :commands format-all-mode
   :straight t)
 
-;; IDE-like features
+;; IDE-like features through language servers
 (use-package lsp-mode
   :straight t
-  :init
   :hook
-  ((lsp-mode . onsave))
+  ((lsp-mode . t/lsp-onsave))
   :commands lsp lsp-deferred
-  :config
+  :init
   (setq lsp-headerline-breadcrumb-enable nil)
-  (setq lsp-keymap-prefix "C-c l")
+  (setq lsp-keymap-prefix "C-c c")
   (defvar t/lsp-enabled-modes
     '(python-mode c++-mode)
     "List of major modes which LSP should activate on start.")
@@ -321,12 +360,13 @@ lsp-enabled buffers."
 ;; error checking
 (use-package flycheck
   :straight t
-  :config
-  (global-flycheck-mode))
+  :hook (prog-mode . flycheck-mode))
 
 ;; git frontend
 (use-package magit
-  :straight t)
+  :straight t
+  :bind (("C-x M-g" . magit-dispatch)
+	 ("C-c g" . magit-status)))
 
 ;; highlight changes in fringe
 (use-package diff-hl
