@@ -577,6 +577,11 @@ lsp-enabled buffers."
   :config
   (setq bibtex-completion-bibliography org-ref-default-bibliography))
 
+;; taking notes
+(use-package org-noter
+  :straight t
+  :config
+  (global-set-key (kbd "C-c n n") #'org-noter))
 
 ;; Miscellaneous
 
