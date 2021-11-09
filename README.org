@@ -1,7 +1,8 @@
 #+TITLE: dotfiles
 #+AUTHOR: Tenn1518
 
-Configuration files for programs such as emacs, zsh, etc to bootstrap onto a UNIX-like operating system.
+Configuration files for programs such as emacs, zsh, etc to bootstrap onto a
+UNIX-like operating system.
 
 This project is licensed under the terms of the [[https://github.com/Tenn1518/dotfiles/blob/master/LICENSE][MIT license]].
 
@@ -11,7 +12,7 @@ Linux: ~Light~ (tool to change backlight)
 
 macOS: ~Homebrew~
 
-*: ~emacs~, ~zsh~, ~alacritty~, Dracula themes for as many things as possible, and the Iosevka family of fonts
+*: ~emacs~, ~zsh~, ~alacritty~, and the Iosevka family of fonts
 
 ** How to Install
 
@@ -22,17 +23,10 @@ $ cd ~/.dotfiles
 $ ./install.py
 #+END_EXAMPLE
 
-This will symlink folders and files from their respective locations in $HOME to under ~/.dotfiles
+This will symlink folders and files from their respective locations in $HOME to
+under ~/.dotfiles
 
-Upon entering emacs, run ~M-x all-the-icons-install-fonts~. This will install icon fonts not only for emacs, but also for ~waybar~.
-
-** Notes for what's included
-
-| Program   | Description                                                                                                                                                                              |
-|-----------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| emacs     | Text editor/IDE/operating system with my personal configuration with a hefty amount of vim bindings. If on Wayland/Sway, try using the pure-gtk branch of emacs for better compatibility |
-| Sway      | i3 but on Wayland.                                                                                                                                                                       |
-| Waybar    | Bar displaying system information and workspaces in SwayWM.                                                                                                                              |
-| rofi      | Dmenu alternative that works better with Sway and Wayland.                                                                                                                               |
-| alacritty | Fast, gpu-based, cross-platform terminal emulator                                                                                                                                        |
-| neovim    | Legacy configuration from before I started using emacs. Not maintained or useful.                                                                                                        |
+/My Emacs config doesn't use all-the-icons anymore, so this will not
+work. Install all-the-icons from the submodule instead./ Upon entering emacs,
+run ~M-x all-the-icons-install-fonts~. This will install icon fonts not only for
+emacs, but also for ~waybar~.
