@@ -366,28 +366,28 @@ lsp-enabled buffers."
      ("school"))
    org-capture-templates
    ;; entries for personal tasks file (consider removing)
-   '(("t" "Personal todo" entry
+   '(("t" "Quick todo" entry
       (file+olp+datetree t/daily-file)
-      "* TODO %? :task:"
-      :empty-lines 1 :prepend t)
-     ("n" "Personal note" entry
+      "* TODO %?\n%U"
+      :empty-lines 2 :prepend t)
+     ("n" "Quick note" entry
       (file+olp+datetree t/daily-file)
-      "* UNREAD %u %? :note:"
-      :empty-lines 1 :prepend t)
+      "* UNREAD %? :note:\n%U"
+      :empty-lines 2 :prepend t)
      ("e" "Upcoming event" entry
       (file+olp+datetree t/daily-file)
       "* EVENT %? :event:\nSCHEDULED: %^{Event Date}t"
-      :empty-lines 1 :prepend t)
+      :empty-lines 2 :prepend t)
      ;; entries for school file
      ("s" "Templates for school")
      ("st" "Class-related todo" entry
       (file+olp+datetree t/daily-file)
-      "* TODO %^{Title} :%^{Type|hw|study}:\nDEADLINE:%^{Deadline}t\n\n+ [[%c][Turn-In]]\n\n%?"
-      :empty-lines 1)
+      "* TODO %^{Title} :hw:\nDEADLINE:%^{Deadline}t\n\n+ [[%?][Turn-In]]"
+      :empty-lines 2)
      ("sn" "Class-related notes" entry
       (file+olp+datetree t/daily-file)
       "* %^{Title} :%^{Type|notes|class-info}:\n%U\n\n+ %?"
-      :empty-lines 1)))
+      :empty-lines 2)))
    ;; agenda settings
    (setq org-deadline-warning-days 3
    org-agenda-custom-commands
@@ -406,8 +406,8 @@ lsp-enabled buffers."
         org-startup-indented nil
 	;; latex settings
 	org-preview-latex-image-directory (concat "~/.cache/emacs/" "ltximg")
-        org-format-latex-options '( :foreground "White"
-                                    :background "#282a36"
+        org-format-latex-options '( :foreground "Black"
+                                    :background "White"
                                     :scale 2.0
                                     :html-foreground "Black"
                                     :html-background "Transparent"
@@ -434,7 +434,6 @@ lsp-enabled buffers."
   (global-set-key (kbd "C-c f n") #'t/edit-org-dir)
   (global-set-key (kbd "C-c X") #'org-capture)
   (global-set-key (kbd "C-c n a") #'org-agenda)
-  (global-set-key (kbd "C-c n j") #'org-journal-new-entry)
   ;; edit/nav bindings in org-mode
   (define-key org-mode-map (kbd "C-c .") #'counsel-org-goto)
   (define-key org-mode-map (kbd "M-{") #'backward-paragraph)
@@ -450,6 +449,18 @@ lsp-enabled buffers."
   (define-key org-mode-map (kbd "s-C-n") #'org-next-visible-heading)
   (define-key org-mode-map (kbd "s-C-u") #'outline-up-heading))
 
+(use-package ox-latex
+  :after org
+  :config
+  (add-to-list 'org-latex-classes
+               '("apa6"
+                 "\\documentclass{apa6}"
+                 ("\\section{%s}" . "\\section*{%s}")
+                 ("\\subsection{%s}" . "\\subsection*{%s}")
+                 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                 ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+
 ;; syntax highlighting in exported html
 (use-package htmlize
   :straight t)
@@ -457,6 +468,8 @@ lsp-enabled buffers."
 ;; journal
 (use-package org-journal
   :straight t
+  :bind ("C-c n j" . org-journal-new-entry)
+  :after org
   :config
   (setq org-journal-dir (expand-file-name (concat org-directory "journal/"))
 	;; don't open new window
@@ -492,12 +505,12 @@ lsp-enabled buffers."
         ;;     :head "#+title: ${title}\n#+roam_tags: %^{engl|fsci|pltw|art|gym|phys|psych}\n#+STARTUP: showeverything"
         ;;     :unnarrowed t))
 	)
-  :config
-  (global-set-key (kbd "C-c n r f") #'org-roam-node-find)
-  (global-set-key (kbd "C-c n r i") #'org-roam-node-insert)
-  (global-set-key (kbd "C-c n r I") #'org-id-get-create)
-  (global-set-key (kbd "C-c n r n") #'org-roam-capture)
-  (global-set-key (kbd "C-c n r r") #'org-roam-buffer-toggle))
+  :bind
+  ("C-c n r f" . #'org-roam-node-find)
+  ("C-c n r i" . #'org-roam-node-insert)
+  ("C-c n r I" . #'org-id-get-create)
+  ("C-c n r n" . #'org-roam-capture)
+  ("C-c n r r" . #'org-roam-buffer-toggle))
 
 ;; browser page for viewing/navigating org-roam notes
 (use-package org-roam-ui
@@ -506,6 +519,46 @@ lsp-enabled buffers."
 (use-package websocket
   :disabled
   :after org-roam)
+
+;; cite sources from .bib files
+(use-package org-ref
+  :straight t
+  :init
+  (setq org-ref-completion-library 'org-ref-ivy-cite
+        org-export-latex-format-toc-function 'org-export-latex-no-toc
+        org-ref-get-pdf-filename-function
+        (lambda (key) (car (bibtex-completion-find-pdf key)))
+        ;; For pdf export engines.
+        org-latex-pdf-process (list "latexmk -pdflatex='%latex -shell-escape -interaction nonstopmode' -pdf -bibtex -f -output-directory=%o %f")
+        ;; I use orb to link org-ref, helm-bibtex and org-noter together (see below for more on org-noter and orb).
+        ;;org-ref-notes-function 'orb-edit-notes)
+	org-ref-default-bibliography "~/Zotero/zotero/zotero.bib"
+	org-ref-default-citation-link "citep"))
+(use-package ivy-bibtex
+  :straight t
+  :config
+  (setq bibtex-completion-bibliography org-ref-default-bibliography))
+
+
+;; Miscellaneous
+
+;; enhanced pdf viewing
+(use-package pdf-tools
+  :straight t
+  :config
+  (setenv "PKG_CONFIG_PATH"
+	  "/usr/local/Cellar/zlib/1.2.8/lib/pkgconfig:/usr/local/lib/pkgconfig:/opt/X11/lib/pkgconfig")
+  (setenv "PATH"
+	  (s-join ":" exec-path))
+  (pdf-tools-install)
+  (setq-default pdf-view-display-size 'fit-width)
+  :custom
+  (pdf-annot-activate-created-annotations t "automatically annotate highlights"))
+
+;; reminds user to keep good posture
+(use-package posture
+  :config
+  (global-set-key (kbd "C-c t p") #'toggle-posture-reminder))
 
 ;; reenable garbage collection when idle
 (run-with-idle-timer
