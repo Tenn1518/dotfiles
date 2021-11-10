@@ -228,7 +228,14 @@ newlines and double spaces."
   ;; prefer right side, then bottom for popup
   (which-key-setup-side-window-right-bottom))
 
-;; Popup manager
+;; set rules for displaying buffers
+(use-package shackle
+  :straight t
+  :config
+  (setq shackle-rules '(("\\`\\*helm.*?\\*\\'" :regexp t :align t :ratio 0.4)))
+  (shackle-mode))
+
+;; popup manager
 (use-package popper
   :straight t
   :bind (("C-`"   . popper-toggle-latest)
