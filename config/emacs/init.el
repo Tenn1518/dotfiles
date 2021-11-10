@@ -84,11 +84,11 @@
   (unless (or (minibufferp)
               ;;(member major-mode display-line-numbers-exempt-modes)
 	      (not (derived-mode-p 'prog-mode))
-	      (not popper-popup-status))
+	      (popper-popup-status))
     (display-line-numbers-mode)))
 (global-display-line-numbers-mode)
 
-;; scroll long lines individually
+;; scroll long lines individually like nano
 (setq auto-hscroll-mode 'current-line)
 
 ;; modeline
@@ -265,22 +265,26 @@ newlines and double spaces."
   :straight t
   :bind
   ("M-x" . #'helm-M-x)
-   ([remap apropos] .  #'helm-apropos)
-   ([remap find-library] .  #'helm-locate-library)
-   ([remap bookmark-jump] . #'helm-bookmarks)
-   ([remap execute-extended-command] . #'helm-M-x)
-   ([remap find-file] . #'helm-find-files)
-   ([remap locate] . #'helm-locate)
-   ([remap imenu] . #'helm-semantic-or-imenu)
-   ([remap noop-show-kill-ring] . #'helm-show-kill-ring)
-   ([remap switch-to-buffer] . #'helm-buffers-list)
-   ([remap projectile-recentf] . #'helm-projectile-recentf)
-   ([remap projectile-switch-project] . #'helm-projectile-switch-project)
-   ([remap projectile-switch-to-buffer] . #'helm-projectile-switch-to-buffer)
-   ([remap recentf-open-files] . #'helm-recentf)
-   ([remap yank-pop] . #'helm-show-kill-ring)
+  ([remap apropos] .  #'helm-apropos)
+  ([remap find-library] .  #'helm-locate-library)
+  ([remap bookmark-jump] . #'helm-bookmarks)
+  ([remap execute-extended-command] . #'helm-M-x)
+  ([remap find-file] . #'helm-find-files)
+  ([remap imenu] . #'helm-semantic-or-imenu)
+  ([remap locate] . #'helm-locate)
+  ([remap noop-show-kill-ring] . #'helm-show-kill-ring)
+  ([remap occur] . #'helm-occur)
+  ([remap switch-to-buffer] . #'helm-buffers-list)
+  ([remap projectile-recentf] . #'helm-projectile-recentf)
+  ([remap projectile-switch-project] . #'helm-projectile-switch-project)
+  ([remap projectile-switch-to-buffer] . #'helm-projectile-switch-to-buffer)
+  ([remap recentf-open-files] . #'helm-recentf)
+  ([remap yank-pop] . #'helm-show-kill-ring)
+  ("C-c s s" . #'helm-swoop)
+  ("C-c s y" . #'helm-show-kill-ring)
+  ("C-c s f" . #'helm-find)
   :config
-  (setq helm-split-window-in-side-p t)
+  (setq helm-split-window-in-side-p nil)
   (helm-mode))
 
 
@@ -552,8 +556,7 @@ lsp-enabled buffers."
         ;;org-ref-notes-function 'orb-edit-notes)
 	org-ref-default-bibliography "~/Zotero/zotero/zotero.bib"
 	org-ref-default-citation-link "citep"))
-(use-package ivy-bibtex
-  :disabled
+(use-package helm-bibtex
   :straight t
   :config
   (setq bibtex-completion-bibliography org-ref-default-bibliography))
