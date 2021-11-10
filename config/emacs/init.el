@@ -103,12 +103,8 @@
 	      mode-line-frame-indication
 	      "   "
 	      mode-line-buffer-identification
-	      " %p %l:%c "
-	      ;; right-align
-	      (:eval (propertize
-                      " " 'display
-                      `((space :align-to (- (+ right right-fringe right-margin)
-                                            ,(+ 3 (string-width mode-name)))))))
+	      " %p  %l:%c   "
+	      (:eval (if tab-bar-mode (concat (alist-get 'name (tab-bar--current-tab)) "   ")))
 	      "[%m]"))
 
 ;; macOS titlebar
@@ -245,13 +241,13 @@ newlines and double spaces."
           "\\*Async Shell Command\\*"
           help-mode
 	  helpful-mode
-	  vterm-mode
           compilation-mode
 	  "^\\*eshell.*\\*$" eshell-mode
           "^\\*shell.*\\*$"  shell-mode
           "^\\*term.*\\*$"   term-mode
           "^\\*vterm.*\\*$"  vterm-mode)
-	popper-mode-line nil)
+	popper-mode-line nil
+	popper-window-height 15)
   ;;(popper-echo-mode +1)
   (popper-mode +1))
 
@@ -296,7 +292,8 @@ newlines and double spaces."
   ("C-c c i" . #'counsel-imenu)
   ("M-x" . #'counsel-M-x)
   ("C-c y" . #'counsel-yank-pop)
-  ("C-c s" . #'counsel-grep-or-swiper))
+  ("C-c s" . #'counsel-grep-or-swiper)
+  ("C-c f f" . #'counsel-file-jump))
 
 ;; enhanced isearch alternative with ivy
 (use-package swiper
@@ -577,7 +574,7 @@ lsp-enabled buffers."
   :config
   (setq bibtex-completion-bibliography org-ref-default-bibliography))
 
-;; taking notes
+;; taking notes from a document
 (use-package org-noter
   :straight t
   :config
