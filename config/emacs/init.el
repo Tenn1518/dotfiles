@@ -283,56 +283,6 @@ newlines and double spaces."
   (setq helm-split-window-in-side-p t)
   (helm-mode))
 
-(use-package ivy
-  :disabled
-  :straight t
-  :config
-  (ivy-mode)
-  (setq
-    ;; arbitrary user input creates new entry
-    ;; "C-M-j" also does this
-    ivy-use-selectable-prompt t
-    ivy-use-virtual-buffers t
-    ivy-count-format "(%d/%d)"
-    ivy-height 15
-    ;; control search style per command
-    ivy-re-builders-alist
-    '((counsel-M-x . ivy--regex-ignore-order)
-      (counsel-find-file . ivy--regex-fuzzy)
-      (t . ivy--regex-plus))))
-
-;; more informative completion candidates
-(use-package ivy-rich
-  :disabled
-  :straight t
-  :after (ivy counsel)
-  :config
-  (ivy-rich-mode))
-
-;; enhance common emacs commands
-(use-package counsel
-  :disabled
-  :straight t
-  :after ivy
-  :bind
-  ("C-h b" . #'counsel-descbinds)
-  ("C-h f" .  #'counsel-describe-function)
-  ("C-h v" . #'counsel-describe-variable)
-  ("C-h a" . #'counsel-apropos)
-  ("C-x C-f" . #'counsel-find-file)
-  ("C-x r b" . #'counsel-bookmark)
-  ("C-c c i" . #'counsel-imenu)
-  ("M-x" . #'counsel-M-x)
-  ("C-c y" . #'counsel-yank-pop)
-  ("C-c s" . #'counsel-grep-or-swiper)
-  ("C-c f f" . #'counsel-file-jump))
-
-;; enhanced isearch alternative with ivy
-(use-package swiper
-  :disabled
-  :straight t
-  :after (ivy))
-
 
 ;; Programming
 
