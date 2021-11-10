@@ -177,7 +177,7 @@
 (defun t/edit-emacs-dir ()
   "Edit file from Emacs configuration directory."
   (interactive)
-  (counsel-find-file user-emacs-directory))
+  (find-file user-emacs-directory))
 (global-set-key (kbd "C-c f p") #'t/edit-emacs-dir)
 
 ;; Open scratch buffer
@@ -255,6 +255,7 @@ newlines and double spaces."
 ;; Completion
 
 (use-package ivy
+  :disabled
   :straight t
   :config
   (ivy-mode)
@@ -273,6 +274,7 @@ newlines and double spaces."
 
 ;; more informative completion candidates
 (use-package ivy-rich
+  :disabled
   :straight t
   :after (ivy counsel)
   :config
@@ -280,6 +282,7 @@ newlines and double spaces."
 
 ;; enhance common emacs commands
 (use-package counsel
+  :disabled
   :straight t
   :after ivy
   :bind
@@ -297,6 +300,7 @@ newlines and double spaces."
 
 ;; enhanced isearch alternative with ivy
 (use-package swiper
+  :disabled
   :straight t
   :after (ivy))
 
@@ -570,6 +574,7 @@ lsp-enabled buffers."
 	org-ref-default-bibliography "~/Zotero/zotero/zotero.bib"
 	org-ref-default-citation-link "citep"))
 (use-package ivy-bibtex
+  :disabled
   :straight t
   :config
   (setq bibtex-completion-bibliography org-ref-default-bibliography))
