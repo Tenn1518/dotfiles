@@ -254,6 +254,28 @@ newlines and double spaces."
 
 ;; Completion
 
+(use-package helm
+  :straight t
+  :bind
+  ("M-x" . #'helm-M-x)
+   ([remap apropos] .  #'helm-apropos)
+   ([remap find-library] .  #'helm-locate-library)
+   ([remap bookmark-jump] . #'helm-bookmarks)
+   ([remap execute-extended-command] . #'helm-M-x)
+   ([remap find-file] . #'helm-find-files)
+   ([remap locate] . #'helm-locate)
+   ([remap imenu] . #'helm-semantic-or-imenu)
+   ([remap noop-show-kill-ring] . #'helm-show-kill-ring)
+   ([remap switch-to-buffer] . #'helm-buffers-list)
+   ([remap projectile-recentf] . #'helm-projectile-recentf)
+   ([remap projectile-switch-project] . #'helm-projectile-switch-project)
+   ([remap projectile-switch-to-buffer] . #'helm-projectile-switch-to-buffer)
+   ([remap recentf-open-files] . #'helm-recentf)
+   ([remap yank-pop] . #'helm-show-kill-ring)
+  :config
+  (setq helm-split-window-in-side-p t)
+  (helm-mode))
+
 (use-package ivy
   :disabled
   :straight t
