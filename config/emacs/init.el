@@ -78,13 +78,35 @@
       `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))
       custom-file (expand-file-name "custom.el" no-littering-etc-directory))
 
+;; set rules for displaying buffers
+(setq display-buffer-alist
+      '(("\\`\\*helm.*?\\*\\'" 
+         (display-buffer-at-bottom)
+	 (window-height . .35))
+	("^\\*vterm.*\\*$"
+	 (display-buffer-in-side-window)
+	 (side . bottom)
+	 (slot . -1)
+	 (window-width . .3)
+	 (window-height . .3)
+	 (window-parameters . ((mode-line-format . none))))
+	("(\\*Messages\\*|Output\\*$)"
+	 (display-buffer-in-side-window)
+	 (side . bottom)
+	 (slot . 1)
+	 (height . .3))
+	("\\(^\\*helpful\\|\\*Help\\*\\)"
+	 (display-buffer-in-side-window)
+	 (side . bottom)
+	 (slot . 1))))
+
 ;; display line numbers in programming buffers
 (defun display-line-numbers--turn-on ()
   "Turn on line numbers if major mode is programming-related."
   (unless (or (minibufferp)
               ;;(member major-mode display-line-numbers-exempt-modes)
 	      (not (derived-mode-p 'prog-mode))
-	      (popper-popup-status))
+	      popper-popup-status)
     (display-line-numbers-mode)))
 (global-display-line-numbers-mode)
 
@@ -227,36 +249,6 @@ newlines and double spaces."
   (which-key-mode)
   ;; prefer right side, then bottom for popup
   (which-key-setup-side-window-right-bottom))
-
-;; set rules for displaying buffers
-(use-package shackle
-  :straight t
-  :config
-  (setq shackle-rules '(("\\`\\*helm.*?\\*\\'" :regexp t :align t :ratio 0.4)))
-  (shackle-mode))
-
-;; popup manager
-(use-package popper
-  :straight t
-  :bind (("C-`"   . popper-toggle-latest)
-         ("M-`"   . popper-cycle)
-         ("C-M-`" . popper-toggle-type))
-  :init
-  (setq popper-reference-buffers
-        '("\\*Messages\\*"
-          "Output\\*$"
-          "\\*Async Shell Command\\*"
-          help-mode
-	  helpful-mode
-          compilation-mode
-	  "^\\*eshell.*\\*$" eshell-mode
-          "^\\*shell.*\\*$"  shell-mode
-          "^\\*term.*\\*$"   term-mode
-          "^\\*vterm.*\\*$"  vterm-mode)
-	popper-mode-line nil
-	popper-window-height 15)
-  ;;(popper-echo-mode +1)
-  (popper-mode +1))
 
 
 ;; Completion
