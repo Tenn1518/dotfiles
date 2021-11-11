@@ -57,7 +57,7 @@
 (add-to-list 'default-frame-alist '(font . "Menlo-12"))
 (set-face-attribute 'default nil :family "Menlo" :height 120 :weight 'normal)
 
-;; ensure buffer titles are unique
+;; ensure titles are unique
 (use-package uniquify
   :defer 2
   :config
@@ -84,29 +84,39 @@
          (display-buffer-at-bottom)
 	 (window-height . .35))
 	("^\\*vterm.*\\*$"
-	 (display-buffer-in-side-window)
+	 (display-buffer-reuse-window display-buffer-in-side-window)
 	 (side . bottom)
 	 (slot . -1)
 	 (window-width . .3)
 	 (window-height . .3)
 	 (window-parameters . ((mode-line-format . none))))
 	("(\\*Messages\\*|Output\\*$)"
-	 (display-buffer-in-side-window)
+	 (display-buffer-reuse-window display-buffer-in-side-window)
 	 (side . bottom)
 	 (slot . 1)
 	 (height . .3))
 	("\\(^\\*helpful\\|\\*Help\\*\\)"
-	 (display-buffer-in-side-window)
+	 (display-buffer-reuse-window display-buffer-in-side-window)
 	 (side . bottom)
-	 (slot . 1))))
+	 (slot . 1)
+	 (window-height . .3))
+	("\\(^magit:\\|\\*info\\*\\|NEWS\\)"
+	 (display-buffer-reuse-window
+	  display-buffer-use-some-window
+	  display-buffer-in-direction)
+	 (direction . right)
+	 (window-width . .5)
+	 (inhibit-same-window . t))))
+;; toggle term and help windows
+(global-set-key (kbd "C-c t w") #'window-toggle-side-windows)
+
 
 ;; display line numbers in programming buffers
 (defun display-line-numbers--turn-on ()
   "Turn on line numbers if major mode is programming-related."
   (unless (or (minibufferp)
               ;;(member major-mode display-line-numbers-exempt-modes)
-	      (not (derived-mode-p 'prog-mode))
-	      popper-popup-status)
+	      (not (derived-mode-p 'prog-mode)))
     (display-line-numbers-mode)))
 (global-display-line-numbers-mode)
 
