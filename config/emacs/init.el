@@ -179,6 +179,11 @@
 
 ;; don't permanently delete files
 (setq delete-by-moving-to-trash t)
+(use-package 'osx-trash
+  :if (eq 'system-type 'darwin)
+  :straight t
+  :config
+  (osx-trash-setup))
 
 ;; set macOS modifier keys
 (when (eq system-type 'darwin)
