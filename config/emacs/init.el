@@ -106,7 +106,13 @@
 	  display-buffer-in-direction)
 	 (direction . right)
 	 (window-width . .5)
-	 (inhibit-same-window . t))))
+	 (inhibit-same-window . t))
+	("\\*org-roam\\*"
+	 (display-buffer-in-side-window)
+	 (side . right)
+	 (slot . 0)
+	 (window-width . .25)
+	 (preserve-size . (t nil)))))
 ;; toggle term and help windows
 (global-set-key (kbd "C-c t w") #'window-toggle-side-windows)
 
@@ -289,6 +295,7 @@ newlines and double spaces."
   ([remap yank-pop] . #'helm-show-kill-ring)
   ("C-c s y" . #'helm-show-kill-ring)
   ("C-c s f" . #'helm-find)
+  ("C-c s a" . #'helm-do-grep-ag)
   :config
   (setq helm-split-window-in-side-p nil)
   (helm-mode))
@@ -412,6 +419,7 @@ lsp-enabled buffers."
    org-startup-with-inline-images t
    org-startup-with-latex-preview t
    org-archive-default-command #'org-archive-to-archive-sibling
+   org-id-track-globally t
    ;; relevant paths
    org-directory "~/Documents/Notes/"
    org-agenda-files (list org-directory)
@@ -571,7 +579,9 @@ lsp-enabled buffers."
   ("C-c n r i" . #'org-roam-node-insert)
   ("C-c n r I" . #'org-id-get-create)
   ("C-c n r n" . #'org-roam-capture)
-  ("C-c n r r" . #'org-roam-buffer-toggle))
+  ("C-c n r r" . #'org-roam-buffer-toggle)
+  :config
+  (org-roam-db-autosync-mode))
 
 ;; browser page for viewing/navigating org-roam notes
 (use-package org-roam-ui
