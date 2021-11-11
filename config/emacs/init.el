@@ -156,10 +156,10 @@
 ;; enhanced C-h help system
 (use-package helpful
   :straight t
-  :bind ("C-h k" . #'helpful-key)
-  :init
-  (setq counsel-describe-function-function #'helpful-callable
-	counsel-describe-variable-function #'helpful-variable))
+  :bind
+  ("C-h k" . #'helpful-key)
+  ("C-h v" . #'helpful-variable)
+  ("C-h f" . #'helpful-callable))
 
 
 ;; Navigation/Editing
@@ -267,18 +267,18 @@ newlines and double spaces."
   ([remap noop-show-kill-ring] . #'helm-show-kill-ring)
   ([remap occur] . #'helm-occur)
   ([remap switch-to-buffer] . #'helm-buffers-list)
-  ([remap projectile-recentf] . #'helm-projectile-recentf)
-  ([remap projectile-switch-project] . #'helm-projectile-switch-project)
-  ([remap projectile-switch-to-buffer] . #'helm-projectile-switch-to-buffer)
   ([remap recentf-open-files] . #'helm-recentf)
   ([remap yank-pop] . #'helm-show-kill-ring)
-  ("C-c s s" . #'helm-swoop)
   ("C-c s y" . #'helm-show-kill-ring)
   ("C-c s f" . #'helm-find)
   :config
   (setq helm-split-window-in-side-p nil)
   (helm-mode))
 
+;; search through buffer
+(use-package helm-swoop
+  :straight t
+  :bind ("C-c s s" . #'helm-swoop))
 
 ;; Programming
 
@@ -293,11 +293,38 @@ newlines and double spaces."
 (show-paren-mode 1)
 (electric-pair-mode)
 
+;; keep buffers updated with file changes
+(global-auto-revert-mode)
+
 ;; don't fully display long lines
 (setq-default truncate-lines t)
 
 ;; display region when active
 (transient-mark-mode)
+
+;; manage projects
+(use-package projectile
+  :straight t
+  :init
+  (setq projectile-switch-project-action #'projectile-dired
+	projectile-project-search-path '("~/Documents/Code"))
+  :config
+  (define-key projectile-mode-map (kbd "C-c p") projectile-command-map)
+  (projectile-mode))
+
+;; integrate with helm actions
+(use-package helm-projectile
+  :disabled
+  :straight t
+  :after (helm projectile)
+  :config
+  (helm-projectile-on))
+
+;; git frontend
+(use-package magit
+  :straight t
+  :bind (("C-x M-g" . magit-dispatch)
+	 ("C-c g" . magit-status)))
 
 ;; automatic formatting of program buffers on save
 (use-package format-all
@@ -335,12 +362,6 @@ lsp-enabled buffers."
   :straight t
   :hook (prog-mode . flycheck-mode))
 
-;; git frontend
-(use-package magit
-  :straight t
-  :bind (("C-x M-g" . magit-dispatch)
-	 ("C-c g" . magit-status)))
-
 ;; highlight changes in fringe
 (use-package diff-hl
   :straight t
@@ -348,6 +369,13 @@ lsp-enabled buffers."
   (global-diff-hl-mode)
   (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
+
+;; highlight indentation
+(use-package highlight-indent-guides
+  :straight t
+  :hook (prog-mode . highlight-indent-guides-mode)
+  :config
+  (setq highlight-indent-guides 'character))
 
 ;; terminal emulator
 (use-package vterm
