@@ -228,6 +228,9 @@
 (global-set-key (kbd "C-c t f") #'toggle-frame-fullscreen)
 (global-set-key (kbd "C-c t v") #'visual-line-mode)
 
+;; Applications
+(global-set-key (kbd "C-c o c") #'calendar)
+
 ;; expedites copying from org-mode to Word for essays
 (defun t/make-region-pastable ()
   "Save contents of the region to the kill ring for pasting into
@@ -339,7 +342,7 @@ newlines and double spaces."
 (use-package magit
   :straight t
   :bind (("C-x M-g" . magit-dispatch)
-	 ("C-c g" . magit-status)))
+	 ("C-c o g" . magit-status)))
 
 ;; automatic formatting of program buffers on save
 (use-package format-all
@@ -395,7 +398,8 @@ lsp-enabled buffers."
 ;; terminal emulator
 (use-package vterm
   :straight t
-  :commands vterm)
+  :commands vterm
+  :bind ("C-c o t" . vterm))
 
 
 ;; Org-mode
