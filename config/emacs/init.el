@@ -312,7 +312,9 @@ newlines and double spaces."
   ("C-c s a" . #'helm-do-grep-ag)
   ("C-c s i" . #'helm-imenu)
   :config
-  (setq helm-split-window-in-side-p nil)
+  (setq helm-split-window-in-side-p nil
+        ;; When executing helm command, use ~C-c C-f~ to follow entries
+        helm-follow-mode-persistent t)
   (helm-mode))
 
 ;; search through buffer
@@ -524,6 +526,7 @@ lsp-enabled buffers."
   (define-key org-mode-map (kbd "M-{") #'backward-paragraph)
   (define-key org-mode-map (kbd "M-}") #'forward-paragraph))
 
+;; add latex class for exports
 (use-package ox-latex
   :after org
   :config
@@ -610,7 +613,10 @@ lsp-enabled buffers."
         ;; I use orb to link org-ref, helm-bibtex and org-noter together (see below for more on org-noter and orb).
         ;;org-ref-notes-function 'orb-edit-notes)
         org-ref-default-bibliography "~/Zotero/zotero/zotero.bib"
-        org-ref-default-citation-link "citep"))
+        org-ref-default-citation-link "citep")
+  :bind
+  (:map org-mode-map
+        ("C-c [" . #'org-ref-cite-insert-helm)))
 (use-package helm-bibtex
   :straight t
   :config
