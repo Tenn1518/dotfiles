@@ -181,7 +181,7 @@
 
 ;; don't permanently delete files
 (setq delete-by-moving-to-trash t)
-(use-package 'osx-trash
+(use-package osx-trash
   :if (eq 'system-type 'darwin)
   :straight t
   :config
@@ -202,9 +202,6 @@
   (setq dired-use-ls-dired t
         insert-directory-program "/usr/local/bin/gls"
         dired-listing-switches "-aBhl --group-directories-first"))
-
-;; neuter annoying escape key
-(define-key key-translation-map (kbd "ESC") (kbd "C-g"))
 
 ;; replaces unnecessary suspend command
 (global-set-key (kbd "C-z") #'zap-up-to-char)
@@ -227,6 +224,7 @@
 
 ;; Toggles
 (global-set-key (kbd "C-c t l") #'display-line-numbers-mode)
+(global-set-key (kbd "C-c t m") #'toggle-frame-maximized)
 (global-set-key (kbd "C-c t f") #'toggle-frame-fullscreen)
 (global-set-key (kbd "C-c t v") #'visual-line-mode)
 
@@ -288,7 +286,6 @@ newlines and double spaces."
   ([remap occur] . #'helm-occur)
   ([remap switch-to-buffer] . #'helm-buffers-list)
   ([remap recentf-open-files] . #'helm-recentf)
-  ([remap yank-pop] . #'helm-show-kill-ring)
   ("C-c s y" . #'helm-show-kill-ring)
   ("C-c s f" . #'helm-find)
   ("C-c s a" . #'helm-do-grep-ag)
@@ -328,7 +325,7 @@ newlines and double spaces."
   :straight t
   :init
   (setq projectile-switch-project-action #'projectile-dired
-	projectile-project-search-path '("~/Documents/Code"))
+	projectile-project-search-path '(("~/Projects" . 2)))
   :config
   (define-key projectile-mode-map (kbd "C-c p") projectile-command-map)
   (projectile-mode))
@@ -419,10 +416,7 @@ lsp-enabled buffers."
    ;; relevant paths
    org-directory "~/Documents/Notes/"
    org-agenda-files (list org-directory)
-   t/daily-file (expand-file-name "daily.org" org-directory)
-   tn/tasks-file (concat org-directory "tasks.org")
-   tn/project-file (concat org-directory "projects.org")
-   tn/school-file (concat org-directory "school.org"))
+   t/daily-file (expand-file-name "daily.org" org-directory))
   ;; tags and captures
    (setq org-tag-persistent-alist
    '(("note")
@@ -430,8 +424,7 @@ lsp-enabled buffers."
      ("task")
      ("school"))
    org-capture-templates
-   ;; entries for personal tasks file (consider removing)
-   '(("t" "Quick todo" entry
+   `(("t" "Quick todo" entry
       (file+olp+datetree t/daily-file)
       "* TODO %?\n%U"
       :empty-lines 2 :prepend t)
@@ -447,7 +440,9 @@ lsp-enabled buffers."
      ("s" "Templates for school")
      ("st" "Class-related todo" entry
       (file+olp+datetree t/daily-file)
-      "* TODO %^{Title} :hw:\nDEADLINE:%^{Deadline}t\n\n+ [[%?][Turn-In]]"
+      ,(concat "* TODO %^{Title} :hw:\n"
+	       "DEADLINE:%^{Deadline}t\n\n"
+	       "+ [[%?][Turn-In]]")
       :empty-lines 2)
      ("sn" "Class-related notes" entry
       (file+olp+datetree t/daily-file)
@@ -473,7 +468,7 @@ lsp-enabled buffers."
 	org-preview-latex-image-directory (concat "~/.cache/emacs/" "ltximg")
         org-format-latex-options '( :foreground "Black"
                                     :background "White"
-                                    :scale 2.0
+                                    :scale 1.5
                                     :html-foreground "Black"
                                     :html-background "Transparent"
                                     :html-scale 1.0
@@ -499,20 +494,11 @@ lsp-enabled buffers."
   (global-set-key (kbd "C-c f n") #'t/edit-org-dir)
   (global-set-key (kbd "C-c X") #'org-capture)
   (global-set-key (kbd "C-c n a") #'org-agenda)
+  (global-set-key (kbd "C-c n l") #'org-store-link)
   ;; edit/nav bindings in org-mode
   (define-key org-mode-map (kbd "C-c .") #'counsel-org-goto)
   (define-key org-mode-map (kbd "M-{") #'backward-paragraph)
-  (define-key org-mode-map (kbd "M-}") #'forward-paragraph)
-  ;; moving headings
-  (define-key org-mode-map (kbd "s-b") #'org-metaleft)
-  (define-key org-mode-map (kbd "s-f") #'org-metaright)
-  (define-key org-mode-map (kbd "s-p") #'org-metaup)
-  (define-key org-mode-map (kbd "s-n") #'org-metadown)
-  (define-key org-mode-map (kbd "s-C-b") #'org-backward-heading-same-level)
-  (define-key org-mode-map (kbd "s-C-f") #'org-forward-heading-same-level)
-  (define-key org-mode-map (kbd "s-C-p") #'org-previous-visible-heading)
-  (define-key org-mode-map (kbd "s-C-n") #'org-next-visible-heading)
-  (define-key org-mode-map (kbd "s-C-u") #'outline-up-heading))
+  (define-key org-mode-map (kbd "M-}") #'forward-paragraph))
 
 (use-package ox-latex
   :after org
