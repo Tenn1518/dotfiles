@@ -619,6 +619,16 @@ lsp-enabled buffers."
   :config
   (global-set-key (kbd "C-c n n") #'org-noter))
 
+;; quickly search org files
+(use-package helm-org-rifle
+  :straight t
+  :config
+  (setq helm-org-rifle-directories-recursive nil)
+  :bind
+  ("C-c s o" . #'helm-org-rifle)
+  ("C-c s O" . #'helm-org-rifle-agenda-files))
+
+
 ;; Miscellaneous
 
 ;; enhanced pdf viewing
