@@ -150,7 +150,9 @@
   (require 'spaceline-config)
   (setq powerline-height 16
         powerline-default-separator 'wave)
-  (spaceline-spacemacs-theme))
+  (spaceline-spacemacs-theme)
+  (spaceline-helm-mode)
+  (spaceline-toggle-minor-modes-off))
 
 
 ;; Emacs Lisp settings
