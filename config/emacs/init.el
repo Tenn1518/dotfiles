@@ -24,10 +24,10 @@
 ;; Package management
 
 (setq no-littering-etc-directory
-	(expand-file-name "etc" user-emacs-directory)
-	no-littering-var-directory
-	(expand-file-name ".var" user-emacs-directory)
-	straight-base-dir no-littering-var-directory)
+        (expand-file-name "etc" user-emacs-directory)
+        no-littering-var-directory
+        (expand-file-name ".var" user-emacs-directory)
+        straight-base-dir no-littering-var-directory)
 
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -82,37 +82,37 @@
 (setq display-buffer-alist
       '(("\\`\\*helm.*?\\*\\'" 
          (display-buffer-at-bottom)
-	 (window-height . .35))
-	("^\\*vterm.*\\*$"
-	 (display-buffer-reuse-window display-buffer-in-side-window)
-	 (side . bottom)
-	 (slot . -1)
-	 (window-width . .3)
-	 (window-height . .3)
-	 (window-parameters . ((mode-line-format . none))))
-	("(\\*Messages\\*|Output\\*$)"
-	 (display-buffer-reuse-window display-buffer-in-side-window)
-	 (side . bottom)
-	 (slot . 1)
-	 (height . .3))
-	("\\(^\\*helpful\\|\\*Help\\*\\)"
-	 (display-buffer-reuse-window display-buffer-in-side-window)
-	 (side . bottom)
-	 (slot . 1)
-	 (window-height . .3))
-	("\\(^magit:\\|\\*info\\*\\|NEWS\\)"
-	 (display-buffer-reuse-window
-	  display-buffer-use-some-window
-	  display-buffer-in-direction)
-	 (direction . right)
-	 (window-width . .5)
-	 (inhibit-same-window . t))
-	("\\*org-roam\\*"
-	 (display-buffer-in-side-window)
-	 (side . right)
-	 (slot . 0)
-	 (window-width . .25)
-	 (preserve-size . (t nil)))))
+         (window-height . .35))
+        ("^\\*vterm.*\\*$"
+         (display-buffer-reuse-window display-buffer-in-side-window)
+         (side . bottom)
+         (slot . -1)
+         (window-width . .3)
+         (window-height . .3)
+         (window-parameters . ((mode-line-format . none))))
+        ("(\\*Messages\\*|Output\\*$)"
+         (display-buffer-reuse-window display-buffer-in-side-window)
+         (side . bottom)
+         (slot . 1)
+         (height . .3))
+        ("\\(^\\*helpful\\|\\*Help\\*\\)"
+         (display-buffer-reuse-window display-buffer-in-side-window)
+         (side . bottom)
+         (slot . 1)
+         (window-height . .3))
+        ("\\(^magit:\\|\\*info\\*\\|NEWS\\)"
+         (display-buffer-reuse-window
+          display-buffer-use-some-window
+          display-buffer-in-direction)
+         (direction . right)
+         (window-width . .5)
+         (inhibit-same-window . t))
+        ("\\*org-roam\\*"
+         (display-buffer-in-side-window)
+         (side . right)
+         (slot . 0)
+         (window-width . .25)
+         (preserve-size . (t nil)))))
 ;; toggle term and help windows
 (global-set-key (kbd "C-c t w") #'window-toggle-side-windows)
 
@@ -127,19 +127,19 @@
 
 ;; modeline
 (setq-default mode-line-format
-	    '(""
-	      "%e"
-	      mode-line-front-space
-	      mode-line-mule-info
-	      mode-line-client
-	      mode-line-modified
-	      mode-line-remote
-	      mode-line-frame-indication
-	      "   "
-	      mode-line-buffer-identification
-	      " %p  %l:%c   "
-	      (:eval (if tab-bar-mode (concat (alist-get 'name (tab-bar--current-tab)) "   ")))
-	      "[%m]"))
+            '(""
+              "%e"
+              mode-line-front-space
+              mode-line-mule-info
+              mode-line-client
+              mode-line-modified
+              mode-line-remote
+              mode-line-frame-indication
+              "   "
+              mode-line-buffer-identification
+              " %p  %l:%c   "
+              (:eval (if tab-bar-mode (concat (alist-get 'name (tab-bar--current-tab)) "   ")))
+              "[%m]"))
 
 ;; macOS titlebar
 (use-package ns-auto-titlebar
@@ -191,9 +191,9 @@
 (when (eq system-type 'darwin)
   ;; command is switched with control
   (setq mac-right-option-modifier 'meta
-	mac-right-command-modifier 'control
-	mac-command-modifier 'control
-	mac-control-modifier 'super)
+        mac-right-command-modifier 'control
+        mac-command-modifier 'control
+        mac-control-modifier 'super)
   ;; prevent accidental press
   (global-unset-key (kbd "s-g")))
 
@@ -238,14 +238,14 @@ a separate program.  The copy is altered to remove extraneous
 newlines and double spaces."
   (interactive)
   (let* ((buf (current-buffer))
-	 (beg (region-beginning))
-	 (end (region-end)))
+         (beg (region-beginning))
+         (end (region-end)))
     (with-temp-buffer
       (insert-buffer-substring-no-properties buf beg end)
       (goto-char (point-min))
       ;; Deletes newlines within a single paragraph
       (while (re-search-forward "\[a-zA-Z.\]\\(\n\\)\\w" nil t)
-	(replace-match " " nil nil nil 1))
+        (replace-match " " nil nil nil 1))
       ;; Single space over double space sentences
       (replace-string ".  " ". " nil (point-min) (point-max))
       ;; Delete empty line between paragraphs
@@ -331,7 +331,7 @@ newlines and double spaces."
   :straight t
   :init
   (setq projectile-switch-project-action #'projectile-dired
-	projectile-project-search-path '(("~/Projects" . 2)))
+        projectile-project-search-path '(("~/Projects" . 2)))
   :config
   (define-key projectile-mode-map (kbd "C-c p") projectile-command-map)
   (projectile-mode))
@@ -348,7 +348,7 @@ newlines and double spaces."
 (use-package magit
   :straight t
   :bind (("C-x M-g" . magit-dispatch)
-	 ("C-c o g" . magit-status)))
+         ("C-c o g" . magit-status)))
 
 ;; automatic formatting of program buffers on save
 (use-package format-all
@@ -371,8 +371,8 @@ newlines and double spaces."
     "Enable lsp-mode if the current major mode is included in
 t/lsp-enabled-modes. Otherwise, enable format-all-mode."
     (cond ((member major-mode t/lsp-enabled-modes)
-	   (lsp-deferred))
-	  ((derived-mode-p 'prog-mode) (format-all-mode t))))
+           (lsp-deferred))
+          ((derived-mode-p 'prog-mode) (format-all-mode t))))
   (defun t/lsp-onsave ()
     "Configure LSP to automatically format all code on save in
 lsp-enabled buffers."
@@ -447,8 +447,8 @@ lsp-enabled buffers."
      ("st" "Class-related todo" entry
       (file+olp+datetree t/daily-file)
       ,(concat "* TODO %^{Title} :hw:\n"
-	       "DEADLINE:%^{Deadline}t\n\n"
-	       "+ [[%?][Turn-In]]")
+               "DEADLINE:%^{Deadline}t\n\n"
+               "+ [[%?][Turn-In]]")
       :empty-lines 2)
      ("sn" "Class-related notes" entry
       (file+olp+datetree t/daily-file)
@@ -470,8 +470,8 @@ lsp-enabled buffers."
         org-hide-leading-stars nil
         org-hide-emphasis-markers t
         org-startup-indented nil
-	;; latex settings
-	org-preview-latex-image-directory (concat "~/.cache/emacs/" "ltximg")
+        ;; latex settings
+        org-preview-latex-image-directory (concat "~/.cache/emacs/" "ltximg")
         org-format-latex-options '( :foreground "Black"
                                     :background "White"
                                     :scale 1.5
@@ -479,12 +479,12 @@ lsp-enabled buffers."
                                     :html-background "Transparent"
                                     :html-scale 1.0
                                     :matchers ("begin" "$1" "$" "$$" "\\(" "\\["))
-	;; available todo states
+        ;; available todo states
         org-todo-keywords '((sequence "TODO(t)"
                                       "NEXT(n)"
-				      "IN-PROGRESS(i)"
-				      "WAITING(w)"
-				      "UPCOMING"
+                                      "IN-PROGRESS(i)"
+                                      "WAITING(w)"
+                                      "UPCOMING"
                                       "|"
                                       "DONE(d)"
                                       "CANCELLED(c!)")
@@ -529,8 +529,8 @@ lsp-enabled buffers."
   :after org
   :config
   (setq org-journal-dir (expand-file-name (concat org-directory "journal/"))
-	;; don't open new window
-	org-journal-find-file #'find-file)
+        ;; don't open new window
+        org-journal-find-file #'find-file)
   (push org-journal-dir org-agenda-files))
 
 ;; atomic note taker
@@ -538,9 +538,9 @@ lsp-enabled buffers."
   :straight t
   :init
   (setq org-roam-directory (concat org-directory "roam")
-	org-roam-v2-ack t ;; silence upgrade warning
+        org-roam-v2-ack t ;; silence upgrade warning
         ;; org-roam-capture-templates
-	;; '(( "d"
+        ;; '(( "d"
         ;;     "default"
         ;;     plain #'org-roam-capture--get-point
         ;;     "%?"
@@ -561,7 +561,7 @@ lsp-enabled buffers."
         ;;     :file-name "%<%Y%m%d%H%M%S>-${slug}"
         ;;     :head "#+title: ${title}\n#+roam_tags: %^{engl|fsci|pltw|art|gym|phys|psych}\n#+STARTUP: showeverything"
         ;;     :unnarrowed t))
-	)
+        )
   :bind
   ("C-c n r f" . #'org-roam-node-find)
   ("C-c n r i" . #'org-roam-node-insert)
@@ -591,8 +591,8 @@ lsp-enabled buffers."
         org-latex-pdf-process (list "latexmk -pdflatex='%latex -shell-escape -interaction nonstopmode' -pdf -bibtex -f -output-directory=%o %f")
         ;; I use orb to link org-ref, helm-bibtex and org-noter together (see below for more on org-noter and orb).
         ;;org-ref-notes-function 'orb-edit-notes)
-	org-ref-default-bibliography "~/Zotero/zotero/zotero.bib"
-	org-ref-default-citation-link "citep"))
+        org-ref-default-bibliography "~/Zotero/zotero/zotero.bib"
+        org-ref-default-citation-link "citep"))
 (use-package helm-bibtex
   :straight t
   :config
@@ -611,9 +611,9 @@ lsp-enabled buffers."
   :straight t
   :config
   (setenv "PKG_CONFIG_PATH"
-	  "/usr/local/Cellar/zlib/1.2.8/lib/pkgconfig:/usr/local/lib/pkgconfig:/opt/X11/lib/pkgconfig")
+          "/usr/local/Cellar/zlib/1.2.8/lib/pkgconfig:/usr/local/lib/pkgconfig:/opt/X11/lib/pkgconfig")
   (setenv "PATH"
-	  (s-join ":" exec-path))
+          (s-join ":" exec-path))
   (pdf-tools-install)
   (setq-default pdf-view-display-size 'fit-width)
   :custom
