@@ -42,6 +42,7 @@
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
+(setq use-package-enable-imenu-support t)
 (straight-use-package 'use-package)
 
 
@@ -309,6 +310,7 @@ newlines and double spaces."
   ("C-c s y" . #'helm-show-kill-ring)
   ("C-c s f" . #'helm-find)
   ("C-c s a" . #'helm-do-grep-ag)
+  ("C-c s i" . #'helm-imenu)
   :config
   (setq helm-split-window-in-side-p nil)
   (helm-mode))
