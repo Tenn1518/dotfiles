@@ -21,7 +21,7 @@
 (setq gc-cons-threshold-original gc-cons-threshold
       gc-cons-threshold (* 1024 1024 100))
 
-;; Package management
+;;; Package management
 
 (setq no-littering-etc-directory
         (expand-file-name "etc" user-emacs-directory)
@@ -51,7 +51,7 @@
   :straight t)
 
 
-;; Appearance
+;;; Appearance
 
 ;; font settings
 (add-to-list 'default-frame-alist '(font . "Menlo-12"))
@@ -155,7 +155,7 @@
   (spaceline-toggle-minor-modes-off))
 
 
-;; Emacs Lisp settings
+;;; Emacs Lisp settings
 
 ;; add my folder of lisp programs from dotfiles
 (add-to-list 'load-path (expand-file-name "lisp/" user-emacs-directory))
@@ -174,7 +174,7 @@
   ("C-h f" . #'helpful-callable))
 
 
-;; Navigation/Editing
+;;; Navigation/Editing
 
 ;; acceptable line length
 (setq-default fill-column 80)
@@ -289,7 +289,7 @@ newlines and double spaces."
   :bind ("C-c t t" . #'neotree-toggle))
 
 
-;; Completion
+;;; Completion
 
 (use-package helm
   :straight t
@@ -318,7 +318,8 @@ newlines and double spaces."
   :straight t
   :bind ("C-c s s" . #'helm-swoop))
 
-;; Programming
+
+;;; Programming
 
 ;; allow subprocesses more data at once (lsp)
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
@@ -423,7 +424,7 @@ lsp-enabled buffers."
   :bind ("C-c o t" . vterm))
 
 
-;; Org-mode
+;;; Org-mode
 
 (use-package org
   :straight t
@@ -629,7 +630,7 @@ lsp-enabled buffers."
   ("C-c s O" . #'helm-org-rifle-agenda-files))
 
 
-;; Miscellaneous
+;;; Miscellaneous
 
 ;; enhanced pdf viewing
 (use-package pdf-tools
