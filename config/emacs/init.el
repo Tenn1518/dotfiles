@@ -125,22 +125,6 @@
 ;; scroll long lines individually like nano
 (setq auto-hscroll-mode 'current-line)
 
-;; modeline
-(setq-default mode-line-format
-            '(""
-              "%e"
-              mode-line-front-space
-              mode-line-mule-info
-              mode-line-client
-              mode-line-modified
-              mode-line-remote
-              mode-line-frame-indication
-              "   "
-              mode-line-buffer-identification
-              " %p  %l:%c   "
-              (:eval (if tab-bar-mode (concat (alist-get 'name (tab-bar--current-tab)) "   ")))
-              "[%m]"))
-
 ;; macOS titlebar
 (use-package ns-auto-titlebar
   :if (eq system-type 'darwin)
@@ -153,6 +137,19 @@
   :straight t
   :config
   (load-theme 'modus-operandi t))
+
+;; you're not immune to vanity
+(use-package all-the-icons
+  :straight t)
+
+;; spacemacs modeline
+(use-package spaceline
+  :straight t
+  :config
+  (require 'spaceline-config)
+  (setq powerline-height 16
+        powerline-default-separator 'wave)
+  (spaceline-spacemacs-theme))
 
 
 ;; Emacs Lisp settings
