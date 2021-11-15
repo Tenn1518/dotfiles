@@ -56,6 +56,7 @@
 ;; font settings
 (add-to-list 'default-frame-alist '(font . "Menlo-12"))
 (set-face-attribute 'default nil :family "Menlo" :height 120 :weight 'normal)
+(set-face-attribute 'variable-pitch nil :family "Source Sans Pro" :height 120)
 
 ;; ensure titles are unique
 (use-package uniquify
@@ -175,6 +176,9 @@
 
 ;; acceptable line length
 (setq-default fill-column 80)
+
+;; never use tabs
+(setq-default indent-tabs-mode nil)
 
 ;; don't permanently delete files
 (setq delete-by-moving-to-trash t)
@@ -395,8 +399,9 @@ lsp-enabled buffers."
 (use-package highlight-indent-guides
   :straight t
   :hook (prog-mode . highlight-indent-guides-mode)
+  :bind ("C-c t i" . highlight-indent-guides-mode)
   :config
-  (setq highlight-indent-guides 'character))
+  (setq highlight-indent-guides-method 'character))
 
 ;; terminal emulator
 (use-package vterm
