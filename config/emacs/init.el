@@ -116,15 +116,11 @@
 ;; toggle term and help windows
 (global-set-key (kbd "C-c t w") #'window-toggle-side-windows)
 
-
-;; display line numbers in programming buffers
-(defun display-line-numbers--turn-on ()
-  "Turn on line numbers if major mode is programming-related."
-  (unless (or (minibufferp)
-              ;;(member major-mode display-line-numbers-exempt-modes)
-	      (not (derived-mode-p 'prog-mode)))
+;; display line numbers in programming buffers only
+(defun t/line-number ()
+  (unless (minibufferp)
     (display-line-numbers-mode)))
-(global-display-line-numbers-mode)
+(add-hook 'prog-mode-hook 't/line-number)
 
 ;; scroll long lines individually like nano
 (setq auto-hscroll-mode 'current-line)
