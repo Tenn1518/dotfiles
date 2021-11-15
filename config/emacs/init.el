@@ -255,6 +255,12 @@ newlines and double spaces."
   (message "Region copied to clipboard"))
 (global-set-key (kbd "C-c p") #'t/make-region-pastable)
 
+;; ~M-o~ to change window
+(use-package ace-window
+  :straight t
+  :config
+  (global-set-key (kbd "M-o") #'ace-window))
+
 ;; available keybinds popup with "C-h" during key chords
 (use-package which-key
   :straight t
