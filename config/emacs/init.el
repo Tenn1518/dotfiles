@@ -275,6 +275,17 @@ newlines and double spaces."
   ;; prefer right side, then bottom for popup
   (which-key-setup-side-window-right-bottom))
 
+;; file explorer window
+(use-package neotree
+  :straight t
+  :config
+  (setq neo-theme (if (display-graphic-p) 'icons 'arrow)
+        neo-mode-line-type 'none)
+  (set-face-attribute 'neo-file-link-face nil :inherit 'variable-pitch)
+  (set-face-attribute 'neo-dir-link-face nil :inherit 'variable-pitch)
+  (add-hook 'neotree-mode-hook #'hl-line-mode)
+  :bind ("C-c t t" . #'neotree-toggle))
+
 
 ;; Completion
 
