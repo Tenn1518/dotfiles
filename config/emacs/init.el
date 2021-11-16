@@ -6,7 +6,7 @@
 ;; A personal Emacs config.
 
 ;; The config is split into multiple sections:
-;; 1. Package Management
+;; 1. Initialization
 ;; 2. Appearance
 ;; 3. Emacs Lisp settings
 ;; 4. Navigation/Editing
@@ -14,14 +14,15 @@
 ;; 6. Programming
 ;; 7. Org-mode
 ;; 8. Miscellaneous
+;; Use outline-minor-mode bindings to move between these headings.
 
 ;;; Code:
+
+;;; Initialization
 
 ;; disable garbage collection until post-init
 (setq gc-cons-threshold-original gc-cons-threshold
       gc-cons-threshold (* 1024 1024 100))
-
-;;; Package management
 
 (setq no-littering-etc-directory
         (expand-file-name "etc" user-emacs-directory)
@@ -45,9 +46,7 @@
 (setq use-package-enable-imenu-support t)
 (straight-use-package 'use-package)
 
-
 ;; Clean up emacs folder
-
 (use-package no-littering
   :straight t)
 
