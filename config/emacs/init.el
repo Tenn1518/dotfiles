@@ -81,7 +81,7 @@
 
 ;; set rules for displaying buffers
 (setq display-buffer-alist
-      '(("\\`\\*helm.*?\\*\\'" 
+      '(("\\`\\*[hH]elm.*?\\*\\'"
          (display-buffer-at-bottom)
          (window-height . .35))
         ("^\\*vterm.*\\*$"
@@ -97,15 +97,16 @@
          (slot . 1)
          (height . .3))
         ("\\(^\\*helpful\\|\\*Help\\*\\)"
-         (display-buffer-reuse-window display-buffer-in-side-window)
-         (side . bottom)
+         (display-buffer-reuse-window display-buffer-pop-up-window display-buffer-in-side-window)
          (slot . 1)
+         (inhibit-same-window . t)
          (window-height . .3))
         ("\\(^magit:\\|\\*info\\*\\|NEWS\\)"
          (display-buffer-reuse-window
           display-buffer-use-some-window
           display-buffer-in-direction)
          (direction . right)
+         (split-width-threshold . .5)
          (window-width . .5)
          (inhibit-same-window . t))
         ("\\*org-roam\\*"
@@ -256,7 +257,7 @@ newlines and double spaces."
       (kill-new (buffer-string) t)))
   (setq deactivate-mark t)
   (message "Region copied to clipboard"))
-(global-set-key (kbd "C-c p") #'t/make-region-pastable)
+;;(global-set-key (kbd "C-c p") #'t/make-region-pastable)
 
 ;; ~M-o~ to change window
 (use-package ace-window
