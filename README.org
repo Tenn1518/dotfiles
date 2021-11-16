@@ -2,11 +2,12 @@
 #+AUTHOR: Tenn1518
 
 Configuration files for programs such as emacs, zsh, etc to bootstrap onto a
-UNIX-like operating system.
+UNIX-like operating system.  This config is personal and opinionated, and I only
+recommend its use for reference or ideas.
 
 This project is licensed under the terms of the [[https://github.com/Tenn1518/dotfiles/blob/master/LICENSE][MIT license]].
 
-** Prerequisites
+* Prerequisites
 
 Linux: ~Light~ (tool to change backlight)
 
@@ -14,7 +15,7 @@ macOS: ~Homebrew~
 
 *: ~emacs~, ~zsh~, ~alacritty~, and the Iosevka family of fonts
 
-** How to Install
+* How to Install
 
 Install the dotfiles with:
 #+BEGIN_EXAMPLE
@@ -26,7 +27,17 @@ $ ./install.py
 This will symlink folders and files from their respective locations in $HOME to
 under ~/.dotfiles
 
-/My Emacs config doesn't use all-the-icons anymore, so this will not
-work. Install all-the-icons from the submodule instead./ Upon entering emacs,
-run ~M-x all-the-icons-install-fonts~. This will install icon fonts not only for
-emacs, but also for ~waybar~.
+Upon entering emacs, run ~M-x all-the-icons-install-fonts~.  This will install
+icon fonts not only for emacs, but also for ~waybar~.
+
+* Emacs
+
+If you want to look through which packages are installed, the best way is to
+open =init.el= and run ~C-c .~ (~imenu~).
+
+User-specific keybinds are all set either under the ~C-c~ or Super (~s-~) key
+prefix.
+
+~which-key~ is distracting by default, so it only runs when ~C-h~ is sent during
+command insertion.  Use ~C-h~ in the middle of using keys to show all keybindings
+under the prefix inserted so far.
