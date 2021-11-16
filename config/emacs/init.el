@@ -309,7 +309,7 @@ newlines and double spaces."
   ("C-c s y" . #'helm-show-kill-ring)
   ("C-c s f" . #'helm-find)
   ("C-c s a" . #'helm-do-grep-ag)
-  ("C-c s i" . #'helm-imenu)
+  ("C-c ." . #'helm-semantic-or-imenu)
   :config
   (setq helm-split-window-in-side-p nil
         ;; When executing helm command, use ~C-c C-f~ to follow entries
@@ -344,11 +344,16 @@ newlines and double spaces."
 ;; display region when active
 (transient-mark-mode)
 
+;; view imenu in a dedicated popup buffer
+(use-package imenu-list
+  :straight t
+  :bind ("C-c t I" . #'imenu-list-smart-toggle))
+
 ;; manage projects
 (use-package projectile
   :straight t
   :init
-  (setq projectile-switch-project-action #'projectile-dired
+  (setq projectile-switch-project-action #'projectile-find-file
         projectile-project-search-path '(("~/Projects" . 2)))
   :config
   (define-key projectile-mode-map (kbd "C-c p") projectile-command-map)
@@ -434,14 +439,16 @@ lsp-enabled buffers."
   :hook (org-mode . auto-fill-mode)
   :init
   (setq
+   ;; relevant paths
+   org-directory "~/Documents/Notes/"
+   org-agenda-files (list org-directory)
+   t/daily-file (expand-file-name "daily.org" org-directory)
+   ;; settings
    org-startup-with-inline-images t
    org-startup-with-latex-preview t
    org-archive-default-command #'org-archive-to-archive-sibling
    org-id-track-globally t
-   ;; relevant paths
-   org-directory "~/Documents/Notes/"
-   org-agenda-files (list org-directory)
-   t/daily-file (expand-file-name "daily.org" org-directory))
+   org-imenu-depth 7)
   ;; tags and captures
    (setq org-tag-persistent-alist
    '(("note")
@@ -486,9 +493,9 @@ lsp-enabled buffers."
        (org-agenda-time-grid nil)))))
   :config
   (setq ;; appearance settings
-        org-hide-leading-stars nil
+        org-hide-leading-stars t
         org-hide-emphasis-markers t
-        org-startup-indented nil
+        org-startup-indented t
         ;; latex settings
         org-preview-latex-image-directory (concat "~/.cache/emacs/" "ltximg")
         org-format-latex-options '( :foreground "Black"
@@ -514,16 +521,15 @@ lsp-enabled buffers."
   ;; open file from org-directory
   (defun t/edit-org-dir ()
     (interactive)
-    (counsel-find-file org-directory))
+    (let ((default-directory org-directory))
+      (call-interactively #'helm-find-files)))
   ;; C-c global bindings
-  (global-set-key (kbd "C-c f n") #'t/edit-org-dir)
+  (global-set-key (kbd "C-c n f") #'t/edit-org-dir)
   (global-set-key (kbd "C-c X") #'org-capture)
   (global-set-key (kbd "C-c n a") #'org-agenda)
   (global-set-key (kbd "C-c n l") #'org-store-link)
   ;; edit/nav bindings in org-mode
-  (define-key org-mode-map (kbd "C-c .") #'counsel-org-goto)
-  (define-key org-mode-map (kbd "M-{") #'backward-paragraph)
-  (define-key org-mode-map (kbd "M-}") #'forward-paragraph))
+  (define-key org-mode-map (kbd "C-c .") #'helm-org-rifle-current-buffer))
 
 ;; add latex class for exports
 (use-package ox-latex
