@@ -139,7 +139,7 @@
   :config
   (load-theme 'modus-operandi t))
 
-;; you're not immune to vanity
+;; none of us are immune to vanity
 (use-package all-the-icons
   :straight t)
 
@@ -278,16 +278,36 @@ newlines and double spaces."
   (which-key-setup-side-window-right-bottom))
 
 ;; file explorer window
-(use-package neotree
+(use-package treemacs
   :straight t
   :config
-  (setq neo-theme (if (display-graphic-p) 'icons 'arrow)
-        neo-mode-line-type 'none)
-  (set-face-attribute 'neo-file-link-face nil :inherit 'variable-pitch)
-  (set-face-attribute 'neo-dir-link-face nil :inherit 'variable-pitch)
-  (add-hook 'neotree-mode-hook #'hl-line-mode)
-  :bind ("C-c t t" . #'neotree-toggle))
-
+  (setq treemacs-space-between-root-nodes nil
+        treemacs-width 30)
+  (dolist (face '(treemacs-file-face
+                  treemacs-directory-face
+                  treemacs-directory-collapsed-face
+                  treemacs-tags-face
+                  treemacs-root-face
+                  treemacs-git-unmodified-face
+                  treemacs-git-modified-face
+                  treemacs-git-renamed-face
+                  treemacs-git-ignored-face
+                  treemacs-git-untracked-face
+                  treemacs-git-added-face
+                  treemacs-git-conflict-face))
+    (set-face-attribute face nil :inherit 'variable-pitch))
+  :bind ("C-c t t" . #'treemacs))
+(use-package treemacs-all-the-icons
+  :straight t
+  :after (treemacs)
+  :config
+  (treemacs-load-theme 'all-the-icons))
+(use-package treemacs-magit
+  :straight t
+  :after (treemacs))
+(use-package treemacs-projectile
+  :straight t
+  :after (treemacs))
 
 ;;; Completion
 
