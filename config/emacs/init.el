@@ -571,7 +571,17 @@ lsp-enabled buffers."
   (global-set-key (kbd "C-c n a") #'org-agenda)
   (global-set-key (kbd "C-c n l") #'org-store-link)
   ;; edit/nav bindings in org-mode
-  (define-key org-mode-map (kbd "C-c .") #'helm-org-rifle-current-buffer))
+  (let ((map org-mode-map))
+    (define-key map (kbd "C-c .") #'helm-org-rifle-current-buffer)
+    ;; Move headings
+    (define-key map (kbd "C-s-f") #'org-metaright)
+    (define-key map (kbd "C-s-b") #'org-metaleft)
+    (define-key map (kbd "C-s-p") #'org-metaup)
+    (define-key map (kbd "C-s-n") #'org-metadown)
+    (define-key map (kbd "C-S-s-f") #'org-shiftmetaright)
+    (define-key map (kbd "C-S-s-b") #'org-shiftmetaleft)
+    (define-key map (kbd "C-S-s-p") #'org-shiftmetaup)
+    (define-key map (kbd "C-S-s-n") #'org-shiftmetadown)))
 
 ;; add latex class for exports
 (use-package ox-latex
