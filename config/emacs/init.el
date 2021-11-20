@@ -207,6 +207,15 @@
         insert-directory-program "/usr/local/bin/gls"
         dired-listing-switches "-aBhl --group-directories-first"))
 
+;; shortcut access to C-x binds
+(global-set-key (kbd "s-1") #'delete-other-windows)
+(global-set-key (kbd "s-2") #'split-window-below)
+(global-set-key (kbd "s-3") #'split-window-right)
+(global-set-key (kbd "s-4") ctl-x-4-map)
+(global-set-key (kbd "s-5") ctl-x-5-map)
+(global-set-key (kbd "s-0") #'delete-window)
+(global-set-key (kbd "s-o") #'other-window)
+
 ;; replaces unnecessary suspend command
 (global-set-key (kbd "C-z") #'zap-up-to-char)
 
@@ -328,6 +337,7 @@ newlines and double spaces."
   ([remap switch-to-buffer] . #'helm-buffers-list)
   ([remap recentf-open-files] . #'helm-recentf)
   ("C-c s y" . #'helm-show-kill-ring)
+  ("s-y" . #'helm-show-kill-ring)
   ("C-c s f" . #'helm-find)
   ("C-c s a" . #'helm-do-grep-ag)
   ("C-c ." . #'helm-semantic-or-imenu)
@@ -340,7 +350,9 @@ newlines and double spaces."
 ;; search through buffer
 (use-package helm-swoop
   :straight t
-  :bind ("C-c s s" . #'helm-swoop))
+  :bind
+  ("C-c s s" . #'helm-swoop)
+  ("s-s" . #'helm-swoop))
 
 
 ;;; Programming
@@ -386,7 +398,16 @@ newlines and double spaces."
   :straight t
   :after (helm projectile)
   :config
-  (helm-projectile-on))
+  (helm-projectile-on)
+  (defun t/smart-find (arg)
+    "Jump to file in current project or directory.  If
+current-directory is in a project, use projectile-find-file.
+Otherwise, use helm-find."
+    (interactive "P")
+    (if (projectile-project-p)
+        (projectile-find-file)
+      (helm-find arg)))
+  (global-set-key (kbd "s-f") #'t/smart-find))
 
 ;; git frontend
 (use-package magit
