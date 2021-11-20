@@ -208,6 +208,8 @@
         dired-listing-switches "-aBhl --group-directories-first"))
 
 ;; shortcut access to C-x binds
+;; Super bindings are intended for quick, often-used global commands.
+;; Prioritize adding smart commands that do thinking for me.
 (global-set-key (kbd "s-1") #'delete-other-windows)
 (global-set-key (kbd "s-2") #'split-window-below)
 (global-set-key (kbd "s-3") #'split-window-right)
