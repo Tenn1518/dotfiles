@@ -446,6 +446,18 @@ lsp-enabled buffers."
     (add-hook 'before-save-hook #'lsp-organize-imports nil 'local))
   (add-hook 'prog-mode-hook #'t/lsp-or-format-all))
 
+;; python language server
+(use-package lsp-python-ms
+  :straight t
+  :init (setq lsp-python-ms-auto-install-server t)
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-python-ms)
+                          (lsp-deferred))))
+;; format python buffers with black
+(use-package blacken
+  :straight t
+  :hook (python-mode . blacken-mode))
+
 ;; error checking
 (use-package flycheck
   :straight t
