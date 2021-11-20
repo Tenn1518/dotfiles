@@ -504,74 +504,90 @@ lsp-enabled buffers."
    org-id-track-globally t
    org-imenu-depth 7)
   ;; tags and captures
-   (setq org-tag-persistent-alist
-   '(("note")
-     ("event")
-     ("task")
-     ("school"))
-   org-capture-templates
-   `(("t" "Quick todo" entry
-      (file+olp+datetree t/daily-file)
-      "* TODO %?\n%U"
-      :empty-lines 2 :prepend t)
-     ("n" "Quick note" entry
-      (file+olp+datetree t/daily-file)
-      "* UNREAD %? :note:\n%U"
-      :empty-lines 2 :prepend t)
-     ("e" "Upcoming event" entry
-      (file+olp+datetree t/daily-file)
-      "* EVENT %? :event:\nSCHEDULED: %^{Event Date}t"
-      :empty-lines 2 :prepend t)
-     ;; entries for school file
-     ("s" "Templates for school")
-     ("st" "Class-related todo" entry
-      (file+olp+datetree t/daily-file)
-      ,(concat "* TODO %^{Title} :hw:\n"
-               "DEADLINE:%^{Deadline}t\n\n"
-               "+ [[%?][Turn-In]]")
-      :empty-lines 2)
-     ("sn" "Class-related notes" entry
-      (file+olp+datetree t/daily-file)
-      "* %^{Title} :%^{Type|notes|class-info}:\n%U\n\n+ %?"
-      :empty-lines 2)))
-   ;; agenda settings
-   (setq org-deadline-warning-days 3
-   org-agenda-custom-commands
-   '(("n" "Agenda and all TODOs"
-      ((tags-todo "task")
-       (agenda ""))
-      ((org-agenda-span 7)))
-     ("w" "School" tags-todo "@school"
-      ((org-agenda-span 5)
-       (org-agenda-start-on-weekday 1)
-       (org-agenda-time-grid nil)))))
+  (setq org-tag-persistent-alist
+        '(("note")
+          ("event")
+          ("task")
+          ("school"))
+        org-capture-templates
+        `(("t" "Quick todo" entry
+           (file+function t/daily-file t/org-date-find)
+           "* TODO %?\n%U"
+           :empty-lines 1 :prepend t)
+          ("n" "Quick note" entry
+           (file+function t/daily-file t/org-date-find)
+           "* UNREAD %? :note:\n%U"
+           :empty-lines 1 :prepend t)
+          ("e" "Upcoming event" entry
+           (file+function t/daily-file t/org-date-find)
+           "* EVENT %? :event:\nSCHEDULED: %^{Event Date}t"
+           :empty-lines 1 :prepend t)
+          ;; entries for school file
+          ("s" "Templates for school")
+          ("st" "Class-related todo" entry
+           (file+function t/daily-file t/org-date-find)
+           ,(concat "* TODO %^{Title} :hw:\n"
+                    "DEADLINE:%^{Deadline}t\n\n"
+                    "+ [[%?][Turn-In]]")
+           :empty-lines 1)
+          ("sn" "Class-related notes" entry
+           (file+function t/daily-file t/org-date-find)
+           "* %^{Title} :%^{Type|notes|class-info}:\n%U\n\n+ %?"
+           :empty-lines 1)))
+  ;; agenda settings
+  (setq org-deadline-warning-days 3
+        org-agenda-custom-commands
+        '(("n" "Agenda and all TODOs"
+           ((tags-todo "task")
+            (agenda ""))
+           ((org-agenda-span 7)))
+          ("w" "School" tags-todo "@school"
+           ((org-agenda-span 5)
+            (org-agenda-start-on-weekday 1)
+            (org-agenda-time-grid nil)))))
   :config
   (setq ;; appearance settings
-        org-hide-leading-stars t
-        org-hide-emphasis-markers t
-        org-startup-indented t
-        ;; latex settings
-        org-preview-latex-image-directory (concat "~/.cache/emacs/" "ltximg")
-        org-format-latex-options '( :foreground "Black"
-                                    :background "White"
-                                    :scale 1.5
-                                    :html-foreground "Black"
-                                    :html-background "Transparent"
-                                    :html-scale 1.0
-                                    :matchers ("begin" "$1" "$" "$$" "\\(" "\\["))
-        ;; available todo states
-        org-todo-keywords '((sequence "TODO(t)"
-                                      "NEXT(n)"
-                                      "IN-PROGRESS(i)"
-                                      "WAITING(w)"
-                                      "UPCOMING"
-                                      "|"
-                                      "DONE(d)"
-                                      "CANCELLED(c!)")
-                            (sequence "UNREAD(u)"
-                                      "READ(r)")
-                            (sequence "EVENT(e)"
-                                      "OVER(o)")))
+   org-hide-leading-stars nil
+   org-hide-emphasis-markers t
+   org-startup-indented nil
+   ;; latex settings
+   org-preview-latex-image-directory (concat "~/.cache/emacs/" "ltximg")
+   org-format-latex-options '( :foreground "Black"
+                                           :background "White"
+                                           :scale 1.5
+                                           :html-foreground "Black"
+                                           :html-background "Transparent"
+                                           :html-scale 1.0
+                                           :matchers ("begin" "$1" "$" "$$" "\\(" "\\["))
+   ;; available todo states
+   org-todo-keywords '((sequence "TODO(t)"
+                                 "NEXT(n)"
+                                 "IN-PROGRESS(i)"
+                                 "WAITING(w)"
+                                 "UPCOMING"
+                                 "|"
+                                 "DONE(d)"
+                                 "CANCELLED(c!)")
+                       (sequence "UNREAD(u)"
+                                 "READ(r)")
+                       (sequence "EVENT(e)"
+                                 "OVER(o)")))
+  ;; Passed as an argument to org-capture-templates's file+function to replace
+  ;; the standard datetree.  It does not create a tree of year and month, only a
+  ;; heading for day.
+  (defun t/org-date-find ()
+  "Find or create a level 1 heading titled with current date.
+This function is intended to be passed as an argument to
+file+function in org-capture-templates."
+  (let ((date (format-time-string "%Y-%m-%d %A")))
+    (condition-case nil
+        (goto-char (org-find-olp `(,date) t))
+      (t (progn
+           (goto-char (point-min))
+           (org-next-visible-heading 1)
+           (move-beginning-of-line nil)
+           (org-insert-heading nil t)
+           (insert date))))))
   ;; open file from org-directory
   (defun t/edit-org-dir ()
     (interactive)
