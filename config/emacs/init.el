@@ -79,45 +79,6 @@
       `((".*" ,(no-littering-expand-var-file-name "auto-save/") t))
       custom-file (expand-file-name "custom.el" no-littering-etc-directory))
 
-;; set rules for displaying buffers
-(setq display-buffer-alist
-      '(("\\`\\*[hH]elm.*?\\*\\'"
-         (display-buffer-at-bottom)
-         (window-height . .35))
-        ("^\\*vterm.*\\*$"
-         (display-buffer-reuse-window display-buffer-in-side-window)
-         (side . bottom)
-         (slot . -1)
-         (window-width . .3)
-         (window-height . .3)
-         (window-parameters . ((mode-line-format . none))))
-        ("(\\*Messages\\*|Output\\*$)"
-         (display-buffer-reuse-window display-buffer-in-side-window)
-         (side . bottom)
-         (slot . 1)
-         (height . .3))
-        ("\\(^\\*helpful\\|\\*Help\\*\\)"
-         (display-buffer-reuse-window display-buffer-pop-up-window display-buffer-in-side-window)
-         (slot . 1)
-         (inhibit-same-window . t)
-         (window-height . .3))
-        ("\\(^magit:\\|\\*info\\*\\|NEWS\\)"
-         (display-buffer-reuse-window
-          display-buffer-use-some-window
-          display-buffer-in-direction)
-         (direction . right)
-         (split-width-threshold . .5)
-         (window-width . .5)
-         (inhibit-same-window . t))
-        ("\\*org-roam\\*"
-         (display-buffer-in-side-window)
-         (side . right)
-         (slot . 0)
-         (window-width . .25)
-         (preserve-size . (t nil)))))
-;; toggle term and help windows
-(global-set-key (kbd "C-c t w") #'window-toggle-side-windows)
-
 ;; display line numbers in programming buffers only
 (defun t/line-number ()
   (unless (minibufferp)
@@ -245,6 +206,45 @@
 
 ;; Applications
 (global-set-key (kbd "C-c o c") #'calendar)
+
+;; set rules for displaying buffers
+(setq display-buffer-alist
+      '(("\\`\\*[hH]elm.*?\\*\\'"
+         (display-buffer-at-bottom)
+         (window-height . .35))
+        ("^\\*vterm.*\\*$"
+         (display-buffer-reuse-window display-buffer-in-side-window)
+         (side . bottom)
+         (slot . -1)
+         (window-width . .3)
+         (window-height . .3)
+         (window-parameters . ((mode-line-format . none))))
+        ("(\\*Messages\\*|Output\\*$)"
+         (display-buffer-reuse-window display-buffer-in-side-window)
+         (side . bottom)
+         (slot . 1)
+         (height . .3))
+        ("\\(^\\*helpful\\|\\*Help\\*\\)"
+         (display-buffer-reuse-window display-buffer-pop-up-window display-buffer-in-side-window)
+         (slot . 1)
+         (inhibit-same-window . t)
+         (window-height . .3))
+        ("\\(^magit:\\|\\*info\\*\\|NEWS\\)"
+         (display-buffer-reuse-window
+          display-buffer-use-some-window
+          display-buffer-in-direction)
+         (direction . right)
+         (split-width-threshold . .5)
+         (window-width . .5)
+         (inhibit-same-window . t))
+        ("\\*org-roam\\*"
+         (display-buffer-in-side-window)
+         (side . right)
+         (slot . 0)
+         (window-width . .25)
+         (preserve-size . (t nil)))))
+;; toggle term and help windows
+(global-set-key (kbd "C-c t w") #'window-toggle-side-windows)
 
 ;; expedites copying from org-mode to Word for essays
 (defun t/make-region-pastable ()
