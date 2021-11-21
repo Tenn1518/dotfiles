@@ -404,11 +404,12 @@ newlines and double spaces."
   :config
   (helm-projectile-on)
   (defun t/smart-find (arg)
-    "Jump to file in current project or directory.  If
-current-directory is in a project, use projectile-find-file.
-Otherwise, use helm-find."
+    "Jump to file in current project or directory
+
+Uses projectile-find-file if in project, helm-find otherwise."
     (interactive "P")
-    (if (projectile-project-p)
+    (if (and (projectile-project-p)
+             (not arg))
         (projectile-find-file)
       (helm-find arg)))
   (global-set-key (kbd "s-f") #'t/smart-find))
