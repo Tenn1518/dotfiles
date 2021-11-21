@@ -158,9 +158,7 @@
   (setq mac-right-option-modifier 'meta
         mac-right-command-modifier 'control
         mac-command-modifier 'control
-        mac-control-modifier 'super)
-  ;; prevent accidental press
-  (global-unset-key (kbd "s-g")))
+        mac-control-modifier 'super))
 
 ;; point dired to correct ls binary on macOS
 (when (eq system-type 'darwin)
@@ -178,6 +176,7 @@
 (global-set-key (kbd "s-5") ctl-x-5-map)
 (global-set-key (kbd "s-0") #'delete-window)
 (global-set-key (kbd "s-o") #'other-window)
+(global-set-key (kbd "s-g") #'keyboard-quit)
 
 ;; replaces unnecessary suspend command
 (global-set-key (kbd "C-z") #'zap-up-to-char)
@@ -287,7 +286,8 @@ newlines and double spaces."
     which-key-idle-secondary-delay 0.05)
   (which-key-mode)
   ;; prefer right side, then bottom for popup
-  (which-key-setup-side-window-right-bottom))
+  (which-key-setup-side-window-right-bottom)
+  :bind ("C-c h k" . #'which-key-show-top-level))
 
 ;; file explorer window
 (use-package treemacs
@@ -391,7 +391,9 @@ newlines and double spaces."
   (setq projectile-switch-project-action #'projectile-find-file
         projectile-project-search-path '(("~/Projects" . 2)))
   :config
-  (define-key projectile-mode-map (kbd "C-c p") projectile-command-map)
+  (let ((map projectile-mode-map))
+    (define-key map (kbd "C-c p") projectile-command-map)
+    (define-key map (kbd "s-p") projectile-command-map))
   (projectile-mode))
 
 ;; integrate with helm actions
@@ -414,8 +416,7 @@ Otherwise, use helm-find."
 ;; git frontend
 (use-package magit
   :straight t
-  :bind (("C-x M-g" . magit-dispatch)
-         ("C-c o g" . magit-status)))
+  :bind (("C-c o g" . #'magit-status)))
 
 ;; automatic formatting of program buffers on save
 (use-package format-all
