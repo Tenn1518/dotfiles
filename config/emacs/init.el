@@ -95,11 +95,48 @@
   :config
   (ns-auto-titlebar-mode))
 
+;; theme toggling with C-c h t
+(defvar t/theme-list '(modus-operandi
+                       modus-vivendi)
+  "List of themes t/cycle-themes cycles through.")
+
+(defvar t/theme--loaded nil
+  "Currently loaded theme.")
+
+(defun t/load-theme (THEME)
+  "Wrapper for \"load-theme\".  Variable \"t/theme--loaded\" is set to THEME upon use."
+  (load-theme THEME t)
+  (setq t/theme--loaded THEME)
+  ;; recompile spaceline if present
+  (when (featurep 'spaceline)
+    (spaceline-compile)))
+
+(defun t/cycle-themes ()
+  "Cycle themes according to the elements in t/theme-list."
+  (interactive)
+  (let ((list t/theme-list)
+        (chosen-theme))
+    ;; iterate through list until loaded theme is found or theme is empty
+    (while (and (not (string= (car list)
+                              t/theme--loaded))
+                (not (equal list nil)))
+      (setq list (cdr list)))
+    ;; load the next theme, or use the first theme if no remaining elements in list
+    (if (equal (car (cdr list)) nil)
+        (setq chosen-theme (car t/theme-list))
+      (setq chosen-theme (car (cdr list))))
+    (t/load-theme chosen-theme)
+    (setq t/theme--loaded chosen-theme))
+  (message "Loaded theme %s" t/theme--loaded))
+(global-set-key (kbd "C-c h t") #'t/cycle-themes)
+
 ;; theme
 (use-package modus-themes
   :straight t
   :config
-  (load-theme 'modus-operandi t))
+  (setq modus-themes-italic-constructs t
+        modus-themes-syntax '(alt-syntax))
+  (t/load-theme 'modus-operandi))
 
 ;; none of us are immune to vanity
 (use-package all-the-icons
