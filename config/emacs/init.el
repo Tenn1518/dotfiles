@@ -499,7 +499,6 @@ lsp-enabled buffers."
   (setq
    ;; relevant paths
    org-directory "~/Documents/Notes/"
-   org-agenda-files (list org-directory)
    t/daily-file (expand-file-name "daily.org" org-directory)
    ;; settings
    org-startup-with-inline-images t
@@ -538,17 +537,6 @@ lsp-enabled buffers."
            (file+function t/daily-file t/org-date-find)
            "* %^{Title} :%^{Type|notes|class-info}:\n%U\n\n+ %?"
            :empty-lines 1)))
-  ;; agenda settings
-  (setq org-deadline-warning-days 3
-        org-agenda-custom-commands
-        '(("n" "Agenda and all TODOs"
-           ((tags-todo "task")
-            (agenda ""))
-           ((org-agenda-span 7)))
-          ("w" "School" tags-todo "@school"
-           ((org-agenda-span 5)
-            (org-agenda-start-on-weekday 1)
-            (org-agenda-time-grid nil)))))
   :config
   (setq ;; appearance settings
    org-hide-leading-stars nil
@@ -600,7 +588,6 @@ file+function in org-capture-templates."
   ;; C-c global bindings
   (global-set-key (kbd "C-c n f") #'t/edit-org-dir)
   (global-set-key (kbd "C-c X") #'org-capture)
-  (global-set-key (kbd "C-c n a") #'org-agenda)
   (global-set-key (kbd "C-c n l") #'org-store-link)
   ;; edit/nav bindings in org-mode
   (let ((map org-mode-map))
@@ -614,6 +601,25 @@ file+function in org-capture-templates."
     (define-key map (kbd "C-S-s-b") #'org-shiftmetaleft)
     (define-key map (kbd "C-S-s-p") #'org-shiftmetaup)
     (define-key map (kbd "C-S-s-n") #'org-shiftmetadown)))
+
+(use-package org-agenda
+  :config
+  (setq org-agenda-files (list org-directory)
+        org-deadline-warning-days 3
+        org-agenda-custom-commands
+        '(("n" "Agenda and all TODOs"
+           ((tags-todo "task")
+            (agenda ""))
+           ((org-agenda-span 7)))
+          ("w" "School" tags-todo "@school"
+           ((org-agenda-span 5)
+            (org-agenda-start-on-weekday 1)
+            (org-agenda-time-grid nil)))))
+  (defun t/org-agenda-view ()
+    (interactive)
+    (org-agenda nil "a"))
+  :bind (("C-c n a" . #'org-agenda)
+         ("<f6>" . #'t/org-agenda-view)))
 
 ;; add latex class for exports
 (use-package ox-latex
