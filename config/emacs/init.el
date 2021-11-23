@@ -343,10 +343,9 @@ newlines and double spaces."
   ("C-c s f" . #'helm-find)
   ("C-c s a" . #'helm-do-grep-ag)
   ("C-c ." . #'helm-semantic-or-imenu)
+  :init
+  (setq helm-follow-mode-persistent t) ; use ~C-c C-f~ to follow entries
   :config
-  (setq helm-split-window-in-side-p nil
-        ;; When executing helm command, use ~C-c C-f~ to follow entries
-        helm-follow-mode-persistent t)
   (helm-mode))
 
 ;; search through buffer
@@ -379,6 +378,11 @@ newlines and double spaces."
 ;; display region when active
 (transient-mark-mode)
 
+;; settings for editing c
+(use-package cc-vars
+  :config
+  (setq-default c-basic-offset 4))
+
 ;; view imenu in a dedicated popup buffer
 (use-package imenu-list
   :straight t
@@ -394,15 +398,7 @@ newlines and double spaces."
   (let ((map projectile-mode-map))
     (define-key map (kbd "C-c p") projectile-command-map)
     (define-key map (kbd "s-p") projectile-command-map))
-  (projectile-mode))
-
-;; integrate with helm actions
-(use-package helm-projectile
-  :disabled
-  :straight t
-  :after (helm projectile)
-  :config
-  (helm-projectile-on)
+  (projectile-mode)
   (defun t/smart-find (arg)
     "Jump to file in current project or directory
 
