@@ -1,4 +1,4 @@
-;;; init.el --- my emacs config
+;;; init.el --- Personal configuration to suit my workflow. -*- lexical-binding: t -*-
 ;; 5-3-2020
 
 ;;; Commentary:
@@ -226,7 +226,6 @@
         ("\\(^\\*helpful\\|\\*Help\\*\\)"
          (display-buffer-reuse-window display-buffer-pop-up-window display-buffer-in-side-window)
          (slot . 1)
-         (inhibit-same-window . t)
          (window-height . .3))
         ("\\(^magit:\\|\\*info\\*\\|NEWS\\)"
          (display-buffer-reuse-window
@@ -413,7 +412,8 @@ Uses projectile-find-file if in project, helm-find otherwise."
 ;; git frontend
 (use-package magit
   :straight t
-  :bind (("C-c o g" . #'magit-status)))
+  :bind (("C-c o g" . #'magit-status)
+         ("<f5>" . #'magit-status)))
 
 ;; automatic formatting of program buffers on save
 (use-package format-all
@@ -478,6 +478,18 @@ lsp-enabled buffers."
   :bind ("C-c t i" . highlight-indent-guides-mode)
   :config
   (setq highlight-indent-guides-method 'character))
+
+;; tree sitter
+(use-package tree-sitter
+  :straight t
+  :config
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+(use-package tree-sitter-langs
+  :straight t
+  :config
+  (global-tree-sitter-mode))
+(use-package tree-sitter-indent
+  :straight t)
 
 ;; terminal emulator
 (use-package vterm
