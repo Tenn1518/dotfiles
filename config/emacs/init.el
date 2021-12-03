@@ -1,4 +1,4 @@
-;;; init.el --- Personal configuration to suit my workflow. -*- lexical-binding: t -*-
+;;; init.el --- Personal configuration to suit my workflow. -*- lexical-binding: t; -*-
 ;; 5-3-2020
 
 ;;; Commentary:
@@ -20,15 +20,20 @@
 
 ;;; Initialization
 
-;; disable garbage collection until post-init
-(setq gc-cons-threshold-original gc-cons-threshold
-      gc-cons-threshold (* 1024 1024 100))
+;; Startup time notification
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "Emacs ready in %s with %d garbage collections."
+                     (format "%.2f seconds"
+                             (float-time
+                              (time-subtract after-init-time before-init-time)))
+                     gcs-done)))
 
 (setq no-littering-etc-directory
-        (expand-file-name "etc" user-emacs-directory)
-        no-littering-var-directory
-        (expand-file-name ".var" user-emacs-directory)
-        straight-base-dir no-littering-var-directory)
+      (expand-file-name "etc" user-emacs-directory)
+      no-littering-var-directory
+      (expand-file-name ".var" user-emacs-directory)
+      straight-base-dir no-littering-var-directory)
 
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -140,18 +145,21 @@
 
 ;; none of us are immune to vanity
 (use-package all-the-icons
-  :straight t)
+  :straight t
+  :defer t)
 
 ;; spacemacs modeline
 (use-package spaceline
   :straight t
-  :config
-  (require 'spaceline-config)
-  (setq powerline-height 16
-        powerline-default-separator 'wave)
-  (spaceline-spacemacs-theme)
-  (spaceline-helm-mode)
-  (spaceline-toggle-minor-modes-off))
+  :defer t
+  :hook
+  (emacs-startup . (lambda ()
+                     (require 'spaceline-config)
+                     (setq powerline-height 16
+                           powerline-default-separator 'wave)
+                     (spaceline-spacemacs-theme)
+                     (spaceline-helm-mode)
+                     (spaceline-toggle-minor-modes-off))))
 
 
 ;;; Emacs Lisp settings
@@ -357,10 +365,16 @@ newlines and double spaces."
   :straight t
   :after (treemacs))
 
+(use-package recentf
+  :defer 1
+  :config
+  (recentf-mode))
+
 ;;; Completion
 
 (use-package helm
   :straight t
+  :defer t
   :bind
   ("M-x" . #'helm-M-x)
   ([remap apropos] .  #'helm-apropos)
@@ -381,12 +395,15 @@ newlines and double spaces."
   ("C-c ." . #'helm-semantic-or-imenu)
   :init
   (setq helm-follow-mode-persistent t) ; use ~C-c C-f~ to follow entries
+  (when (eq system-type 'darwin)
+    (setq find-program "gfind"))
   :config
   (helm-mode))
 
 ;; search through buffer
 (use-package helm-swoop
   :straight t
+  :defer t
   :bind
   ("C-c s s" . #'helm-swoop)
   ("s-s" . #'helm-swoop))
@@ -415,21 +432,30 @@ newlines and double spaces."
 (transient-mark-mode)
 
 ;; settings for editing c
-(use-package cc-vars
+(use-package cc-mode
+  :defer t
   :config
+  (setq c-default-style '((java-mode . "java")
+                          (awk-mode . "awk")
+                          (other . "linux")))
   (setq-default c-basic-offset 4))
 
 ;; view imenu in a dedicated popup buffer
 (use-package imenu-list
   :straight t
+  :defer t
   :bind ("C-c t I" . #'imenu-list-smart-toggle))
 
 ;; manage projects
 (use-package projectile
   :straight t
+  :defer t
   :init
   (setq projectile-switch-project-action #'projectile-find-file
-        projectile-project-search-path '(("~/Projects" . 2)))
+        projectile-project-search-path '(("~/Projects" . 2))
+        ;; remove these if working on Windows
+        projectile-indexing-method 'hybrid
+        projectile-sort-order 'recentf)
   :config
   (let ((map projectile-mode-map))
     (define-key map (kbd "C-c p") projectile-command-map)
@@ -449,64 +475,104 @@ Uses projectile-find-file if in project, helm-find otherwise."
 ;; git frontend
 (use-package magit
   :straight t
+  :defer t
   :bind (("C-c o g" . #'magit-status)
          ("<f5>" . #'magit-status)))
 
 ;; automatic formatting of program buffers on save
 (use-package format-all
+  :straight t
   :commands format-all-mode
-  :straight t)
+  :defer t)
+
+;; xref-backend that supports many languages
+(use-package dumb-jump
+  :straight t
+  :defer t)
 
 ;; IDE-like features through language servers
 (use-package lsp-mode
   :straight t
-  :hook
-  ((lsp-mode . t/lsp-onsave))
+  :defer t
   :commands lsp lsp-deferred
   :init
   (setq lsp-headerline-breadcrumb-enable nil)
   (setq lsp-keymap-prefix "C-c c")
+  (setq lsp-clients-clangd-args '("-j=3"
+                                  "--background-index"
+                                  "--clang-tidy"
+                                  "--completion-style=detailed"
+                                  "--header-insertion=never"
+                                  "--header-insertion-decorators=0"))
   (defvar t/lsp-enabled-modes
     '(python-mode c++-mode)
     "List of major modes which LSP should activate on start.")
-  (defun t/lsp-or-format-all ()
+  (defun t/maybe-lsp ()
     "Enable lsp-mode if the current major mode is included in
-t/lsp-enabled-modes. Otherwise, enable format-all-mode."
+t/lsp-enabled-modes. Otherwise, enable format-all-mode and use
+dumb-jump as the xref backend."
     (cond ((member major-mode t/lsp-enabled-modes)
-           (lsp-deferred))
-          ((derived-mode-p 'prog-mode) (format-all-mode t))))
+           (lsp))
+          ((derived-mode-p 'prog-mode)
+           (progn (when (require 'format-all nil t)
+                    (format-all-mode t))
+                  (when (require 'dumb-jump nil t)
+                    (add-hook 'xref-backend-functions #'dumb-jump-xref-activate nil t))))))
   (defun t/lsp-onsave ()
     "Configure LSP to automatically format all code on save in
 lsp-enabled buffers."
     (lsp-enable-which-key-integration)
-    (add-hook 'before-save-hook #'lsp-format-buffer nil 'local)
+    (if (derived-mode-p 'c++-mode)
+        (add-hook 'before-save-hook #'clang-format-buffer nil 'local)
+      (add-hook 'before-save-hook #'lsp-format-buffer nil 'local))
     (add-hook 'before-save-hook #'lsp-organize-imports nil 'local))
-  (add-hook 'prog-mode-hook #'t/lsp-or-format-all))
+  :hook
+  ((prog-mode . t/maybe-lsp)
+   (lsp-mode . t/lsp-onsave)))
+
+;; UI frontend for language server alerts and info
+(use-package lsp-ui
+  :straight t
+  :defer t
+  :after lsp
+  :config
+  (setq lsp-ui-doc-position 'bottom))
 
 ;; python language server
 (use-package lsp-python-ms
   :straight t
+  :defer t
   :init (setq lsp-python-ms-auto-install-server t)
   :hook (python-mode . (lambda ()
-                          (require 'lsp-python-ms)
-                          (lsp-deferred))))
+                         (require 'lsp-python-ms)
+                         (lsp))))
 ;; format python buffers with black
 (use-package blacken
   :straight t
+  :defer t
   :hook (python-mode . blacken-mode))
+
+;; clang-format
+(use-package clang-format
+  :straight t
+  :defer t
+  :commands (clang-format-buffer))
 
 ;; error checking
 (use-package flycheck
   :straight t
+  :defer t
   :hook (prog-mode . flycheck-mode))
 
 ;; highlight changes in fringe
 (use-package diff-hl
   :straight t
+  :defer t
   :config
   (global-diff-hl-mode)
-  (add-hook 'magit-pre-refresh-hook 'diff-hl-magit-pre-refresh)
-  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
+  :hook
+  (magit-pre-refresh . diff-hl-magit-pre-refresh)
+  (magit-post-refresh . diff-hl-magit-post-refresh))
 
 ;; highlight indentation
 (use-package highlight-indent-guides
@@ -519,26 +585,43 @@ lsp-enabled buffers."
 ;; tree sitter
 (use-package tree-sitter
   :straight t
-  :config
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+  :hook
+  ((prog-mode . turn-on-tree-sitter-mode)
+   (tree-sitter-after-on . tree-sitter-hl-mode)))
 (use-package tree-sitter-langs
   :straight t
-  :config
-  (global-tree-sitter-mode))
+  :after tree-sitter)
 (use-package tree-sitter-indent
-  :straight t)
+  :straight t
+  :after tree-sitter)
+
+;; edit .yml files
+(use-package yaml-mode
+  :straight t
+  :defer t)
 
 ;; terminal emulator
 (use-package vterm
   :straight t
+  :defer t
   :commands vterm
   :bind ("C-c o t" . vterm))
+(use-package eshell
+  :defer t
+  :bind ("C-c o e" . eshell))
+
+;; package manager
+(use-package helm-system-packages
+  :straight t
+  :defer t
+  :bind ("C-c h i" . #'helm-system-packages))
 
 
 ;;; Org-mode
 
 (use-package org
   :straight t
+  :defer t
   :hook (org-mode . auto-fill-mode)
   :init
   (setq
@@ -551,6 +634,36 @@ lsp-enabled buffers."
    org-archive-default-command #'org-archive-to-archive-sibling
    org-id-track-globally t
    org-imenu-depth 7)
+  ;; open file from org-directory
+  (defun t/edit-org-dir ()
+    (interactive)
+    (let ((default-directory org-directory))
+      (call-interactively #'helm-find-files)))
+  ;; org-emphasis modification
+  ;; default to word if no region
+  (defun t/org-emphasize ()
+    "Insert or change an emphasis, defaulting to the word at
+point if no selection."
+    (interactive)
+    (unless (region-active-p)
+      (mark-word))
+    (call-interactively #'org-emphasize))
+  ;; Passed as an argument to org-capture-templates's file+function to replace
+  ;; the standard datetree.  It does not create a tree of year and month, only a
+  ;; heading for day.
+  (defun t/org-date-find ()
+    "Find or create a level 1 heading titled with current date.
+This function is intended to be passed as an argument to
+file+function in org-capture-templates."
+    (let ((date (format-time-string "%Y-%m-%d %A")))
+      (condition-case nil
+          (goto-char (org-find-olp `(,date) t))
+        (t (progn
+             (goto-char (point-min))
+             (org-next-visible-heading 1)
+             (move-beginning-of-line nil)
+             (org-insert-heading nil t)
+             (insert date))))))
   ;; tags and captures
   (setq org-tag-persistent-alist
         '(("note")
@@ -609,45 +722,33 @@ lsp-enabled buffers."
                                  "READ(r)")
                        (sequence "EVENT(e)"
                                  "OVER(o)")))
-  ;; Passed as an argument to org-capture-templates's file+function to replace
-  ;; the standard datetree.  It does not create a tree of year and month, only a
-  ;; heading for day.
-  (defun t/org-date-find ()
-  "Find or create a level 1 heading titled with current date.
-This function is intended to be passed as an argument to
-file+function in org-capture-templates."
-  (let ((date (format-time-string "%Y-%m-%d %A")))
-    (condition-case nil
-        (goto-char (org-find-olp `(,date) t))
-      (t (progn
-           (goto-char (point-min))
-           (org-next-visible-heading 1)
-           (move-beginning-of-line nil)
-           (org-insert-heading nil t)
-           (insert date))))))
-  ;; open file from org-directory
-  (defun t/edit-org-dir ()
-    (interactive)
-    (let ((default-directory org-directory))
-      (call-interactively #'helm-find-files)))
+  :bind
   ;; C-c global bindings
-  (global-set-key (kbd "C-c n f") #'t/edit-org-dir)
-  (global-set-key (kbd "C-c X") #'org-capture)
-  (global-set-key (kbd "C-c n l") #'org-store-link)
+  ("C-c n f" . #'t/edit-org-dir)
+  ("C-c x" . #'org-capture)
+  ("C-c l" . #'org-store-link)
   ;; edit/nav bindings in org-mode
-  (let ((map org-mode-map))
-    (define-key map (kbd "C-c .") #'helm-org-rifle-current-buffer)
-    ;; Move headings
-    (define-key map (kbd "C-s-f") #'org-metaright)
-    (define-key map (kbd "C-s-b") #'org-metaleft)
-    (define-key map (kbd "C-s-p") #'org-metaup)
-    (define-key map (kbd "C-s-n") #'org-metadown)
-    (define-key map (kbd "C-S-s-f") #'org-shiftmetaright)
-    (define-key map (kbd "C-S-s-b") #'org-shiftmetaleft)
-    (define-key map (kbd "C-S-s-p") #'org-shiftmetaup)
-    (define-key map (kbd "C-S-s-n") #'org-shiftmetadown)))
+  (:map org-mode-map
+        ("C-c ." . #'helm-org-rifle-current-buffer)
+        ;; Move headings
+        ("C-s-f" . #'org-metaright)
+        ("C-s-b" . #'org-metaleft)
+        ("C-s-p" . #'org-metaup)
+        ("C-s-n" . #'org-metadown)
+        ("C-S-s-f" . #'org-shiftmetaright)
+        ("C-S-s-b" . #'org-shiftmetaleft)
+        ("C-S-s-p" . #'org-shiftmetaup)
+        ("C-S-s-n" . #'org-shiftmetadown)
+        ;; Make item at point heading
+        ("C-s-h" . #'org-toggle-heading)
+        ;; Cycle bullet of current list
+        ("C-s-<tab>" . #'org-cycle-list-bullet)
+        ;; surround region or word at point in emphasis markers
+        ("C-s-e" . #'t/org-emphasize)))
 
 (use-package org-agenda
+  :defer t
+  :after org
   :config
   (setq org-agenda-files (list org-directory)
         org-deadline-warning-days 3
@@ -668,6 +769,7 @@ file+function in org-capture-templates."
 
 ;; add latex class for exports
 (use-package ox-latex
+  :defer t
   :after org
   :config
   (add-to-list 'org-latex-classes
@@ -681,13 +783,27 @@ file+function in org-capture-templates."
 
 ;; syntax highlighting in exported html
 (use-package htmlize
-  :straight t)
+  :straight t
+  :after (org)
+  :defer t)
+
+;; smarter variable pitch
+(use-package org-variable-pitch
+  :straight t
+  :after org
+  :defer t
+  :config
+  (org-variable-pitch-setup)
+  :bind
+  (:map org-mode-map
+        ("C-s-v" . org-variable-pitch-minor-mode)))
 
 ;; journal
 (use-package org-journal
   :straight t
   :bind ("C-c n j" . org-journal-new-entry)
   :after org
+  :defer t
   :config
   (setq org-journal-dir (expand-file-name (concat org-directory "journal/"))
         ;; don't open new window
@@ -697,6 +813,7 @@ file+function in org-capture-templates."
 ;; atomic note taker
 (use-package org-roam
   :straight t
+  :defer t
   :init
   (setq org-roam-directory (concat org-directory "roam")
         org-roam-v2-ack t ;; silence upgrade warning
@@ -743,6 +860,7 @@ file+function in org-capture-templates."
 ;; cite sources from .bib files
 (use-package org-ref
   :straight t
+  :defer t
   :init
   (setq org-ref-completion-library 'org-ref-ivy-cite
         org-export-latex-format-toc-function 'org-export-latex-no-toc
@@ -759,18 +877,21 @@ file+function in org-capture-templates."
         ("C-c [" . #'org-ref-cite-insert-helm)))
 (use-package helm-bibtex
   :straight t
+  :after (org-ref)
   :config
   (setq bibtex-completion-bibliography org-ref-default-bibliography))
 
 ;; taking notes from a document
 (use-package org-noter
   :straight t
-  :config
-  (global-set-key (kbd "C-c n n") #'org-noter))
+  :defer t
+  :bind
+  ("C-c n n" . #'org-noter))
 
 ;; quickly search org files
 (use-package helm-org-rifle
   :straight t
+  :defer t
   :config
   (setq helm-org-rifle-directories-recursive nil)
   :bind
@@ -778,11 +899,12 @@ file+function in org-capture-templates."
   ("C-c s O" . #'helm-org-rifle-agenda-files))
 
 
-;;; Miscellaneous
+;;; Media viewing
 
 ;; enhanced pdf viewing
 (use-package pdf-tools
   :straight t
+  :defer t
   :config
   (setenv "PKG_CONFIG_PATH"
           "/usr/local/Cellar/zlib/1.2.8/lib/pkgconfig:/usr/local/lib/pkgconfig:/opt/X11/lib/pkgconfig")
@@ -792,6 +914,12 @@ file+function in org-capture-templates."
   (setq-default pdf-view-display-size 'fit-width)
   :custom
   (pdf-annot-activate-created-annotations t "automatically annotate highlights"))
+
+;; HTML browser
+(use-package eww
+  :defer t
+  :bind ("C-c o w" . #'eww)
+  :commands (eww))
 
 ;; reminds user to keep good posture
 (use-package posture
@@ -804,5 +932,9 @@ file+function in org-capture-templates."
  (lambda ()
    (setq gc-cons-threshold gc-cons-threshold-original)
    (makunbound 'gc-cons-threshold-original)))
+
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (setq file-name-handler-alist t/file-name-handler-alist)))
 
 ;;; init.el ends here
