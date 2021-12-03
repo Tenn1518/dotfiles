@@ -86,19 +86,45 @@
 
 ;; display line numbers in programming buffers only
 (defun t/line-number ()
+  "Turn on line numbers except in minibuffer."
   (unless (minibufferp)
     (display-line-numbers-mode)))
+(add-hook 'conf-mode-hook 't/line-number)
 (add-hook 'prog-mode-hook 't/line-number)
 
 ;; scroll long lines individually like nano
 (setq auto-hscroll-mode 'current-line)
 
-;; macOS titlebar
+;; frame title (buffer name, edit status, Emacs version)
+(setq-default frame-title-format '("%b %* GNU Emacs " :eval emacs-version))
+
+;; scratch message on startup
+(setq initial-scratch-message
+      ";; This buffer is for text that is not saved, and for Lisp evaluation.
+;; To create a file, visit it with \\[find-file] and enter text
+in its buffer.
+
+")
+
+;; catch user's eye when moving across the screen
+(use-package pulse
+  :defer t
+  :disabled
+  :config
+  (defun t/pulse-line (&rest args)
+    (if (not (minibufferp))
+        (pulse-momentary-highlight-one-line (point))))
+  (global-set-key (kbd "<s-escape>") #'t/pulse-line)
+  (set-face-attribute 'pulse-highlight-face nil :background "#f7d7fa")
+  (set-face-attribute 'pulse-highlight-start-face nil :background "#f7d7fa")
+  (advice-add 'select-window :after-while #'t/pulse-line))
+
+;; macOS titlebar support
 (use-package ns-auto-titlebar
   :if (eq system-type 'darwin)
   :straight t
-  :config
-  (ns-auto-titlebar-mode))
+  :init
+  (add-hook 'emacs-startup-hook 'ns-auto-titlebar-mode))
 
 ;; theme toggling with C-c h t
 (defvar t/theme-list '(modus-operandi
@@ -113,7 +139,7 @@
   (load-theme THEME t)
   (setq t/theme--loaded THEME)
   ;; recompile spaceline if present
-  (when (featurep 'spaceline)
+  (when (require 'spaceline nil t)
     (spaceline-compile)))
 
 (defun t/cycle-themes ()
@@ -140,7 +166,13 @@
   :straight t
   :config
   (setq modus-themes-italic-constructs t
-        modus-themes-syntax '(alt-syntax))
+        modus-themes-syntax '(alt-syntax)
+        modus-themes-scale-title 1.4
+        modus-themes-scale-4 1.35
+        modus-themes-scale-3 1.2
+        modus-themes-scale-2 1.1
+        modus-themes-scale-1 1.05
+        modus-themes-syntax '(yellow-comments alt-syntax))
   (t/load-theme 'modus-operandi))
 
 ;; none of us are immune to vanity
@@ -205,12 +237,6 @@
         mac-command-modifier 'control
         mac-control-modifier 'super))
 
-;; point dired to correct ls binary on macOS
-(when (eq system-type 'darwin)
-  (setq dired-use-ls-dired t
-        insert-directory-program "/usr/local/bin/gls"
-        dired-listing-switches "-aBhl --group-directories-first"))
-
 ;; shortcut access to C-x binds
 ;; Super bindings are intended for quick, often-used global commands.
 ;; Prioritize adding smart commands that do thinking for me.
@@ -229,18 +255,40 @@
 ;; ibuffer for listing buffers
 (global-set-key (kbd "C-x C-b") #'ibuffer)
 
+;; Set Emacs variables interactively
+(global-set-key (kbd "C-c h v") #'set-variable)
+
 ;; Edit emacs directory
 (defun t/edit-emacs-dir ()
   "Edit file from Emacs configuration directory."
   (interactive)
   (find-file user-emacs-directory))
-(global-set-key (kbd "C-c f p") #'t/edit-emacs-dir)
+;; (global-set-key (kbd "C-c f p") #'t/edit-emacs-dir)
 
 ;; Open scratch buffer
 (defun t/open-scratch ()
   (interactive)
   (pop-to-buffer "*scratch*"))
-(global-set-key (kbd "C-c x") #'t/open-scratch)
+(global-set-key (kbd "C-c X") #'t/open-scratch)
+
+;; If region is not active, C-w kills word backward akin to vim/GNU Readline
+(defun t/kill-word-backward-or-region (arg)
+  (interactive "p")
+  (if (region-active-p)
+      (call-interactively #'kill-region)
+    (backward-kill-word arg)))
+(global-set-key (kbd "C-w") #'t/kill-word-backward-or-region)
+;; temporary, forcible relearning
+(global-set-key
+ (kbd "<C-backspace>")
+ (lambda ()
+   (interactive)
+   (message "<C-backspace> has been unset. Use C-w to kill word backward instead.")))
+(global-set-key
+ (kbd "M-DEL")
+ (lambda ()
+   (interactive)
+   (message "M-DEL has been unset. Use C-w to kill word backward instead.")))
 
 ;; Toggles
 (global-set-key (kbd "C-c t l") #'display-line-numbers-mode)
@@ -256,21 +304,34 @@
       '(("\\`\\*[hH]elm.*?\\*\\'"
          (display-buffer-at-bottom)
          (window-height . .35))
+        ("^\\*eshell.*\\*$"
+         (display-buffer-reuse-window
+          display-buffer-in-side-window)
+         (side . bottom)
+         (slot . -1)
+         (window-width . .3)
+         (window-height . .3)
+         (window-parameters . ((mode-line-format . none))))
         ("^\\*vterm.*\\*$"
-         (display-buffer-reuse-window display-buffer-in-side-window)
+         (display-buffer-reuse-window
+          display-buffer-in-side-window)
          (side . bottom)
          (slot . -1)
          (window-width . .3)
          (window-height . .3)
          (window-parameters . ((mode-line-format . none))))
         ("(\\*Messages\\*|Output\\*$)"
-         (display-buffer-reuse-window display-buffer-in-side-window)
+         (display-buffer-reuse-window
+          display-buffer-in-side-window)
          (side . bottom)
          (slot . 1)
          (height . .3))
         ("\\(^\\*helpful\\|\\*Help\\*\\)"
-         (display-buffer-reuse-window display-buffer-pop-up-window display-buffer-in-side-window)
+         (display-buffer-reuse-mode-window
+          display-buffer-pop-up-window
+          display-buffer-in-side-window)
          (slot . 1)
+         (mode . (helpful-mode help-mode))
          (window-height . .3))
         ("\\(^magit:\\|\\*info\\*\\|NEWS\\)"
          (display-buffer-reuse-window
@@ -313,21 +374,43 @@ newlines and double spaces."
   (message "Region copied to clipboard"))
 ;;(global-set-key (kbd "C-c p") #'t/make-region-pastable)
 
+;; file manager
+(use-package dired
+  :config
+  ;; point dired to correct ls binary on macOS
+  (when (eq system-type 'darwin)
+    (setq dired-use-ls-dired t
+          insert-directory-program "/usr/local/bin/gls"
+          dired-listing-switches "-aBhl --group-directories-first"))
+  ;; hide dotfiles
+  (setq dired-omit-files "^\\..\\{2,\\}")  ; default: "\\`[.]?#\\|\\`[.][.]?\\'"
+  :bind ("C-x C-j" . #'dired-jump))
+
 ;; ~M-o~ to change window
 (use-package ace-window
   :straight t
   :config
-  (global-set-key (kbd "M-o") #'ace-window))
+  (setq aw-scope 'frame)
+  :bind
+  ("M-o" . #'ace-window))
+
+;; isearch alternative across frame
+(use-package avy
+  :straight t
+  :bind
+  (("M-j" . #'avy-goto-char-timer)
+   :map isearch-mode-map
+   ("M-j" . #'avy-isearch)))
 
 ;; available keybinds popup with "C-h" during key chords
 (use-package which-key
   :straight t
   :config
   (setq
-    ;; Only show popup on "C-h"
-    which-key-show-early-on-C-h t
-    which-key-idle-delay 10000
-    which-key-idle-secondary-delay 0.05)
+   ;; Only show popup on "C-h"
+   which-key-show-early-on-C-h t
+   which-key-idle-delay 10000
+   which-key-idle-secondary-delay 0.05)
   (which-key-mode)
   ;; prefer right side, then bottom for popup
   (which-key-setup-side-window-right-bottom)
@@ -388,6 +471,7 @@ newlines and double spaces."
   ([remap occur] . #'helm-occur)
   ([remap switch-to-buffer] . #'helm-buffers-list)
   ([remap recentf-open-files] . #'helm-recentf)
+  ("C-c f" .  #'helm-recentf)
   ("C-c s y" . #'helm-show-kill-ring)
   ("s-y" . #'helm-show-kill-ring)
   ("C-c s f" . #'helm-find)
@@ -694,7 +778,10 @@ file+function in org-capture-templates."
           ("sn" "Class-related notes" entry
            (file+function t/daily-file t/org-date-find)
            "* %^{Title} :%^{Type|notes|class-info}:\n%U\n\n+ %?"
-           :empty-lines 1)))
+           :empty-lines 1)
+          ("sp" "Class-related notes with associated document" entry
+           (file+function t/daily-file t/org-date-find)
+           "* %^{Title} :notes:\n:PROPERTIES:\n:NOTER_DOCUMENT: %F\n:END:\n%U\n\n%?")))
   :config
   (setq ;; appearance settings
    org-hide-leading-stars nil
