@@ -20,6 +20,9 @@
 
 ;;; Initialization
 
+;; load per-machine settings
+(load (expand-file-name "local.el" user-emacs-directory))
+
 ;; Startup time notification
 (add-hook 'emacs-startup-hook
           (lambda ()
@@ -698,6 +701,7 @@ lsp-enabled buffers."
 (use-package helm-system-packages
   :straight t
   :defer t
+  :after (helm)
   :bind ("C-c h i" . #'helm-system-packages))
 
 
@@ -717,7 +721,8 @@ lsp-enabled buffers."
    org-startup-with-latex-preview t
    org-archive-default-command #'org-archive-to-archive-sibling
    org-id-track-globally t
-   org-imenu-depth 7)
+   org-imenu-depth 7
+   org-use-speed-commands t)
   ;; open file from org-directory
   (defun t/edit-org-dir ()
     (interactive)
@@ -953,9 +958,9 @@ file+function in org-capture-templates."
         org-export-latex-format-toc-function 'org-export-latex-no-toc
         org-ref-get-pdf-filename-function
         (lambda (key) (car (bibtex-completion-find-pdf key)))
-        ;; For pdf export engines.
+        ;; For pdf export engines
         org-latex-pdf-process (list "latexmk -pdflatex='%latex -shell-escape -interaction nonstopmode' -pdf -bibtex -f -output-directory=%o %f")
-        ;; I use orb to link org-ref, helm-bibtex and org-noter together (see below for more on org-noter and orb).
+        ;; TODO: Consider orb to link org-ref, helm-bibtex and org-noter together
         ;;org-ref-notes-function 'orb-edit-notes)
         org-ref-default-bibliography "~/Zotero/zotero/zotero.bib"
         org-ref-default-citation-link "citep")
@@ -1007,6 +1012,29 @@ file+function in org-capture-templates."
   :defer t
   :bind ("C-c o w" . #'eww)
   :commands (eww))
+
+;; view email; requires installing mu (maildir-utils on some distros) first
+(use-package mu4e
+  :load-path  "/usr/local/share/emacs/site-lisp/mu/mu4e" ; macOS-specific?
+  :defer t
+  :bind
+  ("<f7>" . mu4e)
+  ("C-c o m" . mu4e)
+  :config
+  (setq
+   mail-user-agent 'mu4e-user-agent
+   mu4e-get-mail-command "mbsync gmail"
+   ;; Gmail does this itself
+   mu4e-sent-messages-behavior 'delete))
+
+;; send email
+;; Settings necessary for sending mail are located in local.el
+;; Copy TEMPLATE-local.el to local.el and fill in information
+(use-package smtpmail
+  :bind ("C-x m" . compose-mail))
+
+
+;;; Miscellaneous
 
 ;; reminds user to keep good posture
 (use-package posture
