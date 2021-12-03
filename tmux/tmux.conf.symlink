@@ -8,10 +8,6 @@
 set -g @plugin 'tmux-plugins/tpm'
 set -g @plugin 'tmux-plugins/tmux-sensible'
 
-# Solarized theme
-set -g @plugin 'seebi/tmux-colors-solarized'
-set -g @colors-solarized 'dark'
-
 # Terminal type configuration
 set -g default-terminal "screen-256color"
 set -ga terminal-overrides ",xterm-256color:Tc"
@@ -21,14 +17,8 @@ run '~/.tmux/plugins/tpm/tpm'
 
 # remap prefix key to 'C-a'
 unbind C-b
-set-option -g prefix C-a
-bind-key C-a send-prefix
-
-# split panes with | and -
-bind | split-window -h
-bind - split-window -v
-unbind '"'
-unbind %
+set-option -g prefix C-j
+bind-key C-j send-prefix
 
 # source config file
 bind r source-file ~/.tmux.conf \; display "Sourced ~/.tmux.conf"
@@ -39,11 +29,6 @@ bind h select-pane -L
 bind j select-pane -U
 bind k select-pane -D
 bind l select-pane -R
-
-bind J next-window
-bind K previous-window
-unbind n
-unbind p
 
 # Uncomment following line to enable mouse mode
 # set -g mouse on
