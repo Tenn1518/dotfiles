@@ -458,45 +458,106 @@ newlines and double spaces."
 
 ;;; Completion
 
-(use-package helm
+(use-package vertico
   :straight t
-  :defer t
-  :bind
-  ("M-x" . #'helm-M-x)
-  ([remap apropos] .  #'helm-apropos)
-  ([remap find-library] .  #'helm-locate-library)
-  ([remap bookmark-jump] . #'helm-bookmarks)
-  ([remap execute-extended-command] . #'helm-M-x)
-  ([remap find-file] . #'helm-find-files)
-  ([remap imenu] . #'helm-semantic-or-imenu)
-  ([remap locate] . #'helm-locate)
-  ([remap noop-show-kill-ring] . #'helm-show-kill-ring)
-  ([remap occur] . #'helm-occur)
-  ([remap switch-to-buffer] . #'helm-buffers-list)
-  ([remap recentf-open-files] . #'helm-recentf)
-  ("C-c f" .  #'helm-recentf)
-  ("C-c s y" . #'helm-show-kill-ring)
-  ("s-y" . #'helm-show-kill-ring)
-  ("C-c s f" . #'helm-find)
-  ("C-c s a" . #'helm-do-grep-ag)
-  ("C-c ." . #'helm-semantic-or-imenu)
-  :init
-  (setq helm-follow-mode-persistent t) ; use ~C-c C-f~ to follow entries
-  (when (eq system-type 'darwin)
-    (setq find-program "gfind"))
   :config
-  (helm-mode))
+  (setq completion-in-region-function   ; C-M-i to complete
+        (lambda (&rest args)
+          (apply (if vertico-mode
+                     #'consult-completion-in-region
+                   #'completion--in-region)
+                 args)))
+  (setq vertico-scroll-margin 2
+        vertico-count 20
+        vertico-resize nil
+        vertico-cycle nil)
+  (vertico-mode))
 
-;; search through buffer
-(use-package helm-swoop
+(use-package orderless
   :straight t
-  :defer t
+  :config
+  (setq completion-styles '(orderless))
+  (savehist-mode))
+
+(use-package marginalia
+  :straight t
+  :config
+  (marginalia-mode))
+
+(use-package consult
+  :straight t
   :bind
-  ("C-c s s" . #'helm-swoop)
-  ("s-s" . #'helm-swoop))
+  (;; C-c bindings (mode-specific-map)
+   ;;("C-c h" . consult-history)
+   ;;("C-c m" . consult-mode-command)
+   ;; ("C-c b" . consult-bookmark)
+   ;; ("C-c k" . consult-kmacro)
+   ;; C-x bindings (ctl-x-map)
+   ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+   ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+   ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+   ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+   ("C-x r b" . consult-bookmark)
+   ;; Custom M-# bindings for fast register access
+   ("M-#" . consult-register-load)
+   ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+   ("C-M-#" . consult-register)
+   ;; Other custom bindings
+   ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+   ("<help> a" . consult-apropos)            ;; orig. apropos-command
+   ;; M-g bindings (goto-map)
+   ("M-g e" . consult-compile-error)
+   ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+   ("M-g g" . consult-goto-line)             ;; orig. goto-line
+   ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+   ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+   ("M-g m" . consult-mark)
+   ("M-g k" . consult-global-mark)
+   ("M-g i" . consult-imenu)
+   ("M-g I" . consult-imenu-multi)
+   ;; M-s bindings (search-map)
+   ("M-s f" . consult-find)
+   ("M-s F" . consult-locate)
+   ("M-s g" . consult-grep)
+   ("M-s G" . consult-git-grep)
+   ("M-s r" . consult-ripgrep)
+   ("M-s l" . consult-line)
+   ("s-s" . consult-line)
+   ("M-s L" . consult-line-multi)
+   ("M-s m" . consult-multi-occur)
+   ("M-s k" . consult-keep-lines)
+   ("M-s u" . consult-focus-lines)
+   ;; Isearch integration
+   ("M-s e" . consult-isearch-history)
+   :map isearch-mode-map
+   ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+   ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+   ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+   ("M-s L" . consult-line-multi)))
 
+;; select from useful directories during minibuffer commands
+(use-package consult-dir
+  :straight t
+  :bind (("C-x C-d" . consult-dir)
+         :map vertico-map
+         ("C-x C-d" . consult-dir)
+         ("C-x C-j" . consult-dir-jump-file))
+  :config
+  (setq consult-dir-project-list-function 'consult-dir-projectile-dirs))
 
-;;; Programming
+(use-package embark
+  :straight t
+  :bind (("C-." . embark-act)
+         ("C-h B" . embark-bindings)))
+
+(use-package embark-consult
+  :straight t
+  :after (embark consult)
+  :demand t
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+
+;;;; Programming
 
 ;; allow subprocesses more data at once (lsp)
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
@@ -698,14 +759,21 @@ lsp-enabled buffers."
   :bind ("C-c o e" . eshell))
 
 ;; package manager
+;; doesn't populate completions like helm-pac-man
+;; maybe look at helm's implementation and recreate it with completing-read?
+(use-package system-packages
+  :straight t
+  :config
+  (setq system-packages-package-manager 'brew
+        system-packages-use-sudo nil))
 (use-package helm-system-packages
+  :disabled
   :straight t
   :defer t
   :after (helm)
   :bind ("C-c h i" . #'helm-system-packages))
 
-
-;;; Org-mode
+;;;; Org-mode
 
 (use-package org
   :straight t
@@ -821,7 +889,7 @@ file+function in org-capture-templates."
   ("C-c l" . #'org-store-link)
   ;; edit/nav bindings in org-mode
   (:map org-mode-map
-        ("C-c ." . #'helm-org-rifle-current-buffer)
+        ;("C-c ." . #'helm-org-rifle-current-buffer)
         ;; Move headings
         ("C-s-f" . #'org-metaright)
         ("C-s-b" . #'org-metaleft)
@@ -963,15 +1031,16 @@ file+function in org-capture-templates."
         ;; TODO: Consider orb to link org-ref, helm-bibtex and org-noter together
         ;;org-ref-notes-function 'orb-edit-notes)
         org-ref-default-bibliography "~/Zotero/zotero/zotero.bib"
-        org-ref-default-citation-link "citep")
-  :bind
-  (:map org-mode-map
-        ("C-c [" . #'org-ref-cite-insert-helm)))
+        org-ref-default-citation-link "citep"))
 (use-package helm-bibtex
+  :disabled
   :straight t
   :after (org-ref)
   :config
-  (setq bibtex-completion-bibliography org-ref-default-bibliography))
+  (setq bibtex-completion-bibliography org-ref-default-bibliography)
+  :bind
+  (:map org-mode-map
+        ("C-c [" . #'org-ref-cite-insert-helm)))
 
 ;; taking notes from a document
 (use-package org-noter
