@@ -3,10 +3,13 @@
 ;;; Commentary:
 
 ;; This code is ran extremely early during Emacs's startup.  Code prevents Emacs
-;; from loading unnecessary packages or undertaking complex, time-wasting
-;; actions.
+;; from loading the unnecessary default package manager or undertaking complex,
+;; time-wasting actions during startup.
 
 ;;; Code:
+
+(defvar gc-cons-threshold-original nil
+  "Original value of \"gc-cons-threshold\" at startup.")
 
 ;; disable garbage collection until post-init
 (setq gc-cons-threshold-original gc-cons-threshold
