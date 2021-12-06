@@ -1,24 +1,16 @@
-;;; init.el --- Personal configuration to suit my workflow. -*- lexical-binding: t; -*-
+;;; init.el --- Personal configuration to suit my workflow. -*- lexical-binding: t; outline-minor-mode: t; -*-
 ;; 5-3-2020
 
 ;;; Commentary:
 
 ;; A personal Emacs config.
 
-;; The config is split into multiple sections:
-;; 1. Initialization
-;; 2. Appearance
-;; 3. Emacs Lisp settings
-;; 4. Navigation/Editing
-;; 5. Completion
-;; 6. Programming
-;; 7. Org-mode
-;; 8. Miscellaneous
+;; The config is split into multiple sections.
 ;; Use outline-minor-mode bindings to move between these headings.
 
 ;;; Code:
 
-;;; Initialization
+;;;; Initialization
 
 ;; load per-machine settings
 (load (expand-file-name "local.el" user-emacs-directory))
@@ -58,8 +50,7 @@
 (use-package no-littering
   :straight t)
 
-
-;;; Appearance
+;;;; Appearance
 
 ;; font settings
 (add-to-list 'default-frame-alist '(font . "Menlo-12"))
@@ -193,11 +184,9 @@ in its buffer.
                      (setq powerline-height 16
                            powerline-default-separator 'wave)
                      (spaceline-spacemacs-theme)
-                     (spaceline-helm-mode)
                      (spaceline-toggle-minor-modes-off))))
 
-
-;;; Emacs Lisp settings
+;;;; Emacs Lisp settings
 
 ;; add my folder of lisp programs from dotfiles
 (add-to-list 'load-path (expand-file-name "lisp/" user-emacs-directory))
@@ -215,8 +204,7 @@ in its buffer.
   ("C-h v" . #'helpful-variable)
   ("C-h f" . #'helpful-callable))
 
-
-;;; Navigation/Editing
+;;;; Navigation/Editing
 
 ;; acceptable line length
 (setq-default fill-column 80)
@@ -456,7 +444,7 @@ newlines and double spaces."
   :config
   (recentf-mode))
 
-;;; Completion
+;;;; Completion
 
 (use-package vertico
   :straight t
@@ -617,7 +605,7 @@ Uses projectile-find-file if in project, helm-find otherwise."
     (if (and (projectile-project-p)
              (not arg))
         (projectile-find-file)
-      (helm-find arg)))
+      (consult-find arg)))
   (global-set-key (kbd "s-f") #'t/smart-find))
 
 ;; git frontend
@@ -1053,6 +1041,7 @@ file+function in org-capture-templates."
 
 ;; quickly search org files
 (use-package helm-org-rifle
+  :disabled
   :straight t
   :defer t
   :config
@@ -1061,8 +1050,7 @@ file+function in org-capture-templates."
   ("C-c s o" . #'helm-org-rifle)
   ("C-c s O" . #'helm-org-rifle-agenda-files))
 
-
-;;; Media viewing
+;;;; Media viewing
 
 ;; enhanced pdf viewing
 (use-package pdf-tools
@@ -1104,8 +1092,7 @@ file+function in org-capture-templates."
 (use-package smtpmail
   :bind ("C-x m" . compose-mail))
 
-
-;;; Miscellaneous
+;;;; Miscellaneous
 
 ;; reminds user to keep good posture
 (use-package posture
