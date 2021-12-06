@@ -909,6 +909,11 @@ file+function in org-capture-templates."
 (use-package org-agenda
   :defer t
   :after org
+  :init
+  (defun t/org-agenda-view ()
+    "Directly open org-agenda to the default agenda view."
+    (interactive)
+    (org-agenda nil "a"))
   :config
   (setq org-agenda-files (list org-directory)
         org-deadline-warning-days 3
@@ -921,9 +926,6 @@ file+function in org-capture-templates."
            ((org-agenda-span 5)
             (org-agenda-start-on-weekday 1)
             (org-agenda-time-grid nil)))))
-  (defun t/org-agenda-view ()
-    (interactive)
-    (org-agenda nil "a"))
   :bind (("C-c n a" . #'org-agenda)
          ("<f6>" . #'t/org-agenda-view)))
 
