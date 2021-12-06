@@ -30,3 +30,4 @@ config/emacs/tramp/
 /config/emacs/elpa/
 .var/
 /config/emacs/etc/
+/config/emacs/local.el

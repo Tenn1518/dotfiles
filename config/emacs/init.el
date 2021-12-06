@@ -50,6 +50,13 @@
 (use-package no-littering
   :straight t)
 
+;; Only garbage collect when idle
+(use-package gcmh
+  :straight t
+  :demand t
+  :config
+  (gcmh-mode 1))
+
 ;;;; Appearance
 
 ;; font settings
@@ -1098,13 +1105,6 @@ file+function in org-capture-templates."
 (use-package posture
   :config
   (global-set-key (kbd "C-c t p") #'toggle-posture-reminder))
-
-;; reenable garbage collection when idle
-(run-with-idle-timer
- 5 nil
- (lambda ()
-   (setq gc-cons-threshold gc-cons-threshold-original)
-   (makunbound 'gc-cons-threshold-original)))
 
 (add-hook 'emacs-startup-hook
           (lambda ()
