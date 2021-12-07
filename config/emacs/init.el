@@ -427,20 +427,23 @@ in its buffer.
 (defun t/cycle-themes ()
   "Cycle themes according to the elements in t/theme-list."
   (interactive)
+  (when (null t/theme-list)
+    (error "Variable \"t/theme-list\" must be a list of themes"))
   (let ((list t/theme-list)
         (chosen-theme))
     ;; iterate through list until loaded theme is found or theme is empty
     (while (and (not (string= (car list)
                               t/theme--loaded))
-                (not (equal list nil)))
+                list)
       (setq list (cdr list)))
     ;; load the next theme, or use the first theme if no remaining elements in list
-    (if (equal (car (cdr list)) nil)
+    (if (null (car (cdr list)))
         (setq chosen-theme (car t/theme-list))
       (setq chosen-theme (car (cdr list))))
     (t/load-theme chosen-theme)
     (setq t/theme--loaded chosen-theme))
   (message "Loaded theme %s" t/theme--loaded))
+
 (global-set-key (kbd "C-c h t") #'t/cycle-themes)
 
 ;; theme of choice
