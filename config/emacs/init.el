@@ -914,7 +914,7 @@ file+function in org-capture-templates."
 
 ;; help emacs find executables
 (dolist (path '("/Library/TeX/texbin/" "/usr/local/bin"))
-  (add-to-list path 'exec-path))
+  (add-to-list 'exec-path path))
 
 
 ;;;; Code
