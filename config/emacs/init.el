@@ -735,12 +735,6 @@ lsp-enabled buffers."
   :config
   (setq system-packages-package-manager 'brew
         system-packages-use-sudo nil))
-(use-package helm-system-packages
-  :disabled
-  :straight t
-  :defer t
-  :after (helm)
-  :bind ("C-c h i" . #'helm-system-packages))
 
 ;;;; Org-mode
 
@@ -860,7 +854,6 @@ file+function in org-capture-templates."
   ("C-c l" . #'org-store-link)
   ;; edit/nav bindings in org-mode
   (:map org-mode-map
-                                        ;("C-c ." . #'helm-org-rifle-current-buffer)
         ;; Move headings
         ("C-s-f" . #'org-metaright)
         ("C-s-b" . #'org-metaleft)
@@ -1005,15 +998,6 @@ file+function in org-capture-templates."
         ;;org-ref-notes-function 'orb-edit-notes)
         org-ref-default-bibliography "~/Zotero/zotero/zotero.bib"
         org-ref-default-citation-link "citep"))
-(use-package helm-bibtex
-  :disabled
-  :straight t
-  :after (org-ref)
-  :config
-  (setq bibtex-completion-bibliography org-ref-default-bibliography)
-  :bind
-  (:map org-mode-map
-        ("C-c [" . #'org-ref-cite-insert-helm)))
 
 ;; taking notes from a document
 (use-package org-noter
@@ -1021,17 +1005,6 @@ file+function in org-capture-templates."
   :defer t
   :bind
   ("C-c n n" . #'org-noter))
-
-;; quickly search org files
-(use-package helm-org-rifle
-  :disabled
-  :straight t
-  :defer t
-  :config
-  (setq helm-org-rifle-directories-recursive nil)
-  :bind
-  ("C-c s o" . #'helm-org-rifle)
-  ("C-c s O" . #'helm-org-rifle-agenda-files))
 
 ;;;; Media viewing
 
