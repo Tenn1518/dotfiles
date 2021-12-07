@@ -1,4 +1,4 @@
-;;; init.el --- Personal configuration to suit my workflow. -*- lexical-binding: t; outline-minor-mode: t; -*-
+;;; init.el --- -*- lexical-binding: t; outline-minor-mode: t; -*-
 ;; 5-3-2020
 
 ;;; Commentary:
@@ -6,7 +6,7 @@
 ;; A personal Emacs config.
 
 ;; The config is split into multiple sections.
-;; Use outline-minor-mode bindings to move between these headings.
+;; Use outline-minor-mode bindings (C-c @) to move between these headings.
 
 ;;; Code:
 
@@ -93,10 +93,10 @@
 (add-hook 'conf-mode-hook 't/line-number)
 (add-hook 'prog-mode-hook 't/line-number)
 
-;; scroll long lines individually like nano
+;; scroll a long line individually like nano, instead of vertically shifting the whole document
 (setq auto-hscroll-mode 'current-line)
 
-;; frame title (buffer name, edit status, Emacs version)
+;; frame title (buffer name, edit status, GNU Emacs version)
 (setq-default frame-title-format '("%b %* GNU Emacs " :eval emacs-version))
 
 ;; scratch message on startup
@@ -124,8 +124,7 @@ in its buffer.
 (use-package ns-auto-titlebar
   :if (eq system-type 'darwin)
   :straight t
-  :init
-  (add-hook 'emacs-startup-hook 'ns-auto-titlebar-mode))
+  :hook (emacs-startup . ns-auto-titlebar-mode))
 
 ;; theme toggling with C-c h t
 (defvar t/theme-list '(modus-operandi
@@ -165,7 +164,8 @@ in its buffer.
 ;; theme
 (use-package modus-themes
   :straight t
-  :config
+  :hook (emacs-startup . (lambda () (t/load-theme 'modus-operandi)))
+  :init
   (setq modus-themes-italic-constructs t
         modus-themes-syntax '(alt-syntax)
         modus-themes-scale-title 1.4
@@ -173,8 +173,7 @@ in its buffer.
         modus-themes-scale-3 1.2
         modus-themes-scale-2 1.1
         modus-themes-scale-1 1.05
-        modus-themes-syntax '(yellow-comments alt-syntax))
-  (t/load-theme 'modus-operandi))
+        modus-themes-syntax '(yellow-comments alt-syntax)))
 
 ;; none of us are immune to vanity
 (use-package all-the-icons
@@ -184,7 +183,6 @@ in its buffer.
 ;; spacemacs modeline
 (use-package spaceline
   :straight t
-  :defer t
   :hook
   (emacs-startup . (lambda ()
                      (require 'spaceline-config)
@@ -224,6 +222,7 @@ in its buffer.
 (use-package osx-trash
   :if (eq 'system-type 'darwin)
   :straight t
+  :defer 2
   :config
   (osx-trash-setup))
 
@@ -245,7 +244,14 @@ in its buffer.
 (global-set-key (kbd "s-5") ctl-x-5-map)
 (global-set-key (kbd "s-0") #'delete-window)
 (global-set-key (kbd "s-o") #'other-window)
+(global-set-key (kbd "s-u") #'revert-buffer)
 (global-set-key (kbd "s-g") #'keyboard-quit)
+
+;; useful augments of default binds
+(global-set-key (kbd "M-SPC") #'cycle-spacing)
+(global-set-key (kbd "M-c") #'capitalize-dwim)
+(global-set-key (kbd "M-u") #'upcase-dwim)
+(global-set-key (kbd "M-l") #'downcase-dwim)
 
 ;; replaces unnecessary suspend command
 (global-set-key (kbd "C-z") #'zap-up-to-char)
@@ -265,28 +271,19 @@ in its buffer.
 
 ;; Open scratch buffer
 (defun t/open-scratch ()
+  "Find and open the scratch buffer."
   (interactive)
   (pop-to-buffer "*scratch*"))
 (global-set-key (kbd "C-c X") #'t/open-scratch)
 
-;; If region is not active, C-w kills word backward akin to vim/GNU Readline
+;; Kill word backward with C-w like vim/GNU Readline
 (defun t/kill-word-backward-or-region (arg)
+  "Kill the contents of the region, if active.  If not, kill ARG words backwards."
   (interactive "p")
   (if (region-active-p)
       (call-interactively #'kill-region)
     (backward-kill-word arg)))
 (global-set-key (kbd "C-w") #'t/kill-word-backward-or-region)
-;; temporary, forcible relearning
-(global-set-key
- (kbd "<C-backspace>")
- (lambda ()
-   (interactive)
-   (message "<C-backspace> has been unset. Use C-w to kill word backward instead.")))
-(global-set-key
- (kbd "M-DEL")
- (lambda ()
-   (interactive)
-   (message "M-DEL has been unset. Use C-w to kill word backward instead.")))
 
 ;; Toggles
 (global-set-key (kbd "C-c t l") #'display-line-numbers-mode)
@@ -299,10 +296,7 @@ in its buffer.
 
 ;; set rules for displaying buffers
 (setq display-buffer-alist
-      '(("\\`\\*[hH]elm.*?\\*\\'"
-         (display-buffer-at-bottom)
-         (window-height . .35))
-        ("^\\*eshell.*\\*$"
+      '(("^\\*eshell.*\\*$"
          (display-buffer-reuse-window
           display-buffer-in-side-window)
          (side . bottom)
@@ -350,9 +344,9 @@ in its buffer.
 
 ;; expedites copying from org-mode to Word for essays
 (defun t/make-region-pastable ()
-  "Save contents of the region to the kill ring for pasting into
-a separate program.  The copy is altered to remove extraneous
-newlines and double spaces."
+  "Save content of the region to the kill ring.
+The copy is altered to remove extraneous newlines and double
+spaces."
   (interactive)
   (let* ((buf (current-buffer))
          (beg (region-beginning))
@@ -380,7 +374,7 @@ newlines and double spaces."
     (setq dired-use-ls-dired t
           insert-directory-program "/usr/local/bin/gls"
           dired-listing-switches "-aBhl --group-directories-first"))
-  ;; hide dotfiles
+  ;; hide dotfiles with C-x M-o
   (setq dired-omit-files "^\\..\\{2,\\}")  ; default: "\\`[.]?#\\|\\`[.][.]?\\'"
   :bind ("C-x C-j" . #'dired-jump))
 
@@ -502,10 +496,11 @@ newlines and double spaces."
    ("<help> a" . consult-apropos)            ;; orig. apropos-command
    ;; M-g bindings (goto-map)
    ("M-g e" . consult-compile-error)
-   ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
-   ("M-g g" . consult-goto-line)             ;; orig. goto-line
-   ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-   ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+   ("M-g f" . consult-flycheck)
+   ("M-g g" . consult-goto-line)
+   ("M-g M-g" . consult-goto-line)
+   ("M-g o" . consult-outline)
+   ("M-g O" . consult-org-heading)
    ("M-g m" . consult-mark)
    ("M-g k" . consult-global-mark)
    ("M-g i" . consult-imenu)
@@ -538,7 +533,7 @@ newlines and double spaces."
          ("C-x C-d" . consult-dir)
          ("C-x C-j" . consult-dir-jump-file))
   :config
-  (setq consult-dir-project-list-function 'consult-dir-projectile-dirs))
+  (setq consult-dir-project-list-function 'nil))
 
 (use-package embark
   :straight t
@@ -591,6 +586,7 @@ newlines and double spaces."
 
 ;; manage projects
 (use-package projectile
+  :disabled
   :straight t
   :defer t
   :init
@@ -622,6 +618,11 @@ Uses projectile-find-file if in project, helm-find otherwise."
   :bind (("C-c o g" . #'magit-status)
          ("<f5>" . #'magit-status)))
 
+;; built in version control
+(use-package diff-mode
+  :config
+  (define-key diff-mode-map (kbd "M-o") nil))
+
 ;; automatic formatting of program buffers on save
 (use-package format-all
   :straight t
@@ -631,7 +632,7 @@ Uses projectile-find-file if in project, helm-find otherwise."
 ;; xref-backend that supports many languages
 (use-package dumb-jump
   :straight t
-  :defer t)
+  :commands t/maybe-lsp)
 
 ;; IDE-like features through language servers
 (use-package lsp-mode
@@ -648,7 +649,7 @@ Uses projectile-find-file if in project, helm-find otherwise."
                                   "--header-insertion=never"
                                   "--header-insertion-decorators=0"))
   (defvar t/lsp-enabled-modes
-    '(python-mode c++-mode)
+    '(python-mode c++-mode js-mode)
     "List of major modes which LSP should activate on start.")
   (defun t/maybe-lsp ()
     "Enable lsp-mode if the current major mode is included in
@@ -665,9 +666,9 @@ dumb-jump as the xref backend."
     "Configure LSP to automatically format all code on save in
 lsp-enabled buffers."
     (lsp-enable-which-key-integration)
-    (if (derived-mode-p 'c++-mode)
-        (add-hook 'before-save-hook #'clang-format-buffer nil 'local)
-      (add-hook 'before-save-hook #'lsp-format-buffer nil 'local))
+    (cond ((derived-mode-p 'c++-mode)
+           (add-hook 'before-save-hook #'clang-format-buffer nil 'local))
+          (t (add-hook 'before-save-hook #'lsp-format-buffer nil 'local)))
     (add-hook 'before-save-hook #'lsp-organize-imports nil 'local))
   :hook
   ((prog-mode . t/maybe-lsp)
@@ -770,10 +771,12 @@ lsp-enabled buffers."
 
 ;;;; Org-mode
 
+(use-package text-mode
+  :hook (org-mode . auto-fill-mode))
+
 (use-package org
   :straight t
   :defer t
-  :hook (org-mode . auto-fill-mode)
   :init
   (setq
    ;; relevant paths
@@ -884,7 +887,7 @@ file+function in org-capture-templates."
   ("C-c l" . #'org-store-link)
   ;; edit/nav bindings in org-mode
   (:map org-mode-map
-        ;("C-c ." . #'helm-org-rifle-current-buffer)
+                                        ;("C-c ." . #'helm-org-rifle-current-buffer)
         ;; Move headings
         ("C-s-f" . #'org-metaright)
         ("C-s-b" . #'org-metaleft)
@@ -1062,7 +1065,6 @@ file+function in org-capture-templates."
 ;; enhanced pdf viewing
 (use-package pdf-tools
   :straight t
-  :defer t
   :config
   (setenv "PKG_CONFIG_PATH"
           "/usr/local/Cellar/zlib/1.2.8/lib/pkgconfig:/usr/local/lib/pkgconfig:/opt/X11/lib/pkgconfig")
