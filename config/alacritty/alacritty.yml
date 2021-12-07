@@ -27,7 +27,7 @@ font:
     family: Menlo
 
   # Point size of the font
-  size: 11.0
+  size: 14.0
 
   # Offset is the extra space around each character. offset.y is linespacing,
   # and offset.x is letter spacing.
