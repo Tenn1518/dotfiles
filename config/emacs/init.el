@@ -584,33 +584,6 @@ spaces."
   :defer t
   :bind ("C-c t I" . #'imenu-list-smart-toggle))
 
-;; manage projects
-(use-package projectile
-  :disabled
-  :straight t
-  :defer t
-  :init
-  (setq projectile-switch-project-action #'projectile-find-file
-        projectile-project-search-path '(("~/Projects" . 2))
-        ;; remove these if working on Windows
-        projectile-indexing-method 'hybrid
-        projectile-sort-order 'recentf)
-  :config
-  (let ((map projectile-mode-map))
-    (define-key map (kbd "C-c p") projectile-command-map)
-    (define-key map (kbd "s-p") projectile-command-map))
-  (projectile-mode)
-  (defun t/smart-find (arg)
-    "Jump to file in current project or directory
-
-Uses projectile-find-file if in project, helm-find otherwise."
-    (interactive "P")
-    (if (and (projectile-project-p)
-             (not arg))
-        (projectile-find-file)
-      (consult-find arg)))
-  (global-set-key (kbd "s-f") #'t/smart-find))
-
 ;; git frontend
 (use-package magit
   :straight t
