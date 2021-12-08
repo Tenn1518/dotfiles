@@ -1,12 +1,14 @@
 ;;; init.el --- -*- lexical-binding: t; outline-minor-mode: t; -*-
+
 ;; 5-3-2020
 
 ;;; Commentary:
 
 ;; A personal Emacs config.
 
-;; The config is split into multiple sections.
-;; Use outline-minor-mode bindings (C-c @) to move between these headings.
+;; The config is split into multiple sections.  Use outline-minor-mode bindings
+;; (C-c @) to move between these headings.  C-u 6 C-c @ C-q will only display
+;; major headings.
 
 ;;; Code:
 
@@ -264,7 +266,9 @@ spaces."
 (use-package uniquify
   :defer 2
   :config
-  (setq uniquify-buffer-name-style 'forward))
+  (setq uniquify-buffer-name-style 'forward
+        uniquify-strip-common-suffix t
+        uniquify-after-kill-buffer-p t))
 
 ;; ~M-o~ to change window
 (use-package ace-window
@@ -478,41 +482,64 @@ in its buffer.
 
 ;;;;; Completion
 
-(use-package vertico
+;; built in completion
+(use-package icomplete
+  :init
+  (defvar t/icomplete-page-scroll-margin 1
+    "Number of entries that will stay on screen from last page during scroll.")
+  (defun t/icomplete-next-page (arg)
+    "Cycle completions forward by one page of entries."
+    (interactive "p")
+    (dotimes (n (- (* (or icomplete-prospects-height
+                          icomplete-vertical-prospects-height)
+                      arg)
+                   t/icomplete-page-scroll-margin))
+      (icomplete-forward-completions)))
+  (defun t/icomplete-prev-page (arg)
+    "Cycle completions backward by one page of entries."
+    (interactive "p")
+    (dotimes (n (- (* (or icomplete-vertical-prospects-height
+                       icomplete-prospects-height)
+                      arg)
+                   t/icomplete-page-scroll-margin))
+      (icomplete-backward-completions)))
+  :config
+  (setq icomplete-scroll t)
+  (icomplete-mode)
+  (fido-mode)
+  :bind
+  (:map icomplete-minibuffer-map
+   ("C-n" . icomplete-forward-completions)
+   ("C-p" . icomplete-backward-completions)
+   ("C-v" . t/icomplete-next-page)
+   ("M-v" . t/icomplete-prev-page)
+   ("C-." . nil)))
+
+;; vertical completion candidates like ivy/helm
+(use-package icomplete-vertical
   :straight t
   :config
-  (setq completion-in-region-function   ; C-M-i to complete
-        (lambda (&rest args)
-          (apply (if vertico-mode
-                     #'consult-completion-in-region
-                   #'completion--in-region)
-                 args)))
-  (setq vertico-scroll-margin 2
-        vertico-count 20
-        vertico-resize nil
-        vertico-cycle nil)
-  (vertico-mode))
+  (setq icomplete-vertical-prospects-height 15)
+  (icomplete-vertical-mode))
 
+;; sane fuzzy matching
 (use-package orderless
   :straight t
   :config
-  (setq completion-styles '(orderless))
+  (setq completion-styles '(orderless partial-completion flex))
   (savehist-mode))
 
+;; candidate annotations
 (use-package marginalia
   :straight t
   :config
   (marginalia-mode))
 
+;; completing extensions of regular commands
 (use-package consult
   :straight t
   :bind
-  (;; C-c bindings (mode-specific-map)
-   ;;("C-c h" . consult-history)
-   ;;("C-c m" . consult-mode-command)
-   ;; ("C-c b" . consult-bookmark)
-   ;; ("C-c k" . consult-kmacro)
-   ;; C-x bindings (ctl-x-map)
+  (   ;; C-x bindings (ctl-x-map)
    ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
    ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
    ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
@@ -566,6 +593,7 @@ in its buffer.
   :config
   (setq consult-dir-project-list-function 'nil))
 
+;; contextual actions on the thing at point
 (use-package embark
   :straight t
   :bind (("C-." . embark-act)
@@ -577,6 +605,12 @@ in its buffer.
   :demand t
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
+
+;; dropdown completion
+(use-package corfu
+  :straight t
+  :hook
+  (prog-mode . corfu-mode)
 
 ;;;;; Documentation
 
