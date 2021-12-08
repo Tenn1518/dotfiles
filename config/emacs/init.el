@@ -611,6 +611,8 @@ in its buffer.
   :straight t
   :hook
   (prog-mode . corfu-mode)
+  :config
+  (setq completion-in-region-function 'corfu--completion-in-region))
 
 ;;;;; Documentation
 
@@ -938,7 +940,12 @@ file+function in org-capture-templates."
   (setq c-default-style '((java-mode . "java")
                           (awk-mode . "awk")
                           (other . "linux")))
-  (setq-default c-basic-offset 4))
+  (setq-default c-basic-offset 4)
+  (add-to-list
+   'aggressive-indent-dont-indent-if
+   '(and (derived-mode-p 'c++-mode)
+         (null (string-match "\\([;{}]\\|\\b\\(if\\|for\\|while\\)\\b\\)"
+                             (thing-at-point 'line))))))
 
 ;; edit .yml files
 (use-package yaml-mode
@@ -968,6 +975,12 @@ file+function in org-capture-templates."
   :commands t/maybe-lsp)
 
 ;;;;; Format
+
+;; keep things aligned
+(use-package aggressive-indent-mode
+  :straight t
+  :hook
+  (prog-mode . aggressive-indent-mode))
 
 ;; automatic formatting of program buffers on save
 (use-package format-all
