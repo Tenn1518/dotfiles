@@ -64,7 +64,7 @@
   :config
   (gcmh-mode 1))
 
-;;;; Editor --- Related to editing text
+;;;; Editor --- Related to editing and inserting text
 
 ;;;;; Editor settings
 
@@ -194,7 +194,7 @@ spaces."
    :map isearch-mode-map
    ("M-j" . #'avy-isearch)))
 
-;;;; Buffers --- Related to the display, navigation, or management of buffers and windows
+;;;; Buffers --- Display, navigation, and management of buffers and windows
 
 ;; set rules for displaying buffers
 (setq display-buffer-alist
@@ -342,9 +342,6 @@ spaces."
 (use-package treemacs-magit
   :straight t
   :after (treemacs))
-(use-package treemacs-projectile
-  :straight t
-  :after (treemacs))
 
 ;;;;; Version control
 
@@ -370,7 +367,7 @@ spaces."
   (magit-pre-refresh . diff-hl-magit-pre-refresh)
   (magit-post-refresh . diff-hl-magit-post-refresh))
 
-;;;; Interface -- Emacs's appearance and direct usability
+;;;; Interface -- Emacs appearance and direct interaction
 
 ;; font settings
 (add-to-list 'default-frame-alist '(font . "Menlo-12"))
@@ -488,39 +485,41 @@ in its buffer.
   (defvar t/icomplete-page-scroll-margin 1
     "Number of entries that will stay on screen from last page during scroll.")
   (defun t/icomplete-next-page (arg)
-    "Cycle completions forward by one page of entries."
+    "Cycle completions forward by ARG pages."
     (interactive "p")
-    (dotimes (n (- (* (or icomplete-prospects-height
-                          icomplete-vertical-prospects-height)
+    (dotimes (n (- (* (or icomplete-vertical-prospects-height
+                          icomplete-prospects-height)
                       arg)
                    t/icomplete-page-scroll-margin))
       (icomplete-forward-completions)))
   (defun t/icomplete-prev-page (arg)
-    "Cycle completions backward by one page of entries."
+    "Cycle completions backward by ARG pages."
     (interactive "p")
     (dotimes (n (- (* (or icomplete-vertical-prospects-height
-                       icomplete-prospects-height)
+                          icomplete-prospects-height)
                       arg)
                    t/icomplete-page-scroll-margin))
       (icomplete-backward-completions)))
   :config
-  (setq icomplete-scroll t)
+  (setq icomplete-scroll t
+        icomplete-show-matches-on-no-input t
+        icomplete-tidy-shadowed-file-names t
+        icomplete-compute-delay 0)
   (icomplete-mode)
-  (fido-mode)
-  :bind
-  (:map icomplete-minibuffer-map
-   ("C-n" . icomplete-forward-completions)
-   ("C-p" . icomplete-backward-completions)
-   ("C-v" . t/icomplete-next-page)
-   ("M-v" . t/icomplete-prev-page)
-   ("C-." . nil)))
+  :bind (:map icomplete-minibuffer-map
+              ("C-n" . icomplete-forward-completions)
+              ("C-p" . icomplete-backward-completions)
+              ("C-v" . t/icomplete-next-page)
+              ("M-v" . t/icomplete-prev-page)
+              ("RET" . icomplete-fido-ret) ; Return key executes candidate at point
+              ("C-." . nil)))
 
 ;; vertical completion candidates like ivy/helm
 (use-package icomplete-vertical
   :straight t
+  :hook (icomplete-mode . icomplete-vertical-mode)
   :config
-  (setq icomplete-vertical-prospects-height 15)
-  (icomplete-vertical-mode))
+  (setq icomplete-vertical-prospects-height 15))
 
 ;; sane fuzzy matching
 (use-package orderless
@@ -602,17 +601,24 @@ in its buffer.
 (use-package embark-consult
   :straight t
   :after (embark consult)
-  :demand t
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
-;; dropdown completion
+;; dropdown completion (explicitly call with M-TAB)
 (use-package corfu
   :straight t
   :hook
-  (prog-mode . corfu-mode)
+  ((prog-mode . corfu-mode)
+   (eshell-mode . corfu-mode))
   :config
-  (setq completion-in-region-function 'corfu--completion-in-region))
+  ;; Corfu child frames don't display in terminals, so fall back to consult completion
+  (setq completion-in-region-function
+        (lambda (&rest args)
+          (apply (if (display-graphic-p)
+                     #'corfu--completion-in-region
+                   #'consult-completion-in-region)
+                 args))
+        corfu-scroll-margin 0))
 
 ;;;;; Documentation
 
@@ -638,7 +644,7 @@ in its buffer.
   (which-key-setup-side-window-right-bottom)
   :bind ("C-c h k" . #'which-key-show-top-level))
 
-;;;; Modes
+;;;; Modes --- Filetype-specific settings
 
 ;; HTML browser
 (use-package eww
@@ -646,7 +652,7 @@ in its buffer.
   :bind ("C-c o w" . #'eww)
   :commands (eww))
 
-;;;;; Prose
+;;;;; Prose Modes
 
 (use-package text-mode
   :hook (org-mode . auto-fill-mode))
@@ -931,7 +937,7 @@ file+function in org-capture-templates."
   :bind
   ("C-c n n" . #'org-noter))
 
-;;;;; Code
+;;;;; Programming Modes
 
 ;; settings for editing c
 (use-package cc-mode
@@ -1084,8 +1090,11 @@ lsp-enabled buffers."
   :defer t
   :commands vterm
   :bind ("C-c o t" . vterm))
+
 (use-package eshell
   :defer t
+  :init
+  (setq eshell-banner-message "")
   :bind ("C-c o e" . eshell))
 
 ;; package manager
