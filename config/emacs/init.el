@@ -469,6 +469,8 @@ in its buffer.
 ;; spacemacs modeline
 (use-package spaceline
   :straight t
+  :init
+  (setq ns-use-srgb-colorspace nil)
   :hook
   (emacs-startup . (lambda ()
                      (require 'spaceline-config)
@@ -500,12 +502,12 @@ in its buffer.
                       arg)
                    t/icomplete-page-scroll-margin))
       (icomplete-backward-completions)))
+  (icomplete-mode)
   :config
   (setq icomplete-scroll t
         icomplete-show-matches-on-no-input t
         icomplete-tidy-shadowed-file-names t
         icomplete-compute-delay 0)
-  (icomplete-mode)
   :bind (:map icomplete-minibuffer-map
               ("C-n" . icomplete-forward-completions)
               ("C-p" . icomplete-backward-completions)
@@ -517,15 +519,17 @@ in its buffer.
 ;; vertical completion candidates like ivy/helm
 (use-package icomplete-vertical
   :straight t
-  :hook (icomplete-mode . icomplete-vertical-mode)
+  :after icomplete
   :config
-  (setq icomplete-vertical-prospects-height 15))
+  (setq icomplete-vertical-prospects-height 15)
+  (icomplete-vertical-mode))
 
 ;; sane fuzzy matching
 (use-package orderless
   :straight t
   :config
-  (setq completion-styles '(orderless partial-completion flex))
+  (setq completion-styles '(orderless))
+  (setq completion-category-defaults '((file (styles partial-completion))))
   (savehist-mode))
 
 ;; candidate annotations
@@ -557,7 +561,6 @@ in its buffer.
    ("M-g g" . consult-goto-line)
    ("M-g M-g" . consult-goto-line)
    ("M-g o" . consult-outline)
-   ("M-g O" . consult-org-heading)
    ("M-g m" . consult-mark)
    ("M-g k" . consult-global-mark)
    ("M-g i" . consult-imenu)
@@ -661,10 +664,6 @@ in its buffer.
 (use-package pdf-tools
   :straight t
   :config
-  (setenv "PKG_CONFIG_PATH"
-          "/usr/local/Cellar/zlib/1.2.8/lib/pkgconfig:/usr/local/lib/pkgconfig:/opt/X11/lib/pkgconfig")
-  (setenv "PATH"
-          (s-join ":" exec-path))
   (pdf-tools-install)
   (setq-default pdf-view-display-size 'fit-width)
   :custom
@@ -691,7 +690,7 @@ in its buffer.
   (defun t/edit-org-dir ()
     (interactive)
     (let ((default-directory org-directory))
-      (call-interactively #'helm-find-files)))
+      (call-interactively #'find-file)))
   ;; org-emphasis modification
   ;; default to word if no region
   (defun t/org-emphasize ()
@@ -799,7 +798,9 @@ file+function in org-capture-templates."
         ;; Cycle bullet of current list
         ("C-s-<tab>" . #'org-cycle-list-bullet)
         ;; surround region or word at point in emphasis markers
-        ("C-s-e" . #'t/org-emphasize)))
+        ("C-s-e" . #'t/org-emphasize)
+        ;; Search headings
+        ("M-g o" . consult-org-heading)))
 
 (use-package org-agenda
   :defer t
@@ -846,6 +847,7 @@ file+function in org-capture-templates."
 
 ;; smarter variable pitch
 (use-package org-variable-pitch
+  :disabled
   :straight t
   :after org
   :defer t
@@ -861,6 +863,8 @@ file+function in org-capture-templates."
   :bind ("C-c n j" . org-journal-new-entry)
   :after org
   :defer t
+  :init
+  (setq org-journal-file-format "%Y%m%d.org")
   :config
   (setq org-journal-dir (expand-file-name (concat org-directory "journal/"))
         ;; don't open new window
@@ -914,6 +918,66 @@ file+function in org-capture-templates."
   :disabled
   :after org-roam)
 
+;; search plaintext files
+(use-package deft
+  :straight t
+  :init
+  (defun t/deft-kill-existing-buffer ()
+    "Kill any existing deft buffer.
+Return nil if no deft buffer exists."
+    (let ((buf (get-buffer deft-buffer)))
+      (if buf
+          (kill-buffer buf)
+        nil)))
+
+  (defun t/deft-in-dir (dir)
+    "Call a *deft* buffer limited to files in DIR.
+Any existing deft buffer will be killed first.  If DIR is not a
+valid directory, raise an error."
+    (interactive "DSelect deft directory: ")
+    (unless (f-dir-p dir)
+      (error "%s is not a valid directory path" dir))
+    (let ((deft-directory dir))
+      (t/deft-kill-existing-buffer)
+      (deft)))
+
+  (defun t/deft-reset ()
+    "Open deft, killing any existing deft buffer first."
+    (interactive)
+    (t/deft-in-dir deft-directory))
+
+  (defun t/deft-in-roam-dir ()
+    "Open a deft buffer limited to notes in \"org-roam-directory\"."
+    (interactive)
+    (t/deft-in-dir org-roam-directory))
+
+  :bind
+  ("<f8>" . deft)                       ; Display existing or new deft buffer
+  ("C-c n s" . deft)
+  ("C-c n S" . t/deft-in-dir)           ; Prompt for directory to open deft in
+  ("C-<f8>" . t/deft-reset)             ; Open new deft buffer
+  ("M-<f8>" . t/deft-in-roam-dir)       ; Open deft buffer limited to org-roam notes
+
+  :config
+  ;; following parser replacement from https://githubmemory.com/repo/jrblevin/deft/issues/75
+  (defun cm/deft-parse-title (file contents)
+    "Parse the given FILE and CONTENTS and determine the title.
+  If `deft-use-filename-as-title' is nil, the title is taken to
+  be the first non-empty line of the FILE.  Else the base name of the FILE is
+  used as title."
+    (let ((begin (string-match "^#\\+[tT][iI][tT][lL][eE]: .*$" contents)))
+      (if begin
+	  (string-trim (substring contents begin (match-end 0)) "#\\+[tT][iI][tT][lL][eE]: *" "[\n\t ]+")
+	(deft-base-filename file))))
+  
+  (advice-add 'deft-parse-title :override #'cm/deft-parse-title)
+
+  (setq deft-directory org-directory
+        deft-default-extension "org"
+        deft-recursive t)
+  ;; ensure :PROPERTIES: and lowercase #+props are not shown in note summaries
+  (setq deft-strip-summary-regexp "\\(^:.*:.*\\|[\n	]\\|^#\\+[[:alpha:]_]+:.*$\\)"))
+
 ;; cite sources from .bib files
 (use-package org-ref
   :straight t
@@ -966,6 +1030,10 @@ file+function in org-capture-templates."
 (dolist (path '("/Library/TeX/texbin/" "/usr/local/bin"))
   (add-to-list 'exec-path path))
 
+(setenv "PKG_CONFIG_PATH"
+        "/usr/local/Cellar/zlib/1.2.8/lib/pkgconfig:/usr/local/lib/pkgconfig:/opt/X11/lib/pkgconfig")
+(setenv "PATH"
+        (s-join ":" exec-path))
 
 ;;;; Code
 
