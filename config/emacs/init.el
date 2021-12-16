@@ -1,4 +1,4 @@
-;;; init.el --- -*- lexical-binding: t; outline-minor-mode: t; -*-
+;;; init.el --- Emacs configuration -*- lexical-binding: t -*-
 
 ;; 5-3-2020
 
@@ -88,12 +88,17 @@
 ;; scroll a long line individually like nano, instead of vertically shifting the whole document
 (setq auto-hscroll-mode 'current-line)
 
+(setq scroll-preserve-screen-position t)
+
 ;; holding shift during navigation doesn't expand selection
 (setq shift-select-mode nil)
 
 ;; scroll horizontally
 (put 'scroll-left 'disabled nil)
 (put 'scroll-right 'disabled nil)
+
+;; better scrolling
+(pixel-scroll-mode 1)
 
 ;; highlight and auto-create matching parentheses
 (show-paren-mode 1)
@@ -117,6 +122,9 @@
   :config
   (setq highlight-indent-guides-method 'character))
 
+;; shorten repeatable commands
+(repeat-mode 1)
+(setq repeat-keep-prefix t)
 
 ;;;;; Text manipulation
 
@@ -157,9 +165,9 @@ spaces."
   (pop-to-buffer "*scratch*"))
 (global-set-key (kbd "C-c X") #'t/open-scratch)
 
-;; Kill word backward with C-w like vim/GNU Readline
 (defun t/kill-word-backward-or-region (arg)
-  "Kill the contents of the region, if active.  If not, kill ARG words backwards."
+  "Kill the contents of the region, if active.
+If not, kill ARG words backwards."
   (interactive "p")
   (if (region-active-p)
       (call-interactively #'kill-region)
@@ -170,17 +178,15 @@ spaces."
 (global-set-key (kbd "M-c") #'capitalize-dwim)
 (global-set-key (kbd "M-u") #'upcase-dwim)
 (global-set-key (kbd "M-l") #'downcase-dwim)
-(global-set-key (kbd "C-w") #'t/kill-word-backward-or-region) ; kill word backward
+(global-set-key (kbd "C-w") #'t/kill-word-backward-or-region) ; vim/GNU Readline C-w
+(global-set-key (kbd "C-M-<backspace>") #'backward-kill-sexp)
 ;; built-in, unused commands
 (global-set-key (kbd "C-z") #'zap-up-to-char)
 (global-set-key (kbd "C-x C-b") #'ibuffer) ; list buffers
 (global-set-key (kbd "C-c h v") #'set-variable) ; set variable
 ;; Toggles
 (global-set-key (kbd "C-c t l") #'display-line-numbers-mode)
-(global-set-key (kbd "C-c t m") #'toggle-frame-maximized)
-(global-set-key (kbd "C-c t f") #'toggle-frame-fullscreen)
 (global-set-key (kbd "C-c t v") #'visual-line-mode)
-(global-set-key (kbd "C-c t w") #'window-toggle-side-windows)
 ;; Applications
 (global-set-key (kbd "C-c o c") #'calendar)
 
@@ -261,6 +267,9 @@ spaces."
 (global-set-key (kbd "s-p") #'previous-buffer)
 (global-set-key (kbd "s-o") #'other-window)
 (global-set-key (kbd "s-u") #'revert-buffer)
+
+;; scroll buffer in two separate windows
+(global-set-key (kbd "C-c t F") #'follow-mode)
 
 ;; ensure buffer titles are unique
 (use-package uniquify
@@ -349,7 +358,7 @@ spaces."
 (use-package magit
   :straight t
   :defer t
-  :bind (("C-c o g" . #'magit-status)
+  :bind (("C-c g" . #'magit-status)
          ("<f5>" . #'magit-status)))
 
 ;; built in version control
@@ -372,7 +381,8 @@ spaces."
 ;; font settings
 (add-to-list 'default-frame-alist '(font . "Menlo-12"))
 (set-face-attribute 'default nil :family "Menlo" :height 120 :weight 'normal)
-(set-face-attribute 'variable-pitch nil :family "Source Sans Pro" :height 120)
+(set-face-attribute 'variable-pitch nil :family "IBM Plex Sans" :height 160)
+(setq-default line-spacing 1)
 
 ;; minimalist emacs layout
 (when (not (eq system-type 'darwin))
@@ -382,7 +392,8 @@ spaces."
 (horizontal-scroll-bar-mode -1)
 
 ;; Remove prompts that explicitly require "yes" or "no"
-(defalias 'yes-or-no-p 'y-or-n-p)
+;;(defalias 'yes-or-no-p 'y-or-n-p)
+(setq use-short-answers t)
 
 ;; scratch message on startup
 (setq initial-scratch-message
@@ -397,7 +408,10 @@ in its buffer.
   :straight t
   :defer t)
 
-;;;;; Titlebar
+;;;;; Frame
+
+;; not a terminal
+(setq frame-resize-pixelwise t)
 
 ;; frame title (buffer name, edit status, GNU Emacs version)
 (setq-default frame-title-format '("%b %* GNU Emacs " :eval emacs-version))
@@ -407,6 +421,79 @@ in its buffer.
   :if (eq system-type 'darwin)
   :straight t
   :hook (emacs-startup . ns-auto-titlebar-mode))
+
+;; workspaces and a global mode line
+(use-package tab-bar
+  :init
+  (setq tab-bar-show 1)                 ; only show tabs if >1 tabs open
+
+  :config
+  (tab-bar-mode)
+  
+  ;; make tab bar include global information
+  (dolist (var '(tab-bar-format-align-right tab-bar-format-global))
+    (add-to-list 'tab-bar-format var t))
+  
+  (display-battery-mode)
+  (display-time-mode)
+  (setq display-time-day-and-date t
+        display-time-load-average-threshold 100.0)) ; disable showing current load
+
+(defun t/make-frame-small ()
+  (interactive)
+  (set-frame-size nil 90 60))
+
+;; toggles
+(global-set-key (kbd "C-c t m") #'toggle-frame-maximized)
+(global-set-key (kbd "C-c t f") #'toggle-frame-fullscreen)
+(global-set-key (kbd "C-c t T") #'toggle-frame-tab-bar)
+(global-set-key (kbd "C-c t w") #'window-toggle-side-windows)
+(global-set-key (kbd "C-c t W") #'t/make-frame-small)
+
+;;;;; Modeline
+
+;; remove misc-info
+(setq-default mode-line-format
+              '(""
+                (eldoc-mode-line-string
+                 (" " eldoc-mode-line-string " "))
+                ("%e"
+                 mode-line-front-space
+                 mode-line-mule-info
+                 mode-line-client
+                 mode-line-modified
+                 mode-line-remote
+                 mode-line-frame-identification
+                 mode-line-buffer-identification
+                 "   "
+                 mode-line-position
+                 (vc-mode vc-mode)
+                 "  "
+                 mode-line-modes
+                 mode-line-end-spaces)))
+
+;; show current column
+(column-number-mode)
+
+;; shorten minor modes list
+(use-package minions
+  :straight t
+  :config
+  (minions-mode))
+
+;; spacemacs modeline
+(use-package spaceline
+  :disabled
+  :straight t
+  :init
+  (setq ns-use-srgb-colorspace nil)
+  :hook
+  (emacs-startup . (lambda ()
+                     (require 'spaceline-config)
+                     (setq powerline-height 16
+                           powerline-default-separator 'wave)
+                     (spaceline-spacemacs-theme)
+                     (spaceline-toggle-minor-modes-off))))
 
 ;;;;; Theme
 
@@ -418,7 +505,8 @@ in its buffer.
   "Currently loaded theme.")
 
 (defun t/load-theme (THEME)
-  "Wrapper for \"load-theme\".  Variable \"t/theme--loaded\" is set to THEME upon use."
+  "Wrapper for \"load-theme\".
+Variable \"t/theme--loaded\" is set to THEME upon use."
   (load-theme THEME t)
   (setq t/theme--loaded THEME)
   ;; recompile spaceline if present
@@ -441,6 +529,7 @@ in its buffer.
     (if (null (car (cdr list)))
         (setq chosen-theme (car t/theme-list))
       (setq chosen-theme (car (cdr list))))
+    (disable-theme t/theme--loaded)
     (t/load-theme chosen-theme)
     (setq t/theme--loaded chosen-theme))
   (message "Loaded theme %s" t/theme--loaded))
@@ -449,7 +538,7 @@ in its buffer.
 
 ;; theme of choice
 (use-package modus-themes
-  :straight t
+  :straight (when (< emacs-major-version 28))
   :hook (emacs-startup . (lambda () (t/load-theme 'modus-operandi)))
   :init
   (setq modus-themes-italic-constructs t
@@ -464,21 +553,6 @@ in its buffer.
   (dolist (theme '(modus-operandi modus-vivendi))
     (add-to-list 't/theme-list theme)))
 
-;;;;; Modeline
-
-;; spacemacs modeline
-(use-package spaceline
-  :straight t
-  :init
-  (setq ns-use-srgb-colorspace nil)
-  :hook
-  (emacs-startup . (lambda ()
-                     (require 'spaceline-config)
-                     (setq powerline-height 16
-                           powerline-default-separator 'wave)
-                     (spaceline-spacemacs-theme)
-                     (spaceline-toggle-minor-modes-off))))
-
 ;;;;; Completion
 
 ;; built in completion
@@ -489,25 +563,27 @@ in its buffer.
   (defun t/icomplete-next-page (arg)
     "Cycle completions forward by ARG pages."
     (interactive "p")
-    (dotimes (n (- (* (or icomplete-vertical-prospects-height
-                          icomplete-prospects-height)
-                      arg)
-                   t/icomplete-page-scroll-margin))
-      (icomplete-forward-completions)))
+    (let ((height (- max-mini-window-height 2)))
+      (dotimes (n (- (* height
+                        arg)
+                     t/icomplete-page-scroll-margin))
+        (icomplete-forward-completions))))
   (defun t/icomplete-prev-page (arg)
     "Cycle completions backward by ARG pages."
     (interactive "p")
-    (dotimes (n (- (* (or icomplete-vertical-prospects-height
-                          icomplete-prospects-height)
-                      arg)
-                   t/icomplete-page-scroll-margin))
-      (icomplete-backward-completions)))
+    (let ((height (- max-mini-window-height 2)))
+      (dotimes (n (- (* height
+                        arg)
+                     t/icomplete-page-scroll-margin))
+        (icomplete-backward-completions))))
   (icomplete-mode)
   :config
   (setq icomplete-scroll t
         icomplete-show-matches-on-no-input t
         icomplete-tidy-shadowed-file-names t
         icomplete-compute-delay 0)
+  (if (>= emacs-major-version 28)
+      (icomplete-vertical-mode))
   :bind (:map icomplete-minibuffer-map
               ("C-n" . icomplete-forward-completions)
               ("C-p" . icomplete-backward-completions)
@@ -518,6 +594,7 @@ in its buffer.
 
 ;; vertical completion candidates like ivy/helm
 (use-package icomplete-vertical
+  :if (<= emacs-major-version 27)
   :straight t
   :after icomplete
   :config
@@ -614,14 +691,14 @@ in its buffer.
   ((prog-mode . corfu-mode)
    (eshell-mode . corfu-mode))
   :config
-  ;; Corfu child frames don't display in terminals, so fall back to consult completion
+  (setq corfu-scroll-margin 0)
+  ;; Fall back to consult completion in terminals
   (setq completion-in-region-function
         (lambda (&rest args)
           (apply (if (display-graphic-p)
                      #'corfu--completion-in-region
                    #'consult-completion-in-region)
-                 args))
-        corfu-scroll-margin 0))
+                 args))))
 
 ;;;;; Documentation
 
@@ -651,14 +728,19 @@ in its buffer.
 
 ;; HTML browser
 (use-package eww
-  :defer t
   :bind ("C-c o w" . #'eww)
-  :commands (eww))
+  :hook (eww-mode . (lambda () (setq cursor-type '(bar . 2)))))
+
+;; outline
+(use-package outline
+  :config
+  (setq outline-minor-mode-cycle t))
 
 ;;;;; Prose Modes
 
 (use-package text-mode
-  :hook (org-mode . auto-fill-mode))
+  :hook
+  (text-mode . (lambda () (setq cursor-type '(bar . 2)))))
 
 ;; enhanced pdf viewing
 (use-package pdf-tools
@@ -669,28 +751,53 @@ in its buffer.
   :custom
   (pdf-annot-activate-created-annotations t "automatically annotate highlights"))
 
+;; visual writing environment
+(use-package olivetti
+  :straight t
+  
+  :config
+  (setq-default olivetti-body-width (+ fill-column 5))
+
+  :bind
+  ("C-c t o" . olivetti-mode))
+
 ;;;;;; Org-mode
 
 (use-package org
   :straight t
   :defer t
+
   :init
   (setq
    ;; relevant paths
    org-directory "~/Documents/Notes/"
    t/daily-file (expand-file-name "daily.org" org-directory)
-   ;; settings
+   ;; appearance
+   org-indent-indentation-per-level 1
+   org-startup-indented t
    org-startup-with-inline-images t
    org-startup-with-latex-preview t
+   ;; behavior
    org-archive-default-command #'org-archive-to-archive-sibling
    org-id-track-globally t
    org-imenu-depth 7
-   org-use-speed-commands t)
+   org-use-speed-commands t
+   org-catch-invisible-edits 'show-and-error
+   org-list-demote-modify-bullet '(("+" . "-")
+                                   ("-" . "+"))
+   org-image-actual-width nil
+   ;; keybind
+   org-support-shift-select nil
+   org-ctrl-k-protect-subtree t
+   org-special-ctrl-a/e 'reversed
+   org-M-RET-may-split-line '((default . nil)))
+  
   ;; open file from org-directory
   (defun t/edit-org-dir ()
     (interactive)
     (let ((default-directory org-directory))
       (call-interactively #'find-file)))
+  
   ;; org-emphasis modification
   ;; default to word if no region
   (defun t/org-emphasize ()
@@ -700,6 +807,7 @@ point if no selection."
     (unless (region-active-p)
       (mark-word))
     (call-interactively #'org-emphasize))
+  
   ;; Passed as an argument to org-capture-templates's file+function to replace
   ;; the standard datetree.  It does not create a tree of year and month, only a
   ;; heading for day.
@@ -716,6 +824,7 @@ file+function in org-capture-templates."
              (move-beginning-of-line nil)
              (org-insert-heading nil t)
              (insert date))))))
+  
   ;; tags and captures
   (setq org-tag-persistent-alist
         '(("note")
@@ -750,20 +859,23 @@ file+function in org-capture-templates."
           ("sp" "Class-related notes with associated document" entry
            (file+function t/daily-file t/org-date-find)
            "* %^{Title} :notes:\n:PROPERTIES:\n:NOTER_DOCUMENT: %F\n:END:\n%U\n\n%?")))
+  
   :config
   (setq ;; appearance settings
-   org-hide-leading-stars nil
    org-hide-emphasis-markers t
-   org-startup-indented nil
    ;; latex settings
    org-preview-latex-image-directory (concat "~/.cache/emacs/" "ltximg")
    org-format-latex-options '( :foreground "Black"
-                                           :background "White"
-                                           :scale 1.5
-                                           :html-foreground "Black"
-                                           :html-background "Transparent"
-                                           :html-scale 1.0
-                                           :matchers ("begin" "$1" "$" "$$" "\\(" "\\["))
+                               :background "White"
+                               :scale 1.5
+                               :html-foreground "Black"
+                               :html-background "Transparent"
+                               :html-scale 1.0
+                               :matchers ("begin"
+                                          "$1"
+                                          "$"
+                                          "$$"
+                                          "\\(" "\\["))
    ;; available todo states
    org-todo-keywords '((sequence "TODO(t)"
                                  "NEXT(n)"
@@ -777,6 +889,9 @@ file+function in org-capture-templates."
                                  "READ(r)")
                        (sequence "EVENT(e)"
                                  "OVER(o)")))
+
+  :hook (org-mode . auto-fill-mode)
+  
   :bind
   ;; C-c global bindings
   ("C-c n f" . #'t/edit-org-dir)
@@ -795,8 +910,6 @@ file+function in org-capture-templates."
         ("C-S-s-n" . #'org-shiftmetadown)
         ;; Make item at point heading
         ("C-s-h" . #'org-toggle-heading)
-        ;; Cycle bullet of current list
-        ("C-s-<tab>" . #'org-cycle-list-bullet)
         ;; surround region or word at point in emphasis markers
         ("C-s-e" . #'t/org-emphasize)
         ;; Search headings
@@ -847,12 +960,10 @@ file+function in org-capture-templates."
 
 ;; smarter variable pitch
 (use-package org-variable-pitch
-  :disabled
   :straight t
   :after org
-  :defer t
   :config
-  (org-variable-pitch-setup)
+  (set-face-attribute 'org-variable-pitch-fixed-face nil :height 140)
   :bind
   (:map org-mode-map
         ("C-s-v" . org-variable-pitch-minor-mode)))
@@ -949,17 +1060,21 @@ valid directory, raise an error."
   (defun t/deft-in-roam-dir ()
     "Open a deft buffer limited to notes in \"org-roam-directory\"."
     (interactive)
+    (require 'org-roam)
     (t/deft-in-dir org-roam-directory))
 
   :bind
-  ("<f8>" . deft)                       ; Display existing or new deft buffer
-  ("C-c n s" . deft)
-  ("C-c n S" . t/deft-in-dir)           ; Prompt for directory to open deft in
-  ("C-<f8>" . t/deft-reset)             ; Open new deft buffer
-  ("M-<f8>" . t/deft-in-roam-dir)       ; Open deft buffer limited to org-roam notes
-
+  (("<f8>" . deft)                       ; Display existing or new deft buffer
+   ("C-c n s" . deft)
+   ("C-c n S" . t/deft-in-dir)           ; Prompt for directory to open deft in
+   ("C-<f8>" . t/deft-reset)             ; Open new deft buffer
+   ("M-<f8>" . t/deft-in-roam-dir)       ; Open deft buffer limited to org-roam notes
+   :map deft-mode-map
+   ("C-w" . deft-filter-decrement-word)) ; Kill filter string backward
+  
   :config
   ;; following parser replacement from https://githubmemory.com/repo/jrblevin/deft/issues/75
+  ;; title is taken from "#+TITLE"
   (defun cm/deft-parse-title (file contents)
     "Parse the given FILE and CONTENTS and determine the title.
   If `deft-use-filename-as-title' is nil, the title is taken to
@@ -1000,6 +1115,10 @@ valid directory, raise an error."
   :defer t
   :bind
   ("C-c n n" . #'org-noter))
+
+;; flashcards
+(use-package org-drill
+  :straight t)
 
 ;;;;; Programming Modes
 
@@ -1043,10 +1162,19 @@ valid directory, raise an error."
   :defer t
   :hook (prog-mode . flycheck-mode))
 
+;; emacs lisp
+(use-package flycheck-package
+  :straight t)
+
 ;; xref-backend that supports many languages
 (use-package dumb-jump
   :straight t
   :commands t/maybe-lsp)
+
+;; colorize colors specified in code
+(use-package rainbow-mode
+  :straight t
+  :bind ("C-c t r" . rainbow-mode))
 
 ;;;;; Format
 
@@ -1150,7 +1278,7 @@ lsp-enabled buffers."
   :straight t
   :after tree-sitter)
 
-;;;;; Tools
+;;;; Apps
 
 ;; terminal emulator
 (use-package vterm
@@ -1163,7 +1291,32 @@ lsp-enabled buffers."
   :defer t
   :init
   (setq eshell-banner-message "")
-  :bind ("C-c o e" . eshell))
+
+  (defun t/eshell-del-char-or-exit (arg)
+    "Mimic C-d behavior of traditional shells.
+If point is at the end of the eshell prompt and the prompt is
+empty, bury the buffer.  Otherwise, delete ARG characters
+forward."
+    (interactive "p")
+    (let* ((bol (line-beginning-position))
+           (eol (line-end-position))
+           (line (buffer-substring bol eol)))
+      (if (and (looking-back eshell-prompt-regexp)
+               (= (point)
+                  eol))
+          (bury-buffer)
+        (delete-char arg))))
+
+  :bind
+  (("C-c o e" . eshell))
+
+  :hook
+  ;; consult-outline jumps between previous prompts in shell buffer
+  (eshell-mode . (lambda () (setq outline-regexp eshell-prompt-regexp)))
+
+  :config
+  (require 'esh-mode)
+  (define-key eshell-mode-map (kbd "C-d") #'t/eshell-del-char-or-exit))
 
 ;; package manager
 ;; doesn't populate completions like helm-pac-man
@@ -1174,7 +1327,54 @@ lsp-enabled buffers."
   (setq system-packages-package-manager 'brew
         system-packages-use-sudo nil))
 
-;;;; Email
+;; music player
+(use-package emms
+  :straight t
+  
+  :config
+  ;; initialize emms
+  (require 'emms-setup)
+  (emms-all)
+  (emms-default-players)
+  (setq emms-source-file-default-directory "~/Music/"
+        emms-browser-covers 'emms-browser-cache-thumbnail) ; EMMS auto-resizes "cover.jpg" in album dir
+
+  ;; repeat map for emms commands
+  (defvar t/emms-repeat-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map [left] 'emms-seek-backward)
+      (define-key map [right] 'emms-seek-forward)
+      (define-key map "p" 'emms-previous)
+      (define-key map "P" 'emms-pause)
+      (define-key map "n" 'emms-next)
+      map)
+    "Keymap to repeat emms seeking through track sequences `C-c m <left>'.
+Used in repeat mode.")
+  (dolist (command '(emms-seek-backward emms-seek-forward))
+    (put command 'repeat-map 't/emms-repeat-map))
+  
+  :bind
+  (("C-c m m" . emms)
+   ("C-c m b p" . emms-playlist-mode-go)
+   ;; music controls
+   ("C-c m p" . emms-previous)
+   ("s-<f7>" . emms-previous)
+   ("C-c m P" . emms-pause)
+   ("s-<f8>" . emms-pause)
+   ("C-c m n" . emms-next)
+   ("s-<f9>" . emms-next)
+   ;; scrub through current song (repeatable)
+   ("C-c m <left>" . emms-seek-backward)
+   ("C-c m <right>" . emms-seek-forward)
+   ;; browse by
+   ("C-c m b b" . emms-smart-browse)
+   ("C-c m b a" . emms-browse-by-album)
+   ("C-c m b A" . emms-browse-by-artist)
+   ;; import
+   ("C-c m i d" . emms-add-directory-tree) ;
+   ("C-c m i f" . emms-add-file)))
+
+;;;;; Email
 
 ;; view email; requires installing mu (maildir-utils on some distros) first
 (use-package mu4e
@@ -1208,3 +1408,7 @@ lsp-enabled buffers."
             (setq file-name-handler-alist t/file-name-handler-alist)))
 
 ;;; init.el ends here
+
+;; Local Variables:
+;; eval: (outline-minor-mode 1)
+;; End:
