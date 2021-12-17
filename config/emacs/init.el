@@ -58,11 +58,18 @@
   :straight t)
 
 ;; Only garbage collect when idle
+;; TODO: crashes when gc-ing on Emacs 28
 (use-package gcmh
+  :disabled
   :straight t
   :demand t
   :config
   (gcmh-mode 1))
+
+;; `M-x esup' to profile startup time
+(use-package esup
+  :straight t
+  :defer t)
 
 ;;;; Editor --- Related to editing and inserting text
 
@@ -97,8 +104,8 @@
 (put 'scroll-left 'disabled nil)
 (put 'scroll-right 'disabled nil)
 
-;; better scrolling
-(pixel-scroll-mode 1)
+;; scrolling lines is animated to look smoother
+;; (pixel-scroll-mode -1)
 
 ;; highlight and auto-create matching parentheses
 (show-paren-mode 1)
@@ -320,12 +327,12 @@ If not, kill ARG words backwards."
           insert-directory-program "/usr/local/bin/gls"
           dired-listing-switches "-aBhl --group-directories-first"))
   ;; hide dotfiles with C-x M-o
-  (setq dired-omit-files "^\\..\\{2,\\}")  ; default: "\\`[.]?#\\|\\`[.][.]?\\'"
-  :bind ("C-x C-j" . #'dired-jump))
+  (setq dired-omit-files "^\\..\\{2,\\}"))  ; default: "\\`[.]?#\\|\\`[.][.]?\\'"
 
 ;; file explorer window
 (use-package treemacs
   :straight t
+  :defer t
   :config
   (setq treemacs-space-between-root-nodes nil
         treemacs-width 30)
@@ -345,11 +352,13 @@ If not, kill ARG words backwards."
   :bind ("C-c t t" . #'treemacs))
 (use-package treemacs-all-the-icons
   :straight t
+  :defer t
   :after (treemacs)
   :config
   (treemacs-load-theme 'all-the-icons))
 (use-package treemacs-magit
   :straight t
+  :defer t
   :after (treemacs))
 
 ;;;;; Version control
@@ -531,7 +540,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 
 ;; theme of choice
 (use-package modus-themes
-  :straight (when (< emacs-major-version 28))
+  :no-require t                         ; included in Emacs 28 but not as a library
   :hook (emacs-startup . (lambda () (t/load-theme 'modus-operandi)))
   :init
   (setq modus-themes-italic-constructs t
@@ -738,6 +747,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 ;; enhanced pdf viewing
 (use-package pdf-tools
   :straight t
+  :defer t
   :config
   (pdf-tools-install)
   (setq-default pdf-view-display-size 'fit-width)
@@ -770,6 +780,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
    org-startup-indented t
    org-startup-with-inline-images t
    org-startup-with-latex-preview t
+   org-pretty-entities t
    ;; behavior
    org-archive-default-command #'org-archive-to-archive-sibling
    org-id-track-globally t
@@ -982,29 +993,28 @@ file+function in org-capture-templates."
   :init
   (setq org-roam-directory (concat org-directory "roam")
         org-roam-v2-ack t ;; silence upgrade warning
-        ;; org-roam-capture-templates
-        ;; '(( "d"
-        ;;     "default"
-        ;;     plain #'org-roam-capture--get-point
-        ;;     "%?"
-        ;;     :file-name "%<%Y%m%d%H%M%S>-${slug}"
-        ;;     :head "#+title: ${title}\n#+STARTUP: showeverything"
-        ;;     :unnarrowed t)
-        ;;   ( "m"
-        ;;     "math note"
-        ;;     plain #'org-roam-capture--get-point
-        ;;     "%?"
-        ;;     :file-name "%<%Y%m%d%H%M%S>-${slug}"
-        ;;     :head "#+title: ${title}\n#+roam_tags: math\n#+STARTUP: latexpreview showeverything"
-        ;;     :unnarrowed t)
-        ;;   ( "s"
-        ;;     "school note"
-        ;;     plain #'org-roam-capture--get-point
-        ;;     "%?"
-        ;;     :file-name "%<%Y%m%d%H%M%S>-${slug}"
-        ;;     :head "#+title: ${title}\n#+roam_tags: %^{engl|fsci|pltw|art|gym|phys|psych}\n#+STARTUP: showeverything"
-        ;;     :unnarrowed t))
-        )
+        org-roam-capture-templates
+        ;; TODO: "d/m" templates aren't updated for roam-v2
+        '(( "d"
+            "Default"
+            plain #'org-roam-capture--get-point
+            "%?"
+            :file-name "%<%Y%m%d%H%M%S>-${slug}"
+            :head "#+title: ${title}\n#+STARTUP: showeverything"
+            :unnarrowed t)
+          ( "m"
+            "Math note"
+            plain #'org-roam-capture--get-point
+            "%?"
+            :file-name "%<%Y%m%d%H%M%S>-${slug}"
+            :head "#+title: ${title}\n#+roam_tags: math\n#+STARTUP: latexpreview showeverything"
+            :unnarrowed t)
+          ( "p" "Notes with associated document" plain
+            "%?"
+            :if-new
+            (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+                       ":PROPERTIES:\n:NOTER_DOCUMENT: %F\n:END:\n#+title: ${title}\n#+STARTUP: latexpreview showeverything")
+            :unnarrowed t)))
   :bind
   ("C-c n r f" . #'org-roam-node-find)
   ("C-c n r i" . #'org-roam-node-insert)
@@ -1077,12 +1087,13 @@ valid directory, raise an error."
       (if begin
 	  (string-trim (substring contents begin (match-end 0)) "#\\+[tT][iI][tT][lL][eE]: *" "[\n\t ]+")
 	(deft-base-filename file))))
-  
   (advice-add 'deft-parse-title :override #'cm/deft-parse-title)
 
   (setq deft-directory org-directory
         deft-default-extension "org"
-        deft-recursive t)
+        deft-recursive t
+        deft-auto-save-interval 0)      ; disable auto-saving
+
   ;; ensure :PROPERTIES: and lowercase #+props are not shown in note summaries
   (setq deft-strip-summary-regexp "\\(^:.*:.*\\|[\n	]\\|^#\\+[[:alpha:]_]+:.*$\\)"))
 
@@ -1111,7 +1122,8 @@ valid directory, raise an error."
 
 ;; flashcards
 (use-package org-drill
-  :straight t)
+  :straight t
+  :defer t)
 
 ;;;;; Programming Modes
 
@@ -1157,7 +1169,9 @@ valid directory, raise an error."
 
 ;; emacs lisp
 (use-package flycheck-package
-  :straight t)
+  :straight t
+  :defer t
+  :after flycheck)
 
 ;; xref-backend that supports many languages
 (use-package dumb-jump
@@ -1393,12 +1407,15 @@ Used in repeat mode.")
 
 ;; reminds user to keep good posture
 (use-package posture
-  :config
-  (global-set-key (kbd "C-c t p") #'toggle-posture-reminder))
+  :bind ("C-c t p" . #'toggle-posture-reminder))
 
 (add-hook 'emacs-startup-hook
           (lambda ()
-            (setq file-name-handler-alist t/file-name-handler-alist)))
+            (setq file-name-handler-alist t/file-name-handler-alist)
+	    (setq gc-cons-threshold gc-cons-threshold-original)))
+
+;; disable garbage collection until post-init
+
 
 ;;; init.el ends here
 
