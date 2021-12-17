@@ -31,3 +31,5 @@ config/emacs/tramp/
 .var/
 /config/emacs/etc/
 /config/emacs/local.el
+*.eln
+/config/emacs/eln-cache/

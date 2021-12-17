@@ -13,7 +13,7 @@ window:
 
   # Window decorations
   # Values for `decorations`: full, none
-  decorations: none
+  decorations: full
 
 # Font configuration (changes require restart)
 font:
