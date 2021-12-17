@@ -384,13 +384,6 @@ If not, kill ARG words backwards."
 (set-face-attribute 'variable-pitch nil :family "IBM Plex Sans" :height 160)
 (setq-default line-spacing 1)
 
-;; minimalist emacs layout
-(when (not (eq system-type 'darwin))
-  (menu-bar-mode -1))
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-(horizontal-scroll-bar-mode -1)
-
 ;; Remove prompts that explicitly require "yes" or "no"
 ;;(defalias 'yes-or-no-p 'y-or-n-p)
 (setq use-short-answers t)

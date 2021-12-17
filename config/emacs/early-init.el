@@ -28,5 +28,12 @@
 (defvar t/file-name-handler-alist file-name-handler-alist)
 (setq file-name-handler-alist nil)
 
+;; minimalist emacs layout
+(when (not (eq system-type 'darwin))
+  (menu-bar-mode -1))
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(horizontal-scroll-bar-mode -1)
+
 (provide 'early-init)
 ;;; early-init.el ends here
