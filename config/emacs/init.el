@@ -578,7 +578,6 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
                         arg)
                      t/icomplete-page-scroll-margin))
         (icomplete-backward-completions))))
-  (icomplete-mode)
   :config
   (setq icomplete-scroll t
         icomplete-show-matches-on-no-input t
@@ -592,13 +591,15 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
               ("C-v" . t/icomplete-next-page)
               ("M-v" . t/icomplete-prev-page)
               ("RET" . icomplete-fido-ret) ; Return key executes candidate at point
-              ("C-." . nil)))
+              ("C-." . nil))
+  :hook (emacs-startup . icomplete-mode))
 
 ;; vertical completion candidates like ivy/helm
 (use-package icomplete-vertical
   :if (<= emacs-major-version 27)
   :straight t
   :after icomplete
+  :defer t
   :config
   (setq icomplete-vertical-prospects-height 15)
   (icomplete-vertical-mode))
@@ -707,6 +708,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 ;; enhanced C-h help system
 (use-package helpful
   :straight t
+  :defer t
   :bind
   ("C-h k" . #'helpful-key)
   ("C-h v" . #'helpful-variable)
@@ -730,6 +732,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 
 ;; HTML browser
 (use-package eww
+  :defer t
   :bind ("C-c o w" . #'eww)
   :hook (eww-mode . (lambda () (setq cursor-type '(bar . 2)))))
 
@@ -992,8 +995,9 @@ file+function in org-capture-templates."
   :defer t
   :init
   (setq org-roam-directory (concat org-directory "roam")
-        org-roam-v2-ack t ;; silence upgrade warning
-        org-roam-capture-templates
+        org-roam-v2-ack t) ;; silence upgrade warning
+  :config
+  (setq org-roam-capture-templates
         ;; TODO: "d/m" templates aren't updated for roam-v2
         '(( "d"
             "Default"
@@ -1015,14 +1019,13 @@ file+function in org-capture-templates."
             (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
                        ":PROPERTIES:\n:NOTER_DOCUMENT: %F\n:END:\n#+title: ${title}\n#+STARTUP: latexpreview showeverything")
             :unnarrowed t)))
+  (org-roam-db-autosync-mode)
   :bind
   ("C-c n r f" . #'org-roam-node-find)
   ("C-c n r i" . #'org-roam-node-insert)
   ("C-c n r I" . #'org-id-get-create)
   ("C-c n r n" . #'org-roam-capture)
-  ("C-c n r r" . #'org-roam-buffer-toggle)
-  :config
-  (org-roam-db-autosync-mode))
+  ("C-c n r r" . #'org-roam-buffer-toggle))
 
 ;; browser page for viewing/navigating org-roam notes
 (use-package org-roam-ui
@@ -1101,7 +1104,7 @@ valid directory, raise an error."
 (use-package org-ref
   :straight t
   :defer t
-  :init
+  :config
   (setq org-ref-completion-library 'org-ref-ivy-cite
         org-export-latex-format-toc-function 'org-export-latex-no-toc
         org-ref-get-pdf-filename-function
@@ -1154,10 +1157,11 @@ valid directory, raise an error."
 (dolist (path '("/Library/TeX/texbin/" "/usr/local/bin"))
   (add-to-list 'exec-path path))
 
-(setenv "PKG_CONFIG_PATH"
-        "/usr/local/Cellar/zlib/1.2.8/lib/pkgconfig:/usr/local/lib/pkgconfig:/opt/X11/lib/pkgconfig")
-(setenv "PATH"
-        (s-join ":" exec-path))
+(with-eval-after-load 's
+  (setenv "PKG_CONFIG_PATH"
+          "/usr/local/Cellar/zlib/1.2.8/lib/pkgconfig:/usr/local/lib/pkgconfig:/opt/X11/lib/pkgconfig")
+  (setenv "PATH"
+          (s-join ":" exec-path)))
 
 ;;;; Code
 
