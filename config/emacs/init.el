@@ -540,17 +540,27 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 
 ;; theme of choice
 (use-package modus-themes
-  :no-require t                         ; included in Emacs 28 but not as a library
+  :no-require t                      ; included in Emacs 28 but not as a library
   :hook (emacs-startup . (lambda () (t/load-theme 'modus-operandi)))
+
   :init
   (setq modus-themes-italic-constructs t
-        modus-themes-syntax '(alt-syntax)
-        modus-themes-scale-title 1.4
-        modus-themes-scale-4 1.35
-        modus-themes-scale-3 1.2
+        modus-themes-variable-pitch-headings t
+        ;; set font scale for headings
+        modus-themes-scale-headings t
+        modus-themes-scale-title 1.35
+        modus-themes-scale-4 1.2
+        modus-themes-scale-3 1.15
         modus-themes-scale-2 1.1
-        modus-themes-scale-1 1.05
-        modus-themes-syntax '(yellow-comments alt-syntax))
+        modus-themes-scale-1 1.05)
+  ;; set fontification settings for headings
+  (setq modus-themes-headings '((1 . (overline))
+                                (2 . (overline))
+                                (4 . (no-bold rainbow))
+                                (t . (no-bold))))
+  ;; set font settings for syntax
+  (setq modus-themes-syntax '(yellow-comments alt-syntax))
+  
   :config
   (dolist (theme '(modus-operandi modus-vivendi))
     (add-to-list 't/theme-list theme)))
@@ -783,6 +793,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
    org-startup-indented t
    org-startup-with-inline-images t
    org-startup-with-latex-preview t
+   org-fontify-whole-heading-line t
    org-pretty-entities t
    ;; behavior
    org-archive-default-command #'org-archive-to-archive-sibling
@@ -869,7 +880,7 @@ file+function in org-capture-templates."
   
   :config
   (setq ;; appearance settings
-   org-hide-emphasis-markers t
+   org-hide-emphasis-markers nil
    ;; latex settings
    org-preview-latex-image-directory (concat "~/.cache/emacs/" "ltximg")
    org-format-latex-options '( :foreground "Black"
@@ -974,6 +985,23 @@ file+function in org-capture-templates."
   :bind
   (:map org-mode-map
         ("C-s-v" . org-variable-pitch-minor-mode)))
+
+(use-package org-bullets
+  :straight t
+
+  :hook (org-mode . org-bullets-mode)
+  
+  :config
+  (setq org-bullets-bullet-list '(" "))) ; Bullets are invisible
+
+;; rendered org tables
+(use-package org-pretty-table
+  :straight (org-pretty-table
+             :type git
+             :host github
+             :repo "Fuco1/org-pretty-table")
+
+  :hook (org-mode . org-pretty-table-mode))
 
 ;; journal
 (use-package org-journal
