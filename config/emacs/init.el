@@ -73,15 +73,50 @@
 
 ;;;; Editor --- Related to editing and inserting text
 
+;; Vim in Emacs, evil in good
+(use-package evil
+  :straight t
+
+  :hook
+  (after-init . evil-mode)
+  (org-capture-mode . evil-insert-state)
+
+  :custom
+  (evil-undo-system #'undo-redo)      ; enable redo in Emacs 28+
+  (evil-want-keybinding nil)          ; evil-collection requirement
+  (evil-want-Y-yank-to-eol t)         ; yy copies lines, Y copies to end of line
+  (evil-mode-line-format '(after . mode-line-remote)))
+
+;; evil-friendly keybind macros
+(use-package general
+  :straight t
+  :demand t
+
+  :config
+  ;; leader key (SPC in Evil mode, C-c in Emacs
+  (general-create-definer t/leader-def
+    :states '(normal insert emacs)
+    :keymaps 'global
+    :prefix "SPC"
+    :non-normal-prefix "C-c")
+  (t/leader-def
+    "" nil))
+
+(use-package evil-collection
+  :straight t
+  :after evil
+  :config
+  (evil-collection-init))
+
 ;;;;; Editor settings
 
 ;; set macOS modifier keys
 (when (eq system-type 'darwin)
   ;; command is switched with control
   (setq mac-right-option-modifier 'meta
-        mac-right-command-modifier 'control
-        mac-command-modifier 'control
-        mac-control-modifier 'super))
+        mac-right-command-modifier 'super
+        mac-command-modifier 'super
+        mac-control-modifier 'control))
 
 ;; don't fully display long lines
 (setq-default truncate-lines t)
@@ -170,7 +205,8 @@ spaces."
   "Find and open the scratch buffer."
   (interactive)
   (pop-to-buffer "*scratch*"))
-(global-set-key (kbd "C-c X") #'t/open-scratch)
+(t/leader-def
+  "X" #'t/open-scratch)
 
 (defun t/kill-word-backward-or-region (arg)
   "Kill the contents of the region, if active.
@@ -459,20 +495,20 @@ in its buffer.
               '(""
                 (eldoc-mode-line-string
                  (" " eldoc-mode-line-string " "))
-                ("%e"
-                 mode-line-front-space
-                 mode-line-mule-info
-                 mode-line-client
-                 mode-line-modified
-                 mode-line-remote
-                 mode-line-frame-identification
-                 mode-line-buffer-identification
-                 "   "
-                 mode-line-position
-                 (vc-mode vc-mode)
-                 "  "
-                 mode-line-modes
-                 mode-line-end-spaces)))
+                "%e"
+                mode-line-front-space
+                mode-line-mule-info
+                mode-line-client
+                mode-line-modified
+                mode-line-remote
+                mode-line-frame-identification
+                mode-line-buffer-identification
+                "   "
+                mode-line-position
+                (vc-mode vc-mode)
+                "  "
+                mode-line-modes
+                mode-line-end-spaces))
 
 ;; show current column
 (column-number-mode)
@@ -598,6 +634,8 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
   :bind (:map icomplete-minibuffer-map
               ("C-n" . icomplete-forward-completions)
               ("C-p" . icomplete-backward-completions)
+              ("C-j" . icomplete-forward-completions)
+              ("C-k" . icomplete-backward-completions)
               ("C-v" . t/icomplete-next-page)
               ("M-v" . t/icomplete-prev-page)
               ("RET" . icomplete-fido-ret) ; Return key executes candidate at point
@@ -631,55 +669,52 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 ;; completing extensions of regular commands
 (use-package consult
   :straight t
-  :bind
-  (   ;; C-x bindings (ctl-x-map)
-   ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-   ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-   ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-   ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-   ("C-x r b" . consult-bookmark)
-   ;; Custom M-# bindings for fast register access
-   ("M-#" . consult-register-load)
-   ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-   ("C-M-#" . consult-register)
-   ;; Other custom bindings
-   ("M-y" . consult-yank-pop)                ;; orig. yank-pop
-   ("<help> a" . consult-apropos)            ;; orig. apropos-command
-   ;; M-g bindings (goto-map)
-   ("M-g e" . consult-compile-error)
-   ("M-g f" . consult-flycheck)
-   ("M-g g" . consult-goto-line)
-   ("M-g M-g" . consult-goto-line)
-   ("M-g o" . consult-outline)
-   ("M-g m" . consult-mark)
-   ("M-g k" . consult-global-mark)
-   ("M-g i" . consult-imenu)
-   ("M-g I" . consult-imenu-multi)
-   ;; M-s bindings (search-map)
-   ("M-s f" . consult-find)
-   ("M-s F" . consult-locate)
-   ("M-s g" . consult-grep)
-   ("M-s G" . consult-git-grep)
-   ("M-s r" . consult-ripgrep)
-   ("M-s l" . consult-line)
-   ("s-s" . consult-line)
-   ("M-s L" . consult-line-multi)
-   ("M-s m" . consult-multi-occur)
-   ("M-s k" . consult-keep-lines)
-   ("M-s u" . consult-focus-lines)
-   ;; Isearch integration
-   ("M-s e" . consult-isearch-history)
-   :map isearch-mode-map
-   ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-   ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-   ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-   ("M-s L" . consult-line-multi)))
+  :defer t
+  :after icomplete
+
+  :init
+  (general-def
+    [remap repeat-complex-command] #'consult-complex-command
+    [remap switch-to-buffer] #'consult-buffer
+    [remap switch-to-buffer-other-window] #'consult-buffer-other-window
+    [remap switch-to-buffer-other-frame] #'consult-buffer-other-frame
+    "C-x r b" #'consult-bookmark
+    "M-#" #'consult-register-load
+    "M-'"  #'consult-register-store
+    "C-M-#"  #'consult-register
+    "M-y" #'consult-yank-pop
+    "<help> a" #'consult-apropos)
+
+  (t/leader-def
+    :non-normal-prefix "M-g"
+    :infix "g"
+    "e" #'consult-compile-error
+    "f" #'consult-flycheck
+    "g" #'consult-goto-line
+    "o" #'consult-outline
+    "m" #'consult-mark
+    "k" #'consult-global-mark
+    "i" #'consult-imenu
+    "I" #'consult-imenu-multi)
+
+  (t/leader-def
+    :infix "s"
+    "f" #'consult-find
+    "F" #'consult-locate
+    "g" #'consult-grep
+    "G" #'consult-git-grep
+    "r" #'consult-ripgrep
+    "l" #'consult-line
+    "L" #'consult-line-multi
+    "m" #'consult-multi-occur
+    "k" #'consult-keep-lines
+    "u" #'consult-focus-lines))
 
 ;; select from useful directories during minibuffer commands
 (use-package consult-dir
   :straight t
   :bind (("C-x C-d" . consult-dir)
-         :map vertico-map
+         :map icomplete-minibuffer-map
          ("C-x C-d" . consult-dir)
          ("C-x C-j" . consult-dir-jump-file))
   :config
@@ -749,7 +784,8 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 ;; outline
 (use-package outline
   :config
-  (setq outline-minor-mode-cycle t))
+  ;; (setq outline-minor-mode-cycle t)
+  )
 
 ;;;;; Prose Modes
 
@@ -877,7 +913,13 @@ file+function in org-capture-templates."
           ("sp" "Class-related notes with associated document" entry
            (file+function t/daily-file t/org-date-find)
            "* %^{Title} :notes:\n:PROPERTIES:\n:NOTER_DOCUMENT: %F\n:END:\n%U\n\n%?")))
-  
+
+  ;; org shortcuts
+  (t/leader-def
+    "x" #'org-capture
+    "l" #'org-store-link
+    "n f" #'t/edit-org-dir) 
+
   :config
   (setq ;; appearance settings
    org-hide-emphasis-markers nil
@@ -908,30 +950,28 @@ file+function in org-capture-templates."
                        (sequence "EVENT(e)"
                                  "OVER(o)")))
 
-  :hook (org-mode . auto-fill-mode)
-  
-  :bind
-  ;; C-c global bindings
-  ("C-c n f" . #'t/edit-org-dir)
-  ("C-c x" . #'org-capture)
-  ("C-c l" . #'org-store-link)
-  ;; edit/nav bindings in org-mode
-  (:map org-mode-map
-        ;; Move headings
-        ("C-s-f" . #'org-metaright)
-        ("C-s-b" . #'org-metaleft)
-        ("C-s-p" . #'org-metaup)
-        ("C-s-n" . #'org-metadown)
-        ("C-S-s-f" . #'org-shiftmetaright)
-        ("C-S-s-b" . #'org-shiftmetaleft)
-        ("C-S-s-p" . #'org-shiftmetaup)
-        ("C-S-s-n" . #'org-shiftmetadown)
-        ;; Make item at point heading
-        ("C-s-h" . #'org-toggle-heading)
-        ;; surround region or word at point in emphasis markers
-        ("C-s-e" . #'t/org-emphasize)
-        ;; Search headings
-        ("M-g o" . consult-org-heading)))
+  ;; keybindings
+  (general-def 'normal 'org-capture-mode-map
+    "ZZ" #'org-capture-finalize
+    "ZQ" #'org-capture-kill)
+  ;; edit/nav bindings in org-mode (emacs)
+  (general-def org-mode-map
+    "C-s-f" #'org-metaright
+    "C-s-b" #'org-metaleft
+    "C-s-p" #'org-metaup
+    "C-s-n" #'org-metadown
+    "C-S-s-f" #'org-shiftmetaright
+    "C-S-s-b" #'org-shiftmetaleft
+    "C-S-s-p" #'org-shiftmetaup
+    "C-S-s-n" #'org-shiftmetadown
+    ;; Make item at point heading
+    "C-s-h" #'org-toggle-heading
+    ;; surround region or word at point in emphasis markers
+    "C-s-e" #'t/org-emphasize
+    ;; Search headings
+    "M-g o" consult-org-heading)
+
+  :hook (org-mode . auto-fill-mode))
 
 (use-package org-agenda
   :defer t
@@ -975,6 +1015,14 @@ file+function in org-capture-templates."
   :straight t
   :after (org)
   :defer t)
+
+;; vim keybindings for org
+(use-package evil-org
+  :straight t
+  :defer t
+  :hook (org-mode . evil-org-mode)
+  :config
+  (evil-org-set-key-theme '(insert textobjects additional calendar))) ; navigation 
 
 ;; smarter variable pitch
 (use-package org-variable-pitch
