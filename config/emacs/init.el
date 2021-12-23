@@ -87,6 +87,13 @@
   (evil-want-Y-yank-to-eol t)         ; yy copies lines, Y copies to end of line
   (evil-mode-line-format '(after . mode-line-remote)))
 
+;; manip delims
+(use-package evil-surround
+  :straight t
+  :after evil
+  :config
+  (global-evil-surround-mode))
+
 ;; evil-friendly keybind macros
 (use-package general
   :straight t
@@ -99,6 +106,21 @@
     :keymaps 'global
     :prefix "SPC"
     :non-normal-prefix "C-c")
+  (general-create-definer t/toggle-def
+    :states '(normal insert emacs)
+    :keymaps 'global
+    :prefix "SPC t"
+    :non-normal-prefix "C-c t")
+  (general-create-definer t/emsys-def
+    :states '(normal insert emacs)
+    :keymaps 'global
+    :prefix "SPC h"
+    :non-normal-prefix "C-c h")
+  (general-create-definer t/notes-def
+    :states '(normal insert emacs)
+    :keymaps 'global
+    :prefix "SPC n"
+    :non-normal-prefix "C-c n")
   (t/leader-def
     "" nil))
 
@@ -217,21 +239,22 @@ If not, kill ARG words backwards."
     (backward-kill-word arg)))
 
 ;; useful augments of default binds
-(global-set-key (kbd "M-SPC") #'cycle-spacing)
-(global-set-key (kbd "M-c") #'capitalize-dwim)
-(global-set-key (kbd "M-u") #'upcase-dwim)
-(global-set-key (kbd "M-l") #'downcase-dwim)
-(global-set-key (kbd "C-w") #'t/kill-word-backward-or-region) ; vim/GNU Readline C-w
-(global-set-key (kbd "C-M-<backspace>") #'backward-kill-sexp)
-;; built-in, unused commands
-(global-set-key (kbd "C-z") #'zap-up-to-char)
-(global-set-key (kbd "C-x C-b") #'ibuffer) ; list buffers
-(global-set-key (kbd "C-c h v") #'set-variable) ; set variable
-;; Toggles
-(global-set-key (kbd "C-c t l") #'display-line-numbers-mode)
-(global-set-key (kbd "C-c t v") #'visual-line-mode)
-;; Applications
-(global-set-key (kbd "C-c o c") #'calendar)
+(general-def
+  "M-SPC" #'cycle-spacing
+  "M-c" #'capitalize-dwim
+  "M-u" #'upcase-dwim
+  "M-l" #'downcase-dwim
+  "C-w" #'t/kill-word-backward-or-region ; vim-like C-w except if region active
+  "C-M-<backspace>" #'backward-kill-sexp
+  ;; built-in, unused commands
+  "C-z" #'zap-up-to-char
+  "C-x C-b" #'ibuffer
+  "C-c h v" #'set-variable
+  ;; Toggles
+  "C-c t l" #'display-line-numbers-mode
+  "C-c t v" #'visual-line-mode
+  ;; Applications
+  "C-c o c" #'calendar)
 
 ;;;;; Text navigation and search
 
@@ -299,20 +322,22 @@ If not, kill ARG words backwards."
 
 ;; shortcut access to C-x binds
 ;; Super bindings are intended for quick, often-used global commands.
-(global-set-key (kbd "s-1") #'delete-other-windows)
-(global-set-key (kbd "s-2") #'split-window-below)
-(global-set-key (kbd "s-3") #'split-window-right)
-(global-set-key (kbd "s-4") ctl-x-4-map)
-(global-set-key (kbd "s-5") ctl-x-5-map)
-(global-set-key (kbd "s-0") #'delete-window)
-(global-set-key (kbd "s-g") #'keyboard-quit)
-(global-set-key (kbd "s-n") #'next-buffer)
-(global-set-key (kbd "s-p") #'previous-buffer)
-(global-set-key (kbd "s-o") #'other-window)
-(global-set-key (kbd "s-u") #'revert-buffer)
+(general-def
+  "s-1" #'delete-other-windows
+  "s-2" #'split-window-below
+  "s-3" #'split-window-right
+  "s-4" ctl-x-4-map
+  "s-5" ctl-x-5-map
+  "s-0" #'delete-window
+  "s-g" #'keyboard-quit
+  "s-n" #'next-buffer
+  "s-p" #'previous-buffer
+  "s-o" #'other-window
+  "s-u" #'revert-buffer)
 
 ;; scroll buffer in two separate windows
-(global-set-key (kbd "C-c t F") #'follow-mode)
+(t/toggle-def
+  "F" #'follow-mode)
 
 ;; ensure buffer titles are unique
 (use-package uniquify
@@ -369,6 +394,10 @@ If not, kill ARG words backwards."
 (use-package treemacs
   :straight t
   :defer t
+
+  :init
+  (t/toggle-def "t" #'treemacs)
+
   :config
   (setq treemacs-space-between-root-nodes nil
         treemacs-width 30)
@@ -384,12 +413,11 @@ If not, kill ARG words backwards."
                   treemacs-git-untracked-face
                   treemacs-git-added-face
                   treemacs-git-conflict-face))
-    (set-face-attribute face nil :inherit 'variable-pitch))
-  :bind ("C-c t t" . #'treemacs))
+    (set-face-attribute face nil :inherit 'variable-pitch)))
 (use-package treemacs-all-the-icons
   :straight t
   :defer t
-  :after (treemacs)
+  :after treemacs
   :config
   (treemacs-load-theme 'all-the-icons))
 (use-package treemacs-magit
@@ -482,11 +510,12 @@ in its buffer.
   (set-frame-size nil 90 60))
 
 ;; toggles
-(global-set-key (kbd "C-c t m") #'toggle-frame-maximized)
-(global-set-key (kbd "C-c t f") #'toggle-frame-fullscreen)
-(global-set-key (kbd "C-c t T") #'toggle-frame-tab-bar)
-(global-set-key (kbd "C-c t w") #'window-toggle-side-windows)
-(global-set-key (kbd "C-c t W") #'t/make-frame-small)
+(t/toggle-def
+  "m" #'toggle-frame-maximized
+  "f" #'toggle-frame-fullscreen
+  "T" #'toggle-frame-tab-bar
+  "w" #'window-toggle-side-windows
+  "W" #'t/make-frame-small)
 
 ;;;;; Modeline
 
@@ -572,7 +601,8 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
     (setq t/theme--loaded chosen-theme))
   (message "Loaded theme %s" t/theme--loaded))
 
-(global-set-key (kbd "C-c h t") #'t/cycle-themes)
+(t/emsys-def
+  "t" #'t/cycle-themes)
 
 ;; theme of choice
 (use-package modus-themes
@@ -686,7 +716,6 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
     "<help> a" #'consult-apropos)
 
   (t/leader-def
-    :non-normal-prefix "M-g"
     :infix "g"
     "e" #'consult-compile-error
     "f" #'consult-flycheck
@@ -778,7 +807,6 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 ;; HTML browser
 (use-package eww
   :defer t
-  :bind ("C-c o w" . #'eww)
   :hook (eww-mode . (lambda () (setq cursor-type '(bar . 2)))))
 
 ;; outline
@@ -791,7 +819,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 
 (use-package text-mode
   :hook
-  (text-mode . (lambda () (setq cursor-type '(bar . 2)))))
+  (text-mode . (lambda () (setq-local evil-normal-state-cursor '(hbar . 2)))))
 
 ;; enhanced pdf viewing
 (use-package pdf-tools
@@ -807,11 +835,12 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 (use-package olivetti
   :straight t
   
+  :init
+  (t/toggle-def
+    "o" #'olivetti-mode)
+  
   :config
-  (setq-default olivetti-body-width (+ fill-column 5))
-
-  :bind
-  ("C-c t o" . olivetti-mode))
+  (setq-default olivetti-body-width (+ fill-column 5)))
 
 ;;;;;; Org-mode
 
@@ -967,20 +996,25 @@ file+function in org-capture-templates."
     ;; Make item at point heading
     "C-s-h" #'org-toggle-heading
     ;; surround region or word at point in emphasis markers
-    "C-s-e" #'t/org-emphasize
-    ;; Search headings
-    "M-g o" consult-org-heading)
+    "C-s-e" #'t/org-emphasize)
+  ;; Search headings
+  (t/leader-def 'org-mode-map
+    :infix "g"
+    "o" #'consult-org-heading)
 
   :hook (org-mode . auto-fill-mode))
 
 (use-package org-agenda
   :defer t
   :after org
+  
   :init
   (defun t/org-agenda-view ()
     "Directly open org-agenda to the default agenda view."
     (interactive)
     (org-agenda nil "a"))
+  (t/notes-def "a" #'org-agenda)
+
   :config
   (setq org-agenda-files (list org-directory)
         org-deadline-warning-days 3
@@ -993,8 +1027,8 @@ file+function in org-capture-templates."
            ((org-agenda-span 5)
             (org-agenda-start-on-weekday 1)
             (org-agenda-time-grid nil)))))
-  :bind (("C-c n a" . #'org-agenda)
-         ("<f6>" . #'t/org-agenda-view)))
+
+  :bind (("<f6>" . #'t/org-agenda-view)))
 
 ;; add latex class for exports
 (use-package ox-latex
@@ -1054,7 +1088,6 @@ file+function in org-capture-templates."
 ;; journal
 (use-package org-journal
   :straight t
-  :bind ("C-c n j" . org-journal-new-entry)
   :after org
   :defer t
   :init
@@ -1063,15 +1096,25 @@ file+function in org-capture-templates."
   (setq org-journal-dir (expand-file-name (concat org-directory "journal/"))
         ;; don't open new window
         org-journal-find-file #'find-file)
-  (push org-journal-dir org-agenda-files))
+  (push org-journal-dir org-agenda-files)
+  (t/notes-def "j" #'org-journal-new-entry))
 
 ;; atomic note taker
 (use-package org-roam
   :straight t
   :defer t
+
   :init
   (setq org-roam-directory (concat org-directory "roam")
         org-roam-v2-ack t) ;; silence upgrade warning
+  (t/notes-def
+    :infix "r"
+    "f" #'org-roam-node-find
+    "i" #'org-roam-node-insert
+    "I" #'org-id-get-create
+    "n" #'org-roam-capture
+    "r" #'org-roam-buffer-toggle)
+
   :config
   (setq org-roam-capture-templates
         ;; TODO: "d/m" templates aren't updated for roam-v2
@@ -1095,13 +1138,7 @@ file+function in org-capture-templates."
             (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
                        ":PROPERTIES:\n:NOTER_DOCUMENT: %F\n:END:\n#+title: ${title}\n#+STARTUP: latexpreview showeverything")
             :unnarrowed t)))
-  (org-roam-db-autosync-mode)
-  :bind
-  ("C-c n r f" . #'org-roam-node-find)
-  ("C-c n r i" . #'org-roam-node-insert)
-  ("C-c n r I" . #'org-id-get-create)
-  ("C-c n r n" . #'org-roam-capture)
-  ("C-c n r r" . #'org-roam-buffer-toggle))
+  (org-roam-db-autosync-mode))
 
 ;; browser page for viewing/navigating org-roam notes
 (use-package org-roam-ui
@@ -1145,10 +1182,12 @@ valid directory, raise an error."
     (require 'org-roam)
     (t/deft-in-dir org-roam-directory))
 
+  (t/notes-def
+    "s" #'deft
+    "S" #'t/deft-in-dir)
+
   :bind
   (("<f8>" . deft)                       ; Display existing or new deft buffer
-   ("C-c n s" . deft)
-   ("C-c n S" . t/deft-in-dir)           ; Prompt for directory to open deft in
    ("C-<f8>" . t/deft-reset)             ; Open new deft buffer
    ("M-<f8>" . t/deft-in-roam-dir)       ; Open deft buffer limited to org-roam notes
    :map deft-mode-map
@@ -1196,8 +1235,10 @@ valid directory, raise an error."
 (use-package org-noter
   :straight t
   :defer t
-  :bind
-  ("C-c n n" . #'org-noter))
+
+  :init
+  (t/notes-def
+    "n" #'org-noter))
 
 ;; flashcards
 (use-package org-drill
@@ -1261,7 +1302,9 @@ valid directory, raise an error."
 ;; colorize colors specified in code
 (use-package rainbow-mode
   :straight t
-  :bind ("C-c t r" . rainbow-mode))
+
+  :init
+  (t/toggle-def "r" #'rainbow-mode))
 
 ;;;;; Format
 
@@ -1394,6 +1437,8 @@ forward."
           (bury-buffer)
         (delete-char arg))))
 
+  (t/leader-def "T" #'eshell)
+
   :bind
   (("C-c o e" . eshell))
 
@@ -1441,25 +1486,28 @@ Used in repeat mode.")
     (put command 'repeat-map 't/emms-repeat-map))
   
   :bind
-  (("C-c m m" . emms)
-   ("C-c m b p" . emms-playlist-mode-go)
-   ;; music controls
-   ("C-c m p" . emms-previous)
-   ("s-<f7>" . emms-previous)
-   ("C-c m P" . emms-pause)
-   ("s-<f8>" . emms-pause)
-   ("C-c m n" . emms-next)
-   ("s-<f9>" . emms-next)
-   ;; scrub through current song (repeatable)
-   ("C-c m <left>" . emms-seek-backward)
-   ("C-c m <right>" . emms-seek-forward)
-   ;; browse by
-   ("C-c m b b" . emms-smart-browse)
-   ("C-c m b a" . emms-browse-by-album)
-   ("C-c m b A" . emms-browse-by-artist)
-   ;; import
-   ("C-c m i d" . emms-add-directory-tree) ;
-   ("C-c m i f" . emms-add-file)))
+  (t/leader-def
+    :infix "m"
+    "m" #'emms
+    "b p" #'emms-playlist-mode-go
+    ;; music controls
+    "p" #'emms-previous
+    "P" #'emms-pause
+    "n" #'emms-next
+    ;; scrub through current song (repeatable)
+    "<left>" #'emms-seek-backward
+    "<right>" #'emms-seek-forward
+    ;; browse by
+    "b b" #'emms-smart-browse
+    "b a" #'emms-browse-by-album
+    "b A" #'emms-browse-by-artist
+    ;; import
+    "i d" #'emms-add-directory-tree
+    "i f" #'emms-add-file)
+  (general-def
+    "s-<f7>" #'emms-previous
+    "s-<f8>" #'emms-pause
+    "s-<f9>" #'emms-next))
 
 ;;;;; Email
 
@@ -1493,9 +1541,6 @@ Used in repeat mode.")
           (lambda ()
             (setq file-name-handler-alist t/file-name-handler-alist)
 	    (setq gc-cons-threshold gc-cons-threshold-original)))
-
-;; disable garbage collection until post-init
-
 
 ;;; init.el ends here
 
