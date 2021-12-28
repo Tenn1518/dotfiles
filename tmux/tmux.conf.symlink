@@ -17,8 +17,8 @@ run '~/.tmux/plugins/tpm/tpm'
 
 # remap prefix key to 'C-a'
 unbind C-b
-set-option -g prefix C-j
-bind-key C-j send-prefix
+set-option -g prefix C-q
+bind-key C-q send-prefix
 
 # source config file
 bind r source-file ~/.tmux.conf \; display "Sourced ~/.tmux.conf"
@@ -34,7 +34,7 @@ bind l select-pane -R
 # set -g mouse on
 
 # don't rename windows automatically
-set-option -g allow-rename off
+set-option -g allow-rename on
 
 # Run powerline-daemon
 # run-shell "powerline-daemon -q"
