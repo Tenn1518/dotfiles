@@ -1,57 +1,10 @@
-""""""""""""""""""""""""""""""""""""""""""
-" .__       .__  __         .__          "
-" |__| ____ |__|/  |_ ___  _|__| _____   "
-" |  |/    \|  \   __\\  \/ /  |/     \  "
-" |  |   |  \  ||  |   \   /|  |  Y Y  \ "
-" |__|___|  /__||__| /\ \_/ |__|__|_|  / "
-"         \/         \/              \/  "
-"         				 "
-"                    Created by Tenn1518 "
-""""""""""""""""""""""""""""""""""""""""""
+" init.vim
 
+" (neo)vim configuration to explore vim's capabilities.
 
-" vim-plug {{{
-if empty(glob('~/.config/nvim/autoload/plug.vim'))
-  silent !curl -fLo ~/.config/nvim/autoload/plug.vim --create-dirs
-    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
-endif
-call plug#begin('~/.config/nvim/plugged')
+" Editor {{{
 
-" To get more information about these plugins, take a look at README.md
-
-" vim-sensible
-Plug 'tpope/vim-sensible'
-
-" vim-fugitive depends on unite.vim
-Plug 'Shougo/unite.vim' | Plug 'tpope/vim-fugitive'
-
-" ctrlp.vim depends on ag.vim (in this configuration)
-Plug 'rking/ag.vim' | Plug 'ctrlpvim/ctrlp.vim'
-
-" NERDTree, replacement for vim's browser
-Plug 'preservim/nerdtree'
-
-" vim-airline and vim-airline themes
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
-
-" Vim-bufferline
-Plug 'bling/vim-bufferline'
-
-" Syntastic
-Plug 'scrooloose/syntastic'
-
-" Solarized Colorscheme
-Plug 'lifepillar/vim-solarized8'
-
-" Better Bdelete and Bwipeout commands
-Plug 'moll/vim-bbye'
-
-call plug#end()
-" }}}
-
-" Set options {{{
+" Neovim may set most of these by default.  Regardless.
 set incsearch
 set hlsearch
 set ignorecase
@@ -61,164 +14,114 @@ set lazyredraw
 set showmatch
 set nocp
 set number
-" set cursorline
-set so=2
-set backupdir=~/.config/nvim/backups
-set directory=~/.config/nvim/swaps
 
-" Set cursor as blinking in insert mode, and a square in normal mode
+" Cursor blinks in insert mode
 let $NVIM_TUI_ENABLE_CURSOR_SHAPE=1
 
-" Set tab to 4 spaces
+" Document settings
+" Tab is 4 spaces
 set ts=4 sw=4
 
-if exists("%undodir")
-	set undodir=~/.config/nvim/undo
-endif
-
-" Folding behaviour
+" Folding
 set foldlevelstart=10
 set foldnestmax=10
 set foldmethod=indent
 
-" Enable syntax highlighting
-syntax enable
-
-" Set background dark for solarized colorscheme
-set background=dark
-
-filetype on
-filetype indent on
-
-" Automatic commands
-augroup comment
-	autocmd!
-	autocmd FileType javascript nnoremap <buffer> <localleader>c I//<esc>
-	autocmd FileType python nnoremap <buffer> <localleader>c I#<esc>
-	autocmd BufNewFile,BufRead *.vim nnoremap <buffer> <localleader>c I"<esc>
-	autocmd BufNewFile,BufRead *.md setlocal filetype=markdown
-	autocmd bufwritepost vimrc source $MYVIMRC
-augroup END
-
-" Open NERDTree automatically when no file is specified
-autocmd StdinReadPre * let s:std_in=1
-autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 " }}}
 
-" Mappings {{{
-" Set <leader> and <localleader>
-nnoremap "'" <nop>
-let mapleader = "'"
-let g:mapleader = "'"
-let maplocalleader = ","
+" Keymappings {{{
 
-" Faster save and exit
-nnoremap <leader>w :wq<cr>
+" Leader prefix key
+nnoremap <space> <nop>
+let mapleader = " "
 
-" Toggle relativenumber
-nnoremap <leader>r :set relativenumber!<cr>
-
-" Edit init.vim
-nnoremap <leader>ev :vsplit $MYVIMRC<cr>
-nnoremap <leader>ep :vsp ~/.zshrc<cr>
-nnoremap <leader>ea :vsp ~/.zsh_aliases<cr>
-nnoremap <leader>s :source $MYVIMRC<cr>
-
-" Switch to normal mode
-inoremap jk <ESC>
-inoremap <ESC> <NOP>
-
-" Make yanking an entire line much easier
-nnoremap yl 0y$
-
-" Cut function
-nnoremap yd 0y$dd
-
-" Treat wrapped lines as individual when moving vertically
-nnoremap j gj
-nnoremap k gk
-
-" Disable search highlight when <Leader>+<Space> is pressed
-nnoremap <silent> <leader><space> :noh<cr>
-
-" Move between windows in normal mode
+" Move between windows
 nnoremap <c-h> <c-w>h
 nnoremap <c-j> <c-w>j
 nnoremap <c-k> <c-w>k
 nnoremap <c-l> <c-w>l
 
-" Buffer shortcuts
-nnoremap <leader>x :Bdelete<cr>
-nnoremap <leader>n :enew<cr>
-nnoremap <leader>h :bprevious<cr>
-nnoremap <leader>l :bnext<cr>
-
-" Space toggles a fold
-nnoremap <space> za
-
-" The Silver Searcher mapping
-nnoremap <leader>a :Ag
-
-" Ctrl+P mapping
-let g:ctrlp_map = "<c-p>"
-let g:ctrlp_cmd = "CtrlP"
-
-" NERDTree mapping
-map <C-n> :NERDTreeToggle<CR>
-
-" Fugitive git wrapper mappings
-nnoremap <leader>ga :Gwrite<cr>
-nnoremap <leader>gc :Gcommit<cr>
-nnoremap <leader>gr :Gremove<cr>
 " }}}
 
-" Colorscheme {{{
+" Plugin declarations {{{
 
-set termguicolors
-" Vim-specific sequences for RGB colors
-let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+if empty(glob(data_dir . '/autoload/plug.vim'))
+  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
 
-set background=dark
-colorscheme solarized8
+call plug#begin('~/.config/nvim/plugged')
 
-" }}}
+" fuzzy finder
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
 
-" Vim-airline {{{
-" Powerline symbols for vim-airline
-let g:airline_powerline_fonts = 1
+" tree-sitter parser
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 
-" Set vim-airline theme
-" Comment the following line if you wish not to use the base16-solarized
-" colorscheme
-let g:airline_theme="solarized"
+" Jump to point in buffer
+Plug 'ggandor/lightspeed.nvim'
 
-" Default vim-airline theme
-" Uncomment the following line if you wish to use the default vim-airline
-" theme
-let g:airline_theme="dark"
+" delimiter manipulator
+Plug 'tpope/vim-surround'
 
-" Enable the list of buffers
-let g:airline#extensions#tabline#enabled = 1
+" Repeat plugin commands
+Plug 'tpope/vim-repeat'
 
-" Show just the filename
-let g:airline#extensions#tabline#fnamemod = ':t'
-" }}}
+" More [/] commands for moving between pairs
+Plug 'tpope/vim-unimpaired'
 
-" Vim-bufferline {{{
+" Org-mode
+Plug 'nvim-orgmode/orgmode'
 
-" Stop bufferline echoing to command bar
-let g:bufferline_echo = 0
+call plug#end()
 
 " }}}
 
-" CtrlP {{{
-let g:ctrlp_match_window = 'bottom,order:ttb'
-let g:ctrlp_switch_buffer = 0
-let g:ctrlp_working_path_mode = 0
-let g:ctrlp_user_command = 'ag %s -l --nocolor --hidden -g ""'
+" Plugin configuration {{{
+
+" Telescope fuzzy finder
+nnoremap <leader>ff <cmd>Telescope find_files theme=ivy<cr>
+nnoremap <leader>fb <cmd>Telescope file_browser theme=ivy<cr>
+nnoremap <leader>sG <cmd>Telescope git_files theme=ivy<cr>
+nnoremap <leader>sg <cmd>Telescope live_grep theme=ivy<cr>
+nnoremap <leader>b <cmd>Telescope buffers theme=ivy<cr>
+" Documentation
+nnoremap <leader>hh <cmd>Telescope help_tags theme=ivy<cr>
+nnoremap <leader>hk <cmd>lua require 'telescope.builtin'.keymaps(require('telescope.themes').get_ivy({}))<cr>
+" Select paste from available registers akin to counsel-yank-pop
+nnoremap <c-p> <cmd>lua require'telescope.builtin'.registers(require('telescope.themes').get_ivy({}))<cr>
+
+" Org-mode setup
+lua << EOF
+local parser_config = require "nvim-treesitter.parsers".get_parser_configs()
+parser_config.org = {
+  install_info = {
+    url = 'https://github.com/milisims/tree-sitter-org',
+    revision = 'f110024d539e676f25b72b7c80b0fd43c34264ef',
+    files = {'src/parser.c', 'src/scanner.cc'},
+  },
+  filetype = 'org',
+}
+
+require'nvim-treesitter.configs'.setup {
+  -- If TS highlights are not enabled at all, or disabled via `disable` prop, highlighting will fallback to default Vim syntax highlighting
+  highlight = {
+    enable = true,
+    disable = {'org'}, -- Remove this to use TS highlighter for some of the highlights (Experimental)
+    additional_vim_regex_highlighting = {'org'}, -- Required since TS highlighter doesn't support all syntax features (conceal)
+  },
+  ensure_installed = {'org'}, -- Or run :TSUpdate org
+}
+
+require('orgmode').setup({
+  org_agenda_files = {'~/Notes/*'},
+  org_default_notes_file = '~/Notes/daily.org',
+})
+EOF
+
 " }}}
 
-" Enable folding in init.vim to make editing init.vim easier
-" Use "za" or "<space>" to open/close a tab
+" Use "za" to toggle fold visibility
 " vim:foldmethod=marker:foldlevel=0
