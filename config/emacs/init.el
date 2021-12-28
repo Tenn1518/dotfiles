@@ -73,6 +73,74 @@
 
 ;;;; Editor --- Related to editing and inserting text
 
+;;;;; Editor settings
+
+;; set macOS modifier keys
+(when (eq system-type 'darwin)
+  ;; command is switched with control
+  (setq mac-right-option-modifier 'meta
+        mac-right-command-modifier 'super
+        mac-command-modifier 'super
+        mac-control-modifier 'control))
+
+;; don't fully display long lines
+(setq-default truncate-lines t)
+
+;; acceptable line length
+(setq-default fill-column 80)
+
+;; never use tabs
+(setq-default indent-tabs-mode nil)
+
+;; necessary for sentence navigation commands to differentiate between
+;; abbreviations (i.e. U.S.) and the end of a sentence
+(setq sentence-end-double-space t)
+
+;; scroll a long line individually like nano, instead of vertically shifting the
+;; whole document
+(setq auto-hscroll-mode 'current-line)
+
+;; point won't move on scroll
+(setq scroll-preserve-screen-position t)
+
+;; holding shift during navigation doesn't expand selection
+(setq shift-select-mode nil)
+
+;; scroll horizontally
+(put 'scroll-left 'disabled nil)
+(put 'scroll-right 'disabled nil)
+
+;; scrolling lines is animated to look smoother
+;; (pixel-scroll-mode -1)
+
+;; highlight and auto-create matching parentheses
+(show-paren-mode 1)
+(electric-pair-mode)
+
+;; display line numbers in programming buffers only
+(defun t/line-number ()
+  "Turn on line numbers except in minibuffer."
+  (unless (minibufferp)
+    (display-line-numbers-mode)))
+
+(dolist (hook '(conf-mode-hook
+                prog-mode-hook))
+  (add-hook hook #'t/line-number))
+
+;; highlight indentation
+(use-package highlight-indent-guides
+  :straight t
+  :hook (prog-mode . highlight-indent-guides-mode)
+  :bind ("C-c t i" . highlight-indent-guides-mode)
+  :config
+  (setq highlight-indent-guides-method 'character))
+
+;; shorten repeatable commands
+(repeat-mode 1)
+(setq repeat-keep-prefix t)
+
+;;;;; evil-mode --- Vim emulation
+
 ;; Vim in Emacs, evil in good
 (use-package evil
   :straight t
@@ -84,8 +152,12 @@
   :custom
   (evil-undo-system #'undo-redo)      ; enable redo in Emacs 28+
   (evil-want-keybinding nil)          ; evil-collection requirement
-  (evil-want-Y-yank-to-eol t)         ; yy copies lines, Y copies to end of line
-  (evil-mode-line-format '(after . mode-line-remote)))
+  (evil-want-Y-yank-to-eol t)         ; Y and yy to copy line is redundant
+  (evil-mode-line-format '(after . mode-line-remote))
+
+  :config
+  ;; use evil's search over isearch
+  (evil-select-search-module evil-search-module 'evil-search))
 
 ;; manip delims
 (use-package evil-surround
@@ -127,68 +199,10 @@
 (use-package evil-collection
   :straight t
   :after evil
+  :init
+  (setq evil-collection-setup-minibuffer t)
   :config
   (evil-collection-init))
-
-;;;;; Editor settings
-
-;; set macOS modifier keys
-(when (eq system-type 'darwin)
-  ;; command is switched with control
-  (setq mac-right-option-modifier 'meta
-        mac-right-command-modifier 'super
-        mac-command-modifier 'super
-        mac-control-modifier 'control))
-
-;; don't fully display long lines
-(setq-default truncate-lines t)
-
-;; acceptable line length
-(setq-default fill-column 80)
-
-;; never use tabs
-(setq-default indent-tabs-mode nil)
-
-;; scroll a long line individually like nano, instead of vertically shifting the whole document
-(setq auto-hscroll-mode 'current-line)
-
-(setq scroll-preserve-screen-position t)
-
-;; holding shift during navigation doesn't expand selection
-(setq shift-select-mode nil)
-
-;; scroll horizontally
-(put 'scroll-left 'disabled nil)
-(put 'scroll-right 'disabled nil)
-
-;; scrolling lines is animated to look smoother
-;; (pixel-scroll-mode -1)
-
-;; highlight and auto-create matching parentheses
-(show-paren-mode 1)
-(electric-pair-mode)
-
-;; display line numbers in programming buffers only
-(defun t/line-number ()
-  "Turn on line numbers except in minibuffer."
-  (unless (minibufferp)
-    (display-line-numbers-mode)))
-
-(dolist (hook '(conf-mode-hook
-                prog-mode-hook))
-  (add-hook hook #'t/line-number))
-
-;; highlight indentation
-(use-package highlight-indent-guides
-  :straight t
-  :hook (prog-mode . highlight-indent-guides-mode)
-  :bind ("C-c t i" . highlight-indent-guides-mode)
-  :config
-  (setq highlight-indent-guides-method 'character))
-
-;; shorten repeatable commands
-(repeat-mode 1)
-(setq repeat-keep-prefix t)
 
 ;;;;; Text manipulation
 
@@ -261,6 +275,8 @@ If not, kill ARG words backwards."
 ;; isearch alternative across frame
 (use-package avy
   :straight t
+  :defer t
+
   :bind
   (("M-j" . #'avy-goto-char-timer)
    :map isearch-mode-map
@@ -335,9 +351,13 @@ If not, kill ARG words backwards."
   "s-o" #'other-window
   "s-u" #'revert-buffer)
 
+;; leader keybinds for buffers
+(t/leader-def "b" #'consult-buffer)
 ;; scroll buffer in two separate windows
-(t/toggle-def
-  "F" #'follow-mode)
+(t/toggle-def "F" #'follow-mode)
+
+;; project commands under <leader>p
+(t/leader-def "p" project-prefix-map)
 
 ;; ensure buffer titles are unique
 (use-package uniquify
@@ -381,6 +401,8 @@ If not, kill ARG words backwards."
 
 ;; file manager
 (use-package dired
+  :defer t
+
   :config
   ;; point dired to correct ls binary on macOS
   (when (eq system-type 'darwin)
@@ -436,6 +458,7 @@ If not, kill ARG words backwards."
 
 ;; built in version control
 (use-package diff-mode
+  :defer t
   :config
   (define-key diff-mode-map (kbd "M-o") nil))
 
@@ -817,10 +840,6 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 
 ;;;;; Prose Modes
 
-(use-package text-mode
-  :hook
-  (text-mode . (lambda () (setq-local evil-normal-state-cursor '(hbar . 2)))))
-
 ;; enhanced pdf viewing
 (use-package pdf-tools
   :straight t
@@ -834,6 +853,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 ;; visual writing environment
 (use-package olivetti
   :straight t
+  :defer t
   
   :init
   (t/toggle-def
@@ -952,6 +972,7 @@ file+function in org-capture-templates."
   :config
   (setq ;; appearance settings
    org-hide-emphasis-markers nil
+   org-ellipsis " ▼ "
    ;; latex settings
    org-preview-latex-image-directory (concat "~/.cache/emacs/" "ltximg")
    org-format-latex-options '( :foreground "Black"
@@ -1090,14 +1111,16 @@ file+function in org-capture-templates."
   :straight t
   :after org
   :defer t
+
   :init
   (setq org-journal-file-format "%Y%m%d.org")
+  (t/notes-def "j" #'org-journal-new-entry)
+
   :config
   (setq org-journal-dir (expand-file-name (concat org-directory "journal/"))
         ;; don't open new window
         org-journal-find-file #'find-file)
-  (push org-journal-dir org-agenda-files)
-  (t/notes-def "j" #'org-journal-new-entry))
+  (push org-journal-dir org-agenda-files))
 
 ;; atomic note taker
 (use-package org-roam
@@ -1142,11 +1165,18 @@ file+function in org-capture-templates."
 
 ;; browser page for viewing/navigating org-roam notes
 (use-package org-roam-ui
-  :disabled
-  :straight t)
-(use-package websocket
-  :disabled
-  :after org-roam)
+  :straight
+  (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+  :after org-roam
+
+  :init
+  (t/notes-def "ru" #'org-roam-ui-mode)
+
+  :config
+  (setq org-roam-ui-sync-theme t
+        org-roam-ui-follow t
+        org-roam-ui-update-on-save t
+        org-roam-ui-open-on-start t))
 
 ;; search plaintext files
 (use-package deft
@@ -1155,6 +1185,7 @@ file+function in org-capture-templates."
   (defun t/deft-kill-existing-buffer ()
     "Kill any existing deft buffer.
 Return nil if no deft buffer exists."
+    (require 'deft)
     (let ((buf (get-buffer deft-buffer)))
       (if buf
           (kill-buffer buf)
@@ -1245,6 +1276,14 @@ valid directory, raise an error."
   :straight t
   :defer t)
 
+;; enhanced calendar view
+(use-package calfw
+  :straight t)
+(use-package calfw-org
+  :straight t
+  :config
+  (t/notes-def "c" #'cfw:open-org-calendar))
+
 ;;;;; Programming Modes
 
 ;; settings for editing c
@@ -1302,6 +1341,7 @@ valid directory, raise an error."
 ;; colorize colors specified in code
 (use-package rainbow-mode
   :straight t
+  :defer t
 
   :init
   (t/toggle-def "r" #'rainbow-mode))
@@ -1462,30 +1502,9 @@ forward."
 ;; music player
 (use-package emms
   :straight t
+  :defer t
   
-  :config
-  ;; initialize emms
-  (require 'emms-setup)
-  (emms-all)
-  (emms-default-players)
-  (setq emms-source-file-default-directory "~/Music/"
-        emms-browser-covers 'emms-browser-cache-thumbnail) ; EMMS auto-resizes "cover.jpg" in album dir
-
-  ;; repeat map for emms commands
-  (defvar t/emms-repeat-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map [left] 'emms-seek-backward)
-      (define-key map [right] 'emms-seek-forward)
-      (define-key map "p" 'emms-previous)
-      (define-key map "P" 'emms-pause)
-      (define-key map "n" 'emms-next)
-      map)
-    "Keymap to repeat emms seeking through track sequences `C-c m <left>'.
-Used in repeat mode.")
-  (dolist (command '(emms-seek-backward emms-seek-forward))
-    (put command 'repeat-map 't/emms-repeat-map))
-  
-  :bind
+  :init
   (t/leader-def
     :infix "m"
     "m" #'emms
@@ -1507,11 +1526,35 @@ Used in repeat mode.")
   (general-def
     "s-<f7>" #'emms-previous
     "s-<f8>" #'emms-pause
-    "s-<f9>" #'emms-next))
+    "s-<f9>" #'emms-next)
+
+  :config
+  ;; initialize emms
+  (require 'emms-setup)
+  (emms-all)
+  (emms-default-players)
+  (setq emms-source-file-default-directory "~/Music/"
+        emms-browser-covers 'emms-browser-cache-thumbnail) ; EMMS auto-resizes "cover.jpg" in album dir
+
+  ;; repeat map for emms commands
+  (defvar t/emms-repeat-map
+    (let ((map (make-sparse-keymap)))
+      (define-key map [left] 'emms-seek-backward)
+      (define-key map [right] 'emms-seek-forward)
+      (define-key map "p" 'emms-previous)
+      (define-key map "P" 'emms-pause)
+      (define-key map "n" 'emms-next)
+      map)
+    "Keymap to repeat emms seeking through track sequences `C-c m <left>'.
+Used in repeat mode.")
+  (dolist (command '(emms-seek-backward emms-seek-forward))
+    (put command 'repeat-map 't/emms-repeat-map)))
 
 ;;;;; Email
 
 ;; view email; requires installing mu (maildir-utils on some distros) first
+;; Settings necessary for sending mail are located in local.el
+;; Copy TEMPLATE-local.el to local.el and fill in information
 (use-package mu4e
   :load-path  "/usr/local/share/emacs/site-lisp/mu/mu4e" ; macOS-specific?
   :defer t
@@ -1524,12 +1567,6 @@ Used in repeat mode.")
    mu4e-get-mail-command "mbsync gmail"
    ;; Gmail does this itself
    mu4e-sent-messages-behavior 'delete))
-
-;; send email
-;; Settings necessary for sending mail are located in local.el
-;; Copy TEMPLATE-local.el to local.el and fill in information
-(use-package smtpmail
-  :bind ("C-x m" . compose-mail))
 
 ;;;; Reenable automatic mode handling according to file
 
