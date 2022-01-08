@@ -18,16 +18,16 @@ window:
 # Font configuration (changes require restart)
 font:
   normal:
-    family: Menlo
+    family: Meslo LG S
 
   bold:
-    family: Menlo
+    family: Meslo LG S
 
   italic:
-    family: Menlo
+    family: Meslo LG S
 
   # Point size of the font
-  size: 14.0
+  size: 9.0
 
   # Offset is the extra space around each character. offset.y is linespacing,
   # and offset.x is letter spacing.
