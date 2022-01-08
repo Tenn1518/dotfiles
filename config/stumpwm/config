@@ -29,6 +29,9 @@
 ;; Change focus on click
 (setf *mouse-focus-policy* :click)
 
+;; `s-q b' hides mouse
+(setf *banish-pointer-to* :screen)
+
 ;;; Interface
 
 ;;;; Font
@@ -40,7 +43,7 @@
 ;;;; Gaps
 
 (load-module "swm-gaps")
-(setf swm-gaps::*head-gaps-size* 5)
+(setf swm-gaps::*head-gaps-size* 0)
 (setf swm-gaps::*inner-gaps-size* 5)
 (setf swm-gaps::*outer-gaps-size* 10)
 
@@ -48,14 +51,25 @@
 
 ;;;; Modeline
 (load-module "battery-portable")
+(load-module "mpd")
 (setf battery-portable::*no-battery-info* "")
 
-(setf *window-format* "%m%n%s%c")
-(setf *screen-mode-line-format* (list "[^B%n^b] %W^>%d %B   "))
+;; colors
+(setq *mode-line-background-color* "#000000")
+(setq *mode-line-foreground-color* "#ffffff")
+
+;; format
+(setf *group-format* " %t ")
+(setf *window-format* "%m%c%m")
+;; (setf *screen-mode-line-format* (list "[^B%n^b] %W^>%m %d | %B   "))
+(setf *screen-mode-line-format* '("[^B%g^b] %W^>%d | %B   "))
 (setf *time-modeline-string* "%a %b %e %l:%M %p")
 (setf *mode-line-timeout* 2)
 
 (enable-mode-line (current-screen) (current-head) t)
+
+(defcommand toggle-ml () ()
+  (toggle-mode-line (current-screen) (current-head)))
 
 ;; systray
 (ql:quickload "xembed")
@@ -73,23 +87,21 @@
 (setf dmenu::*dmenu-font* "13")
 
 (define-key *top-map* (kbd "s-;") "dmenu-call-command")
-(define-key *top-map* (kbd "s-f") "dmenu-run")
-(define-key *top-map* (kbd "s-TAB") "dmenu-windowlist")
+(define-key *top-map* (kbd "s-SPC") "dmenu-run")
+(define-key *top-map* (kbd "s-f") "dmenu-windowlist")
 (define-key *top-map* (kbd "s-:") "dmenu-eval-lisp")
 
 ;;; Audio
 ;; Commands are run with pamixer.
 
 (defcommand vol-up (arg) ((:number "Increase volume by: "))
-  (run-shell-command (concatenate 'string
-                                  "pamixer -i "
-                                  (write-to-string arg)))
+  (run-shell-command (format nil "pamixer -i ~S"
+                             arg))
   (message (run-shell-command "pamixer --get-volume-human" t)))
 
 (defcommand vol-down (arg) ((:number "Decrease volume by: "))
-  (run-shell-command (concatenate 'string
-                                  "pamixer -d "
-                                  (write-to-string arg)))
+  (run-shell-command (format nil "pamixer -d ~S"
+                             arg))
   (message (run-shell-command "pamixer --get-volume-human" t)))
 
 (defcommand vol-mute () ()
@@ -109,17 +121,13 @@
   (message (run-shell-command "brightnessctl g" t)))
 
 (defcommand light-up (arg) ((:number "Increase brightness by: "))
-  (run-shell-command (concatenate 'string
-                                  "brightnessctl s +"
-                                  (write-to-string arg)
-                                  "%"))
+  (run-shell-command (format nil "brightnessctl s +~D%"
+                             arg))
   (light-info))
 
 (defcommand light-down (arg) ((:number "Decrease brightness by: "))
-  (run-shell-command (concatenate 'string
-                                  "brightnessctl s "
-                                  (write-to-string arg)
-                                  "%-"))
+  (run-shell-command (format nil "brightnessctl s ~D%-"
+                             arg))
   (light-info))
 
 (define-key *top-map* (kbd "XF86MonBrightnessUp") "light-up 4")
