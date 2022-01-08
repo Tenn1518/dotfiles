@@ -175,22 +175,22 @@
   ;; leader key (SPC in Evil mode, C-c in Emacs
   (general-create-definer t/leader-def
     :states '(normal insert emacs)
-    :keymaps 'global
+    :keymaps '(global override)
     :prefix "SPC"
     :non-normal-prefix "C-c")
   (general-create-definer t/toggle-def
     :states '(normal insert emacs)
-    :keymaps 'global
+    :keymaps '(global override)
     :prefix "SPC t"
     :non-normal-prefix "C-c t")
   (general-create-definer t/emsys-def
     :states '(normal insert emacs)
-    :keymaps 'global
+    :keymaps '(global override)
     :prefix "SPC h"
     :non-normal-prefix "C-c h")
   (general-create-definer t/notes-def
     :states '(normal insert emacs)
-    :keymaps 'global
+    :keymaps '(global override)
     :prefix "SPC n"
     :non-normal-prefix "C-c n")
   (t/leader-def
@@ -475,9 +475,9 @@ If not, kill ARG words backwards."
 ;;;; Interface -- Emacs appearance and direct interaction
 
 ;; font settings
-(add-to-list 'default-frame-alist '(font . "Menlo-12"))
-(set-face-attribute 'default nil :family "Menlo" :height 120 :weight 'normal)
-(set-face-attribute 'variable-pitch nil :family "IBM Plex Sans" :height 160)
+;; (add-to-list 'default-frame-alist '(font . "Meslo LG S-10"))
+(set-face-attribute 'default nil :family "Meslo LG S" :height 120 :weight 'normal)
+(set-face-attribute 'variable-pitch nil :family "IBM Plex Sans" :height 140)
 (setq-default line-spacing 1)
 
 ;; Remove prompts that explicitly require "yes" or "no"
@@ -651,7 +651,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
   (setq modus-themes-syntax '(yellow-comments alt-syntax))
   
   :config
-  (dolist (theme '(modus-operandi modus-vivendi))
+  (dolist (theme '(modus-vivendi modus-operandi))
     (add-to-list 't/theme-list theme)))
 
 ;;;;; Completion
@@ -684,15 +684,17 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
         icomplete-compute-delay 0)
   (if (>= emacs-major-version 28)
       (icomplete-vertical-mode))
-  :bind (:map icomplete-minibuffer-map
-              ("C-n" . icomplete-forward-completions)
-              ("C-p" . icomplete-backward-completions)
-              ("C-j" . icomplete-forward-completions)
-              ("C-k" . icomplete-backward-completions)
-              ("C-v" . t/icomplete-next-page)
-              ("M-v" . t/icomplete-prev-page)
-              ("RET" . icomplete-fido-ret) ; Return key executes candidate at point
-              ("C-." . nil))
+  (general-def
+    :keymaps 'icomplete-minibuffer-map
+    :states '(emacs normal insert)
+    "C-n" #'icomplete-forward-completions
+    "C-p" #'icomplete-backward-completions
+    "C-j" #'icomplete-forward-completions
+    "C-k" #'icomplete-backward-completions
+    "C-v" #'t/icomplete-next-page
+    "M-v" #'t/icomplete-prev-page
+    "RET" #'icomplete-fido-ret ; Return key executes candidate at point
+    "C-." nil)
   :hook (emacs-startup . icomplete-mode))
 
 ;; vertical completion candidates like ivy/helm
@@ -832,11 +834,19 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
   :defer t
   :hook (eww-mode . (lambda () (setq cursor-type '(bar . 2)))))
 
-;; outline
-(use-package outline
+;; View info pages
+(use-package info
+  :hook (Info-mode . (lambda () (evil-collection-unimpaired-mode -1)))
   :config
-  ;; (setq outline-minor-mode-cycle t)
-  )
+  ;; Preserve common Info keymaps
+  (general-def
+    :keymaps 'Info-mode-map
+    :states '(normal)
+    "m" #'Info-menu
+    "n" #'Info-next
+    "p" #'Info-prev
+    "[" #'Info-backward-node
+    "]" #'Info-forward-node))
 
 ;;;;; Prose Modes
 
@@ -1426,7 +1436,9 @@ lsp-enabled buffers."
 (use-package lsp-python-ms
   :straight t
   :defer t
-  :init (setq lsp-python-ms-auto-install-server t)
+  :init
+  (setq lsp-python-ms-auto-install-server t
+        lsp-python-ms-executable "~/Projects/python-language-server/output/bin/Release/linux-x64/publish/Microsoft.Python.LanguageServer")
   :hook (python-mode . (lambda ()
                          (require 'lsp-python-ms)
                          (lsp))))
@@ -1447,6 +1459,13 @@ lsp-enabled buffers."
 (use-package tree-sitter-indent
   :straight t
   :after tree-sitter)
+
+;;;;; Sly --- Common Lisp editing and REPL interaction
+
+(use-package sly
+  :straight t
+  :config
+  (setq sly-default-lisp "sbcl"))
 
 ;;;; Apps
 
@@ -1499,6 +1518,15 @@ forward."
   (setq system-packages-package-manager 'brew
         system-packages-use-sudo nil))
 
+;; Atom/RSS feed viewer
+(use-package elfeed
+  :straight t
+  :config
+  (t/leader-def "o f" #'elfeed)
+  (setq elfeed-feeds
+        '(("https://archlinux.org/feeds/news/" linux arch)
+          ("https://xkcd.com/rss.xml" content))))
+
 ;; music player
 (use-package emms
   :straight t
@@ -1531,8 +1559,14 @@ forward."
   :config
   ;; initialize emms
   (require 'emms-setup)
+  (require 'emms-player-mpd)
+  (setq emms-player-mpd-server-name "localhost"
+        emms-player-mpd-server-port "6600")
+  (add-to-list 'emms-info-functions 'emms-info-mpd)
+  (add-to-list 'emms-player-list 'emms-player-mpd)
   (emms-all)
   (emms-default-players)
+  (emms-cache-set-from-mpd-all)
   (setq emms-source-file-default-directory "~/Music/"
         emms-browser-covers 'emms-browser-cache-thumbnail) ; EMMS auto-resizes "cover.jpg" in album dir
 
