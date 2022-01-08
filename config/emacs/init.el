@@ -204,6 +204,16 @@
   :config
   (evil-collection-init))
 
+;; Vertical align
+(use-package evil-lion
+  :straight t
+  :config
+  (general-def
+    :keymaps 'global
+    :states '(normal visual)
+    "g l" #'evil-lion-left
+    "g L" #'evil-lion-right))
+
 ;;;;; Text manipulation
 
 ;; expedites copying from org-mode to Word for essays
@@ -777,8 +787,12 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 ;; contextual actions on the thing at point
 (use-package embark
   :straight t
-  :bind (("C-." . embark-act)
-         ("C-h B" . embark-bindings)))
+  :config
+  (general-def
+    :states '(normal insert visual emacs)
+    :keymaps '(global)
+    "C-." #'embark-act
+    "C-h B" #'embark-bindings))
 
 (use-package embark-consult
   :straight t
