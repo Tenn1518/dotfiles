@@ -32,6 +32,12 @@
 ;; `s-q b' hides mouse
 (setf *banish-pointer-to* :screen)
 
+;; Stop scripted window placement messages
+;; (setf *suppress-window-placement-indicator* t)
+
+;; Move floating windows with Super+drag
+(setf *float-window-modifier* :SUPER)
+
 ;;; Interface
 
 ;;;; Font
@@ -90,6 +96,28 @@
 (define-key *top-map* (kbd "s-SPC") "dmenu-run")
 (define-key *top-map* (kbd "s-f") "dmenu-windowlist")
 (define-key *top-map* (kbd "s-:") "dmenu-eval-lisp")
+
+;;; Frame parameters and default groups
+
+(setf *default-group-name* "main")
+
+(gnewbg "1")
+(gnewbg "2")
+
+(setf *games-group* "steam")
+(setf *chat-group* "chat")
+(gnewbg *games-group*)
+(gnewbg *chat-group*)
+
+;; Games are automatically placed into its own group
+(define-frame-preference *games-group*
+  (0 nil t :class "Steam")
+  (0 nil t :class "Minecraft Launcher")
+  (0 t t :class "Minecraft")
+  (0 nil t :class "PCSX2"))
+
+(define-frame-preference *chat-group*
+  (0 t t :class "discord"))
 
 ;;; Audio
 ;; Commands are run with pamixer.
