@@ -214,6 +214,22 @@
     "g l" #'evil-lion-left
     "g L" #'evil-lion-right))
 
+;; comment out text objects with `gc'
+(use-package evil-nerd-commenter
+  :straight t
+  :config
+  (general-def
+    :keymaps 'global
+    :states 'normal
+    "gc" #'evilnc-comment-operator))
+
+;; operate on argument list items
+(use-package evil-args
+  :straight t
+  :config
+  (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
+  (define-key evil-outer-text-objects-map "a" 'evil-outer-arg))
+
 ;;;;; Text manipulation
 
 ;; expedites copying from org-mode to Word for essays
@@ -486,7 +502,10 @@ If not, kill ARG words backwards."
 
 ;; font settings
 ;; (add-to-list 'default-frame-alist '(font . "Meslo LG S-10"))
-(set-face-attribute 'default nil :family "Meslo LG S" :height 120 :weight 'normal)
+(set-face-attribute 'default nil
+                    :family "Meslo LG M"
+                    :height 120
+                    :weight 'normal)
 (set-face-attribute 'variable-pitch nil :family "IBM Plex Sans" :height 140)
 (setq-default line-spacing 1)
 
@@ -640,7 +659,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 ;; theme of choice
 (use-package modus-themes
   :no-require t                      ; included in Emacs 28 but not as a library
-  :hook (emacs-startup . (lambda () (t/load-theme 'modus-operandi)))
+  :hook (emacs-startup . (lambda () (t/load-theme 'modus-vivendi)))
 
   :init
   (setq modus-themes-italic-constructs t
