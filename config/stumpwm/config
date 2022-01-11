@@ -182,16 +182,42 @@
                '(:class "Thunar")))
 
 ;; Jump to program, opening it if it isn't found
-(defvar *t/open-program-bindings*
+(defvar *open-program-bindings*
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "e") "emacsclient") ; edit
     (define-key map (kbd "w") "qutebrowser")     ; web
     (define-key map (kbd "t") "alacritty")   ; term
     (define-key map (kbd "f") "thunar")      ; files
     map))
-(define-key *top-map* (kbd "s-a") '*t/open-program-bindings*)
+(define-key *top-map* (kbd "s-a") '*open-program-bindings*)
 
-(define-key stumpwm::*t/open-program-bindings* (kbd "w") "qutebrowser")     ; web
+;; Power menu
+(defcommand shutdown () ()
+  (if (y-or-n-p (format nil "Shut down machine?~&Confirm? "))
+      (run-shell-command "systemctl shutdown")))
+
+(defcommand reboot () ()
+  (if (y-or-n-p (format nil "Reboot machine?~&Confirm? "))
+      (run-shell-command "systemctl reboot")))
+
+(defcommand suspend () ()
+  (if (y-or-n-p (format nil "Suspend machine?~&Confirm? "))
+      (run-shell-command "systemctl suspend")))
+
+(defcommand hibernate () ()
+  (if (y-or-n-p (format nil "Hibernate machine?~&Confirm? "))
+      (run-shell-command "systemctl shutdown")))
+
+(defvar *system-bindings*
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "q") "quit-confirm")
+    (define-key map (kbd "Q") "shutdown")
+    (define-key map (kbd "r") "reboot")
+    (define-key map (kbd "s") "suspend")
+    (define-key map (kbd "h") "hibernate")
+    map))
+
+(define-key *top-map* (kbd "s-Q") *system-bindings*)
 ;; 
 ;; Local Variables:
 ;; eval: (outline-minor-mode)
