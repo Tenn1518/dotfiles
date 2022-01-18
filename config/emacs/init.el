@@ -38,7 +38,8 @@
 ;; Straight.el package manager
 (defvar bootstrap-version)
 (let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" no-littering-var-directory))
+       (expand-file-name "straight/repos/straight.el/bootstrap.el"
+                         no-littering-var-directory))
       (bootstrap-version 5))
   (unless (file-exists-p bootstrap-file)
     (with-current-buffer
@@ -157,7 +158,7 @@
 
   :config
   ;; use evil's search over isearch
-  (evil-select-search-module evil-search-module 'evil-search))
+  (evil-select-search-module 'evil-search-module 'evil-search))
 
 ;; manip delims
 (use-package evil-surround
@@ -433,8 +434,8 @@ If not, kill ARG words backwards."
   ;; point dired to correct ls binary on macOS
   (when (eq system-type 'darwin)
     (setq dired-use-ls-dired t
-          insert-directory-program "/usr/local/bin/gls"
-          dired-listing-switches "-aBhl --group-directories-first"))
+          insert-directory-program "/usr/local/bin/gls"))
+  (setq dired-listing-switches "-aBhl --group-directories-first")
   ;; hide dotfiles with C-x M-o
   (setq dired-omit-files "^\\..\\{2,\\}"))  ; default: "\\`[.]?#\\|\\`[.][.]?\\'"
 
@@ -504,9 +505,10 @@ If not, kill ARG words backwards."
 ;; (add-to-list 'default-frame-alist '(font . "Meslo LG S-10"))
 (set-face-attribute 'default nil
                     :family "Meslo LG M"
-                    :height 120
+                    :height 110
                     :weight 'normal)
 (set-face-attribute 'variable-pitch nil :family "IBM Plex Sans" :height 140)
+(set-face-attribute 'fixed-pitch nil :family "Meslo LG M")
 (setq-default line-spacing 1)
 
 ;; Remove prompts that explicitly require "yes" or "no"
@@ -658,19 +660,21 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 
 ;; theme of choice
 (use-package modus-themes
+  :disabled
   :no-require t                      ; included in Emacs 28 but not as a library
   :hook (emacs-startup . (lambda () (t/load-theme 'modus-vivendi)))
 
   :init
   (setq modus-themes-italic-constructs t
-        modus-themes-variable-pitch-headings t
-        ;; set font scale for headings
-        modus-themes-scale-headings t
-        modus-themes-scale-title 1.35
-        modus-themes-scale-4 1.2
-        modus-themes-scale-3 1.15
-        modus-themes-scale-2 1.1
-        modus-themes-scale-1 1.05)
+        modus-themes-variable-pitch-headings t)
+  ;; (setq
+  ;; ;; set font scale for headings
+  ;; modus-themes-scale-headings t
+  ;; modus-themes-scale-title 1.35
+  ;; modus-themes-scale-4 1.2
+  ;; modus-themes-scale-3 1.15
+  ;; modus-themes-scale-2 1.1
+  ;; modus-themes-scale-1 1.05)
   ;; set fontification settings for headings
   (setq modus-themes-headings '((1 . (overline))
                                 (2 . (overline))
@@ -682,6 +686,20 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
   :config
   (dolist (theme '(modus-vivendi modus-operandi))
     (add-to-list 't/theme-list theme)))
+
+(use-package doom-themes
+  :straight t
+
+  :hook (emacs-startup . (lambda () (t/load-theme 'doom-molokai)))
+
+  :config
+  (dolist (theme '(doom-molokai doom-solarized-light))
+    (add-to-list 't/theme-list theme)))
+
+(use-package solaire-mode
+  :straight t
+
+  :hook (emacs-startup . (lambda () (solaire-global-mode))))
 
 ;;;;; Completion
 
@@ -718,11 +736,13 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
     :states '(emacs normal insert)
     "C-n" #'icomplete-forward-completions
     "C-p" #'icomplete-backward-completions
-    "C-j" #'icomplete-forward-completions
-    "C-k" #'icomplete-backward-completions
     "C-v" #'t/icomplete-next-page
     "M-v" #'t/icomplete-prev-page
-    "RET" #'icomplete-fido-ret ; Return key executes candidate at point
+    ;; Switch `C-j' and `RET'.  RET executes candidate at point, while `C-j'
+    ;; immediately sends the current input exclusively
+    "C-j" #'icomplete-ret
+    "RET" #'icomplete-fido-ret
+    ;; "RET" #'icomplete-fido-ret
     "C-." nil)
   :hook (emacs-startup . icomplete-mode))
 
@@ -741,7 +761,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
   :straight t
   :config
   (setq completion-styles '(orderless))
-  (setq completion-category-defaults '((file (styles partial-completion))))
+  (setq completion-category-defaults '((file (styles . (basic substring)))))
   (savehist-mode))
 
 ;; candidate annotations
@@ -918,9 +938,9 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
    t/daily-file (expand-file-name "daily.org" org-directory)
    ;; appearance
    org-indent-indentation-per-level 1
-   org-startup-indented t
+   org-startup-indented nil
    org-startup-with-inline-images t
-   org-startup-with-latex-preview t
+   org-startup-with-latex-preview nil   ; slows org utils that open many buffers
    org-fontify-whole-heading-line t
    org-pretty-entities t
    ;; behavior
@@ -976,8 +996,9 @@ file+function in org-capture-templates."
         '(("note")
           ("event")
           ("task")
-          ("school"))
-        org-capture-templates
+          ("school")))
+
+  (setq org-capture-templates
         `(("t" "Quick todo" entry
            (file+function t/daily-file t/org-date-find)
            "* TODO %?\n%U"
@@ -1008,13 +1029,14 @@ file+function in org-capture-templates."
 
   ;; org shortcuts
   (t/leader-def
-    "x" #'org-capture
+    "c" #'org-capture
     "l" #'org-store-link
     "n f" #'t/edit-org-dir) 
 
   :config
   (setq ;; appearance settings
    org-hide-emphasis-markers nil
+   org-hide-leading-stars nil
    org-ellipsis " ▼ "
    ;; latex settings
    org-preview-latex-image-directory (concat "~/.cache/emacs/" "ltximg")
@@ -1133,12 +1155,13 @@ file+function in org-capture-templates."
         ("C-s-v" . org-variable-pitch-minor-mode)))
 
 (use-package org-bullets
+  :disabled
   :straight t
 
   :hook (org-mode . org-bullets-mode)
   
   :config
-  (setq org-bullets-bullet-list '(" "))) ; Bullets are invisible
+  (setq org-bullets-bullet-list '(" "))) ; set bullets invisible
 
 ;; rendered org tables
 (use-package org-pretty-table
@@ -1204,6 +1227,7 @@ file+function in org-capture-templates."
             (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
                        ":PROPERTIES:\n:NOTER_DOCUMENT: %F\n:END:\n#+title: ${title}\n#+STARTUP: latexpreview showeverything")
             :unnarrowed t)))
+
   (org-roam-db-autosync-mode))
 
 ;; browser page for viewing/navigating org-roam notes
@@ -1363,6 +1387,18 @@ valid directory, raise an error."
           (s-join ":" exec-path)))
 
 ;;;; Code
+
+;; snippets and templates
+(use-package yasnippet
+  :straight t
+
+  :hook
+  (prog-mode . yas-minor-mode)
+  (org-mode . yas-minor-mode))
+
+;; packaged snippets
+(use-package yasnippet-snippets
+  :straight t)
 
 ;; error checking
 (use-package flycheck
