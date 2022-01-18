@@ -18,6 +18,9 @@ set number
 " Cursor blinks in insert mode
 let $NVIM_TUI_ENABLE_CURSOR_SHAPE=1
 
+" Use terminal's color scheme
+set termguicolors
+
 " Document settings
 " Tab is 4 spaces
 set ts=4 sw=4
@@ -68,6 +71,9 @@ Plug 'tpope/vim-surround'
 
 " Repeat plugin commands
 Plug 'tpope/vim-repeat'
+
+" Readline bindings in command mode
+Plug 'tpope/vim-rsi'
 
 " More [/] commands for moving between pairs
 Plug 'tpope/vim-unimpaired'
