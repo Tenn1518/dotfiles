@@ -68,7 +68,7 @@
 ;; (setf *screen-mode-line-format* (list "[^B%n^b] %W^>%m %d | %B   "))
 ;; https://www.shutterstock.com/blog/neon-color-palettes/ :: source of hex codes
 (setf *screen-mode-line-format*
-      '("[%g] %W^>^(:fg \"#fb2874\")%d^n  ^(:fg \"#66d9ef\")%B^n"))
+      '("[%g] %W^>^(:fg \"#fb2874\")%d^n  ^(:fg \"#66d9ef\")%B^n     "))
 ;; '("[%g] %W^>^(:fg \"#FE53BB\")%d^n  ^(:fg \"#09FBD3\")%B^n"))
 (setf *time-modeline-string* "%D %l:%M %p")
 (setf *mode-line-timeout* 2)
@@ -148,8 +148,8 @@
   (message (run-shell-command "pamixer --get-volume-human" t)))
 
 (let ((map *top-map*))
-  (define-key map (kbd "XF86AudioRaiseVolume") "vol-up 5")
-  (define-key map (kbd "XF86AudioLowerVolume") "vol-down 5")
+  (define-key map (kbd "XF86AudioRaiseVolume") "vol-up 4")
+  (define-key map (kbd "XF86AudioLowerVolume") "vol-down 4")
   (define-key map (kbd "M-S-F7") "vol-up 2")
   (define-key map (kbd "M-S-F6") "vol-down 2")
   (define-key map (kbd "XF86AudioMute") "vol-mute"))

@@ -1082,7 +1082,10 @@ file+function in org-capture-templates."
     ;; Make item at point heading
     "C-s-h" #'org-toggle-heading
     ;; surround region or word at point in emphasis markers
-    "C-s-e" #'t/org-emphasize)
+    "C-s-e" #'t/org-emphasize
+    :states 'normal
+    "zk" #'org-previous-visible-heading
+    "zj" #'org-next-visible-heading)
   ;; Search headings
   (t/leader-def 'org-mode-map
     :infix "g"
