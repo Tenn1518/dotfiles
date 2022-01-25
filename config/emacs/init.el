@@ -841,6 +841,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 
 ;; dropdown completion (explicitly call with M-TAB)
 (use-package corfu
+  :disabled
   :straight t
   :hook
   ((prog-mode . corfu-mode)
@@ -854,6 +855,27 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
                      #'corfu--completion-in-region
                    #'consult-completion-in-region)
                  args))))
+
+(use-package company
+  :straight t
+
+  :custom
+  (company-idle-delay 0)
+  (company-minimum-prefix-length 1)
+  (company-selection-wrap-around t)
+  (company-global-modes '(not org-mode))
+
+  :hook
+  (prog-mode . company-mode)
+
+  :config
+  (general-def
+    :keymaps 'company-active-map
+    :states '(emacs insert motion)
+    "TAB" #'company-complete-common-or-cycle ; not working?
+    "<backtab>" (lambda ()
+                  (interactive)
+                  (company-complete-common-or-cycle -1))))
 
 ;;;;; Documentation
 
@@ -1395,9 +1417,8 @@ valid directory, raise an error."
 (use-package yasnippet
   :straight t
 
-  :hook
-  (prog-mode . yas-minor-mode)
-  (org-mode . yas-minor-mode))
+  :config
+  (yas-global-mode))
 
 ;; packaged snippets
 (use-package yasnippet-snippets
@@ -1462,7 +1483,7 @@ valid directory, raise an error."
   :defer t
   :commands lsp lsp-deferred
   :init
-  (setq lsp-headerline-breadcrumb-enable nil)
+  (setq lsp-headerline-breadcrumb-enable t)
   (setq lsp-keymap-prefix "C-c c")
   (setq lsp-clients-clangd-args '("-j=3"
                                   "--background-index"
@@ -1507,13 +1528,9 @@ lsp-enabled buffers."
 ;; python language server
 (use-package lsp-python-ms
   :straight t
-  :defer t
+  :after lsp
   :init
-  (setq lsp-python-ms-auto-install-server t
-        lsp-python-ms-executable "~/Projects/python-language-server/output/bin/Release/linux-x64/publish/Microsoft.Python.LanguageServer")
-  :hook (python-mode . (lambda ()
-                         (require 'lsp-python-ms)
-                         (lsp))))
+  (setq lsp-python-ms-auto-install-server t))
 
 ;;;;; Tree-sitter
 
