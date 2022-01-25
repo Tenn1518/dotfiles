@@ -155,10 +155,19 @@
   (evil-want-keybinding nil)          ; evil-collection requirement
   (evil-want-Y-yank-to-eol t)         ; Y and yy to copy line is redundant
   (evil-mode-line-format '(after . mode-line-remote))
+  (evil-want-fine-undo t)
+  (evil-want-Y-yank-to-eol t)
+  (evil-want-C-w-in-emacs-state t)
+  (evil-want-C-u-delete t)
+  (evil-want-C-u-scroll t)
 
   :config
+  ;; `C-g' removes search highlights
+  (advice-add #'keyboard-quit :before #'evil-ex-nohighlight)
   ;; use evil's search over isearch
-  (evil-select-search-module 'evil-search-module 'evil-search))
+  (evil-select-search-module 'evil-search-module 'evil-search)
+  ;; replacement for `C-u'
+  (t/leader-def "u" #'universal-argument))
 
 ;; manip delims
 (use-package evil-surround
@@ -480,6 +489,7 @@ If not, kill ARG words backwards."
 (use-package magit
   :straight t
   :defer t
+
   :bind (("C-c g" . #'magit-status)
          ("<f5>" . #'magit-status)))
 
