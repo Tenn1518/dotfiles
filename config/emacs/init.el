@@ -709,7 +709,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 (use-package solaire-mode
   :straight t
 
-  :hook (emacs-startup . (lambda () (solaire-global-mode))))
+  :hook (emacs-startup . solaire-global-mode))
 
 ;;;;; Completion
 
@@ -1071,7 +1071,7 @@ file+function in org-capture-templates."
    org-hide-leading-stars nil
    org-ellipsis " ▼ "
    ;; latex settings
-   org-preview-latex-image-directory (concat "~/.cache/emacs/" "ltximg")
+   org-preview-latex-image-directory "~/.cache/emacs/ltximg/"
    org-format-latex-options '( :foreground "Black"
                                :background "White"
                                :scale 1.5
@@ -1206,6 +1206,16 @@ file+function in org-capture-templates."
              :repo "Fuco1/org-pretty-table")
 
   :hook (org-mode . org-pretty-table-mode))
+
+;; drag and drop images to org-mode
+(use-package org-download
+  :straight t
+
+  :config
+  (setq org-download-method 'directory)
+  (setq-default org-download-image-dir (concat org-directory "img/"))
+
+  :hook (dired-mode . org-download-enable))
 
 ;; journal
 (use-package org-journal
