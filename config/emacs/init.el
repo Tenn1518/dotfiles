@@ -160,6 +160,7 @@
   (evil-want-C-w-in-emacs-state t)
   (evil-want-C-u-delete t)
   (evil-want-C-u-scroll t)
+  (evil-symbol-word-search t)
 
   :config
   ;; `C-g' removes search highlights
@@ -188,23 +189,11 @@
     :keymaps '(global override)
     :prefix "SPC"
     :non-normal-prefix "C-c")
-  (general-create-definer t/toggle-def
-    :states '(normal insert emacs)
-    :keymaps '(global override)
-    :prefix "SPC t"
-    :non-normal-prefix "C-c t")
-  (general-create-definer t/emsys-def
-    :states '(normal insert emacs)
-    :keymaps '(global override)
-    :prefix "SPC h"
-    :non-normal-prefix "C-c h")
-  (general-create-definer t/notes-def
-    :states '(normal insert emacs)
-    :keymaps '(global override)
-    :prefix "SPC n"
-    :non-normal-prefix "C-c n")
   (t/leader-def
-    "" nil))
+    "" '(nil :which-key "leader")
+    "t" '(:prefix-command t/leader-toggle-map :which-key "toggle")
+    "h" '(:prefix-command t/leader-emacs-map :which-key "emacs")
+    "n" '(:prefix-command t/leader-notes-map :which-key "notes")))
 
 (use-package evil-collection
   :straight t
@@ -390,7 +379,7 @@ If not, kill ARG words backwards."
 ;; leader keybinds for buffers
 (t/leader-def "b" #'consult-buffer)
 ;; scroll buffer in two separate windows
-(t/toggle-def "F" #'follow-mode)
+(define-key t/leader-toggle-map (kbd "F") #'follow-mode)
 
 ;; project commands under <leader>p
 (t/leader-def "p" project-prefix-map)
@@ -454,7 +443,7 @@ If not, kill ARG words backwards."
   :defer t
 
   :init
-  (t/toggle-def "t" #'treemacs)
+  (define-key t/leader-toggle-map "t" #'treemacs)
 
   :config
   (setq treemacs-space-between-root-nodes nil
@@ -574,12 +563,12 @@ in its buffer.
   (set-frame-size nil 90 60))
 
 ;; toggles
-(t/toggle-def
-  "m" #'toggle-frame-maximized
-  "f" #'toggle-frame-fullscreen
-  "T" #'toggle-frame-tab-bar
-  "w" #'window-toggle-side-windows
-  "W" #'t/make-frame-small)
+(let ((m t/leader-toggle-map))
+  (define-key m "m" #'toggle-frame-maximized)
+  (define-key m "f" #'toggle-frame-fullscreen)
+  (define-key m "T" #'toggle-frame-tab-bar)
+  (define-key m "w" #'window-toggle-side-windows)
+  (define-key m "W" #'t/make-frame-small))
 
 ;;;;; Modeline
 
@@ -665,8 +654,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
     (setq t/theme--loaded chosen-theme))
   (message "Loaded theme %s" t/theme--loaded))
 
-(t/emsys-def
-  "t" #'t/cycle-themes)
+(general-def t/leader-emacs-map "t" #'t/cycle-themes)
 
 ;; theme of choice
 (use-package modus-themes
@@ -750,7 +738,8 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
     "M-v" #'t/icomplete-prev-page
     ;; Switch `C-j' and `RET'.  RET executes candidate at point, while `C-j'
     ;; immediately sends the current input exclusively
-    "C-j" #'icomplete-ret
+    ;; "C-j" #'icomplete-ret
+    "C-j" #'minibuffer-complete-and-exit
     "RET" #'icomplete-fido-ret
     ;; "RET" #'icomplete-fido-ret
     "C-." nil)
@@ -799,8 +788,8 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
     "M-y" #'consult-yank-pop
     "<help> a" #'consult-apropos)
 
-  (t/leader-def
-    :infix "g"
+  (t/leader-def "g" '(:keymap goto-map :which-key "goto"))
+  (general-def goto-map
     "e" #'consult-compile-error
     "f" #'consult-flycheck
     "g" #'consult-goto-line
@@ -810,8 +799,8 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
     "i" #'consult-imenu
     "I" #'consult-imenu-multi)
 
-  (t/leader-def
-    :infix "s"
+  (t/leader-def "s" '(:keymap search-map :which-key "search"))
+  (general-def search-map
     "f" #'consult-find
     "F" #'consult-locate
     "g" #'consult-grep
@@ -1467,7 +1456,7 @@ valid directory, raise an error."
   :defer t
 
   :init
-  (t/toggle-def "r" #'rainbow-mode))
+  (define-key t/leader-toggle-map "r" #'rainbow-mode))
 
 ;;;;; Format
 
