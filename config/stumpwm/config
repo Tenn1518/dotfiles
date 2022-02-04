@@ -40,19 +40,19 @@
 (xft:cache-fonts)
 (set-font (make-instance 'xft:font :family "Meslo LG S" :subfamily "Regular" :size 11))
 
-;;;; Gaps
+;; ;;;; Gaps
 
-(load-module "swm-gaps")
-(setf swm-gaps::*head-gaps-size* 0)
-(setf swm-gaps::*inner-gaps-size* 5)
-(setf swm-gaps::*outer-gaps-size* 10)
+;; (load-module "swm-gaps")
+;; (setf swm-gaps::*head-gaps-size* 0)
+;; (setf swm-gaps::*inner-gaps-size* 5)
+;; (setf swm-gaps::*outer-gaps-size* 10)
 
-(swm-gaps::toggle-gaps-on)
+;; (swm-gaps::toggle-gaps-on)
 
 ;;;; Modeline
 (load-module "battery-portable")
-(load-module "mpd")
 (setf battery-portable::*no-battery-info* "")
+;; (load-module "mpd")
 
 ;; colors
 ;; (setf *mode-line-background-color* "#000000")
@@ -70,7 +70,7 @@
 (setf *screen-mode-line-format*
       '("[%g] %W^>^(:fg \"#fb2874\")%d^n  ^(:fg \"#66d9ef\")%B^n     "))
 ;; '("[%g] %W^>^(:fg \"#FE53BB\")%d^n  ^(:fg \"#09FBD3\")%B^n"))
-(setf *time-modeline-string* "%D %l:%M %p")
+(setf *time-modeline-string* "%m/%e/%y %l:%M %p")
 (setf *mode-line-timeout* 2)
 
 (enable-mode-line (current-screen) (current-head) t)
@@ -99,11 +99,12 @@
 (defcommand rofi-windowlist-global () ()
   (run-shell-command "rofi -show window"))
 
-(define-key *top-map* (kbd "s-;") "dmenu-call-command")
-(define-key *top-map* (kbd "s-SPC") "rofi-run")
-(define-key *top-map* (kbd "s-f") "rofi-windowlist")
-(define-key *top-map* (kbd "s-F") "rofi-windowlist-global")
-(define-key *top-map* (kbd "s-:") "dmenu-eval-lisp")
+(let ((map *top-map*))
+  (define-key map (kbd "s-;") "dmenu-call-command")
+  (define-key map (kbd "s-SPC") "rofi-run")
+  (define-key map (kbd "s-f") "rofi-windowlist")
+  (define-key map (kbd "s-F") "rofi-windowlist-global")
+  (define-key map (kbd "s-:") "dmenu-eval-lisp"))
 
 ;;; Workspaces and automatic window placement
 
@@ -112,23 +113,33 @@
 
 (setf *default-group-name* "main")
 
+(defvar *media-group* "media")
+(gnewbg *media-group*)
+
 (gnewbg "1")
 (gnewbg "2")
 
-(defvar *games-group* "steam")
-(defvar *chat-group* "chat")
-(gnewbg *games-group*)
-(gnewbg *chat-group*)
+;; Media applications are automatically placed into its own group
+(define-frame-preference *media-group*
+  (0 nil t   :class "Steam")
+  (0 nil t   :class "Minecraft Launcher")
+  (0 t   t   :class "Minecraft")
+  (0 nil t   :class "PCSX2")
+  (0 t   t   :class "discord")
+  (0 nil t   :class "Spotify"))
 
-;; Games are automatically placed into its own group
-(define-frame-preference *games-group*
-  (0 nil t :class "Steam")
-  (0 nil t :class "Minecraft Launcher")
-  (0 t t :class "Minecraft")
-  (0 nil t :class "PCSX2"))
+;; binds
+(define-key *groups-map* (kbd "f") "gnew-float")
 
-(define-frame-preference *chat-group*
-  (0 t t :class "discord"))
+(let ((map *top-map*))
+  (define-key map (kbd "s-g") *groups-map*)
+  (define-key map (kbd "C-s-p") "gprev")
+  (define-key map (kbd "C-s-n") "gnext")
+  (define-key map (kbd "C-s-N") "gnext-with-window")
+  (define-key map (kbd "C-s-P") "gprev-with-window")
+  (define-key map (kbd "C-s-f") "grouplist")
+  (define-key map (kbd "C-s-k") "gkill")
+  (define-key map (kbd "C-s-c") "gnew"))
 
 ;;; Audio
 ;; Commands are run with pamixer.
@@ -157,8 +168,16 @@
 ;;; Brightness
 ;; Commands are run with brightnessctl.
 
+(defvar *light-max*
+  (parse-integer (run-shell-command "brightnessctl m" t)))
+
 (defun light-info ()
-  (message (run-shell-command "brightnessctl g" t)))
+  "Print the current brightness percentage reported by brightnessctl."
+  (let* ((b (parse-integer (run-shell-command "brightnessctl g" t)))
+         (percent (* (/ b *light-max*)
+                     100)))
+    (message (format nil "~D%" percent))
+    percent))
 
 (defcommand light-up (arg) ((:number "Increase brightness by: "))
   (run-shell-command (format nil "brightnessctl s +~D%"
@@ -187,6 +206,10 @@
 ;; Move floating windows with Super+drag
 (setf *float-window-modifier* :SUPER)
 
+(defcommand t/windowlist () ()
+  (let ((*window-format* "%t"))
+    (windowlist)))
+
 (let ((map *top-map*))                  ; no prefix key
   (define-key map (kbd "s-h") "move-focus left")
   (define-key map (kbd "s-j") "move-focus down")
@@ -200,7 +223,8 @@
   (define-key map (kbd "s-L") "exchange-direction right")
 
   ;; Execute shell command/program
-  (define-key map (kbd "s-TAB") "pull-from-windowlist")
+  ;; (define-key map (kbd "s-TAB") "pull-from-windowlist")
+  (define-key map (kbd "s-TAB") "pull-hidden-other")
   (define-key map (kbd "s-p") "pull-hidden-previous")
   (define-key map (kbd "s-n") "pull-hidden-next")
 
@@ -209,15 +233,13 @@
   (define-key map (kbd "s-c") "remove-split")
   (define-key map (kbd "s-s") "vsplit")
   (define-key map (kbd "s-v") "hsplit")
-  (define-key map (kbd "s-=") "balance-frames"))
+  (define-key map (kbd "s-=") "balance-frames")
+
+  ;; windowlist
+  (define-key map (kbd "s-\"") "t/windowlist"))
 
 ;; Make frame fullscreen
 (define-key *root-map* (kbd "f") "fullscreen")
-
-;; Groups
-
-(define-key *top-map* (kbd "s-g") *groups-map*)
-(define-key *groups-map* (kbd "f") "gnew-float")
 
 ;; Programs
 
@@ -250,11 +272,11 @@
 ;; Power menu
 (defcommand shutdown () ()
   (if (y-or-n-p (format nil "Shut down machine?~&Confirm? "))
-      (run-shell-command "systemctl shutdown")))
+      (run-shell-command "poweroff")))
 
 (defcommand reboot () ()
   (if (y-or-n-p (format nil "Reboot machine?~&Confirm? "))
-      (run-shell-command "systemctl reboot")))
+      (run-shell-command "reboot")))
 
 (defcommand suspend () ()
   (if (y-or-n-p (format nil "Suspend machine?~&Confirm? "))
@@ -262,7 +284,7 @@
 
 (defcommand hibernate () ()
   (if (y-or-n-p (format nil "Hibernate machine?~&Confirm? "))
-      (run-shell-command "systemctl shutdown")))
+      (run-shell-command "systemctl hibernate")))
 
 (defvar *system-bindings*
   (let ((map (make-sparse-keymap)))
