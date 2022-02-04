@@ -703,6 +703,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 
 ;; built in completion
 (use-package icomplete
+  :disabled
   :init
   (defvar t/icomplete-page-scroll-margin 1
     "Number of entries that will stay on screen from last page during scroll.")
@@ -747,6 +748,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 
 ;; vertical completion candidates like ivy/helm
 (use-package icomplete-vertical
+  :disabled
   :if (<= emacs-major-version 27)
   :straight t
   :after icomplete
@@ -754,6 +756,12 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
   :config
   (setq icomplete-vertical-prospects-height 15)
   (icomplete-vertical-mode))
+
+;; alternate completion
+(use-package vertico
+  :straight t
+  :config
+  (vertico-mode))
 
 ;; sane fuzzy matching
 (use-package orderless
@@ -773,7 +781,6 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 (use-package consult
   :straight t
   :defer t
-  :after icomplete
 
   :init
   (general-def
@@ -815,10 +822,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 ;; select from useful directories during minibuffer commands
 (use-package consult-dir
   :straight t
-  :bind (("C-x C-d" . consult-dir)
-         :map icomplete-minibuffer-map
-         ("C-x C-d" . consult-dir)
-         ("C-x C-j" . consult-dir-jump-file))
+  :bind (("C-x C-d" . consult-dir))
   :config
   (setq consult-dir-project-list-function 'nil))
 
