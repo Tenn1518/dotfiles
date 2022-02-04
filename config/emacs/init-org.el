@@ -118,11 +118,12 @@ file+function in org-capture-templates."
           ;; entries for school file
           ("s" "Templates for school")
           ("st" "Class-related todo" entry
-           (file+function t/daily-file t/org-date-find)
+           (file+headline t/daily-file "Tasks")
            ,(concat "* TODO %^{Title} :hw:\n"
                     "DEADLINE:%^{Deadline}t\n\n"
                     "+ [[%?][Turn-In]]")
-           :empty-lines 1)
+           :empty-lines 1
+           :prepend t)
           ("sn" "Class-related notes" entry
            (file+function t/daily-file t/org-date-find)
            "* %^{Title} :%^{Type|notes|class-info}:\n%U\n\n+ %?"
@@ -287,12 +288,26 @@ file+function in org-capture-templates."
 
 ;; rendered org tables
 (use-package org-pretty-table
+  :disabled
   :straight (org-pretty-table
              :type git
              :host github
              :repo "Fuco1/org-pretty-table")
 
   :hook (org-mode . org-pretty-table-mode))
+
+;; hide and show emphasis markers
+(use-package org-appear
+  :straight t
+  :hook (org-mode . org-appear-mode)
+
+  :custom
+  (org-appear-autosubmarkers t))
+
+;; render latex unless it's being edited
+(use-package org-fragtog
+  :straight t
+  :hook (org-mode . org-fragtog-mode))
 
 ;; drag and drop images to org-mode
 (use-package org-download

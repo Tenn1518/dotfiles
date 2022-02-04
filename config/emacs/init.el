@@ -132,9 +132,9 @@
 (use-package highlight-indent-guides
   :straight t
   :hook (prog-mode . highlight-indent-guides-mode)
-  :bind ("C-c t i" . highlight-indent-guides-mode)
   :config
-  (setq highlight-indent-guides-method 'character))
+  (setq highlight-indent-guides-method 'character)
+  (general-def t/leader-toggle-map "i" #'highlight-indent-guides-mode))
 
 ;; shorten repeatable commands
 (repeat-mode 1)
@@ -166,9 +166,7 @@
   ;; `C-g' removes search highlights
   (advice-add #'keyboard-quit :before #'evil-ex-nohighlight)
   ;; use evil's search over isearch
-  (evil-select-search-module 'evil-search-module 'evil-search)
-  ;; replacement for `C-u'
-  (t/leader-def "u" #'universal-argument))
+  (evil-select-search-module 'evil-search-module 'evil-search))
 
 ;; manip delims
 (use-package evil-surround
@@ -182,18 +180,23 @@
   :straight t
   :demand t
 
-  :config
+  :init
   ;; leader key (SPC in Evil mode, C-c in Emacs
   (general-create-definer t/leader-def
-    :states '(normal insert emacs)
+    :states '(normal insert)
     :keymaps '(global override)
     :prefix "SPC"
-    :non-normal-prefix "C-c")
+    :prefix-command 't/leader-map
+    :global-prefix "C-c")
   (t/leader-def
-    "" '(nil :which-key "leader")
     "t" '(:prefix-command t/leader-toggle-map :which-key "toggle")
     "h" '(:prefix-command t/leader-emacs-map :which-key "emacs")
-    "n" '(:prefix-command t/leader-notes-map :which-key "notes")))
+    "n" '(:prefix-command t/leader-notes-map :which-key "notes")
+    "o" '(:prefix-command t/leader-open-map :wk "open"))
+  ;; ensure compat if evil-mode isn't loaded
+  ;; TODO: redundant `C-c s'/`M-s s' and `C-c p'/`C-x p' type binds?
+  ;; possible solution: only bind Leader+s when evil loads
+  (general-def "C-c" t/leader-map))
 
 (use-package evil-collection
   :straight t
@@ -206,6 +209,7 @@
 ;; Vertical align
 (use-package evil-lion
   :straight t
+  :after evil
   :config
   (general-def
     :keymaps 'global
@@ -216,6 +220,7 @@
 ;; comment out text objects with `gc'
 (use-package evil-nerd-commenter
   :straight t
+  :after evil
   :config
   (general-def
     :keymaps 'global
@@ -287,18 +292,22 @@ If not, kill ARG words backwards."
   "C-M-<backspace>" #'backward-kill-sexp
   ;; built-in, unused commands
   "C-z" #'zap-up-to-char
-  "C-x C-b" #'ibuffer
-  "C-c h v" #'set-variable
+  "C-x C-b" #'ibuffer)
+(general-def t/leader-toggle-map
   ;; Toggles
-  "C-c t l" #'display-line-numbers-mode
-  "C-c t v" #'visual-line-mode
+  "l" #'display-line-numbers-mode
+  "v" #'visual-line-mode)
+(general-def t/leader-open-map
   ;; Applications
-  "C-c o c" #'calendar)
+  "c" #'calendar)
+(general-def t/leader-emacs-map
+  "v" #'set-variable)
 
 ;;;;; Text navigation and search
 
 ;; isearch alternative across frame
 (use-package avy
+  :disabled
   :straight t
   :defer t
 
@@ -479,8 +488,8 @@ If not, kill ARG words backwards."
   :straight t
   :defer t
 
-  :bind (("C-c g" . #'magit-status)
-         ("<f5>" . #'magit-status)))
+  :config
+  (t/leader-def "gg" #'magit-status))
 
 ;; built in version control
 (use-package diff-mode
@@ -903,7 +912,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
   (which-key-mode)
   ;; prefer right side, then bottom for popup
   (which-key-setup-side-window-right-bottom)
-  :bind ("C-c h k" . #'which-key-show-top-level))
+  (general-def t/leader-emacs-map "k" #'which-key-show-top-level))
 
 ;;;; Modes --- Filetype-specific settings
 
@@ -1101,6 +1110,13 @@ lsp-enabled buffers."
   :config
   (setq lsp-ui-doc-position 'bottom))
 
+(use-package dap-mode
+  :straight t
+  :config
+  ;; call hydra when breakpoint hit
+  (add-hook 'dap-stopped-hook
+            (lambda (arg) (call-interactively #'dap-hydra))))
+
 ;; python language server
 (use-package lsp-python-ms
   :straight t
@@ -1139,7 +1155,9 @@ lsp-enabled buffers."
   :straight t
   :defer t
   :commands vterm
-  :bind ("C-c o t" . vterm))
+
+  :config
+  (general-def t/leader-open-map "t" #'vterm))
 
 (use-package eshell
   :defer t
@@ -1161,10 +1179,7 @@ forward."
           (bury-buffer)
         (delete-char arg))))
 
-  (t/leader-def "T" #'eshell)
-
-  :bind
-  (("C-c o e" . eshell))
+  (general-def t/leader-open-map "e" #'eshell)
 
   :hook
   ;; consult-outline jumps between previous prompts in shell buffer
@@ -1187,7 +1202,7 @@ forward."
 (use-package elfeed
   :straight t
   :config
-  (t/leader-def "o f" #'elfeed)
+  (general-def t/leader-open-map "f" #'elfeed)
   (setq elfeed-feeds
         '(("https://archlinux.org/feeds/news/" linux arch)
           ("https://xkcd.com/rss.xml" content))))
@@ -1198,8 +1213,8 @@ forward."
   :defer t
   
   :init
-  (t/leader-def
-    :infix "m"
+  (t/leader-def "M" '(:prefix-command t/leader-music-map :wk "music"))
+  (general-def t/leader-music-map
     "m" #'emms
     "b p" #'emms-playlist-mode-go
     ;; music controls
@@ -1257,21 +1272,21 @@ Used in repeat mode.")
 (use-package mu4e
   :load-path  "/usr/local/share/emacs/site-lisp/mu/mu4e" ; macOS-specific?
   :defer t
-  :bind
-  ("<f7>" . mu4e)
-  ("C-c o m" . mu4e)
+
   :config
   (setq
    mail-user-agent 'mu4e-user-agent
    mu4e-get-mail-command "mbsync gmail"
    ;; Gmail does this itself
-   mu4e-sent-messages-behavior 'delete))
+   mu4e-sent-messages-behavior 'delete)
+  (general-def t/leader-open-map "m" #'mu4e))
 
 ;;;; Reenable automatic mode handling according to file
 
 ;; reminds user to keep good posture
 (use-package posture
-  :bind ("C-c t p" . #'toggle-posture-reminder))
+  :config
+  (general-def t/leader-toggle-map "p" #'toggle-posture-reminder))
 
 (add-hook 'emacs-startup-hook
           (lambda ()
