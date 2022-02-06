@@ -55,42 +55,32 @@
 ;; (load-module "mpd")
 
 ;; colors
-;; (setf *mode-line-background-color* "#000000")
-(setf *mode-line-background-color* "#1c1e1f")
-;; (setf *mode-line-foreground-color* "#ffffff")
-(setf *mode-line-foreground-color* "#d6d6d4")
-(setf *mode-line-border-color* "#1c1e1f")
-(setf *mode-line-border-width* 0)
+(setf *mode-line-background-color* "#1c1e1f"
+      *mode-line-foreground-color* "#d6d6d4"
+      *mode-line-border-color* "#1c1b1b"
+      *mode-line-border-width* 1)
 
 ;; format
 (setf *group-format* " %t ")
 (setf *window-format* "%m%c%m")
-;; (setf *screen-mode-line-format* (list "[^B%n^b] %W^>%m %d | %B   "))
+(setf *time-modeline-string* "%m/%e/%y %l:%M %p")
 ;; https://www.shutterstock.com/blog/neon-color-palettes/ :: source of hex codes
 (setf *screen-mode-line-format*
-      '("[%g] %W^>^(:fg \"#fb2874\")%d^n  ^(:fg \"#66d9ef\")%B^n     "))
-;; '("[%g] %W^>^(:fg \"#FE53BB\")%d^n  ^(:fg \"#09FBD3\")%B^n"))
-(setf *time-modeline-string* "%m/%e/%y %l:%M %p")
+      '("[%g] %W^>^(:fg \"#fb2874\")(%d)^n  ^(:fg \"#66d9ef\")(%B)^n     "))
 (setf *mode-line-timeout* 2)
 
+;; start modeline
 (enable-mode-line (current-screen) (current-head) t)
 
 (defcommand toggle-ml () ()
   (toggle-mode-line (current-screen) (current-head)))
 
-;; systray
+;; tray icons
 (ql:quickload "xembed")
 (load-module "stumptray")
 (stumptray::stumptray)
 
 ;;; Launching Programs
-
-;; TODO: figure out how to avoid hardcoding this path
-;; you must clone https://gitlab.com/sasanidas/stumpwm-dmenu.git first
-(add-to-load-path "~/.stumpwm.d/modules/stumpwm-dmenu/")
-(load-module "dmenu")
-
-(setf dmenu::*dmenu-font* "13")
 
 (defcommand rofi-windowlist () ()
   (run-shell-command "rofi -show windowcd"))
@@ -100,11 +90,11 @@
   (run-shell-command "rofi -show window"))
 
 (let ((map *top-map*))
-  (define-key map (kbd "s-;") "dmenu-call-command")
+  (define-key map (kbd "s-;") "colon")
   (define-key map (kbd "s-SPC") "rofi-run")
   (define-key map (kbd "s-f") "rofi-windowlist")
   (define-key map (kbd "s-F") "rofi-windowlist-global")
-  (define-key map (kbd "s-:") "dmenu-eval-lisp"))
+  (define-key map (kbd "s-:") "eval"))
 
 ;;; Workspaces and automatic window placement
 
@@ -168,11 +158,12 @@
 ;;; Brightness
 ;; Commands are run with brightnessctl.
 
-(defvar *light-max*
-  (parse-integer (run-shell-command "brightnessctl m" t)))
+(defvar *light-max* nil)
 
 (defun light-info ()
   "Print the current brightness percentage reported by brightnessctl."
+  (unless *light-max*
+    (setf *light-max* (parse-integer (run-shell-command "brightnessctl m" t))))
   (let* ((b (parse-integer (run-shell-command "brightnessctl g" t)))
          (percent (* (/ b *light-max*)
                      100)))
@@ -200,15 +191,20 @@
 ;; Change focus on click
 (setf *mouse-focus-policy* :click)
 
-;; `s-q b' hides mouse
+;; `s-Q b' hides mouse
 (setf *banish-pointer-to* :screen)
+
+;; `s-b' brings mouse to current window
+(load-module "beckon")
 
 ;; Move floating windows with Super+drag
 (setf *float-window-modifier* :SUPER)
 
-(defcommand t/windowlist () ()
+(defcommand my-windowlist () ()
   (let ((*window-format* "%t"))
     (windowlist)))
+
+(setf *float-window-title-height* 15)
 
 (let ((map *top-map*))                  ; no prefix key
   (define-key map (kbd "s-h") "move-focus left")
@@ -236,7 +232,10 @@
   (define-key map (kbd "s-=") "balance-frames")
 
   ;; windowlist
-  (define-key map (kbd "s-\"") "t/windowlist"))
+  (define-key map (kbd "s-\"") "my-windowlist")
+
+  ;; move mouse to current window
+  (define-key map (kbd "s-b") "beckon"))
 
 ;; Make frame fullscreen
 (define-key *root-map* (kbd "f") "fullscreen")
@@ -270,31 +269,16 @@
 (define-key *top-map* (kbd "s-a") '*open-program-bindings*)
 
 ;; Power menu
-(defcommand shutdown () ()
-  (if (y-or-n-p (format nil "Shut down machine?~&Confirm? "))
-      (run-shell-command "poweroff")))
-
-(defcommand reboot () ()
-  (if (y-or-n-p (format nil "Reboot machine?~&Confirm? "))
-      (run-shell-command "reboot")))
-
-(defcommand suspend () ()
-  (if (y-or-n-p (format nil "Suspend machine?~&Confirm? "))
-      (run-shell-command "systemctl suspend")))
 
 (defcommand hibernate () ()
-  (if (y-or-n-p (format nil "Hibernate machine?~&Confirm? "))
-      (run-shell-command "systemctl hibernate")))
+  (when (y-or-n-p (format nil "Hibernate machine?~&Confirm? "))
+    (close-all-apps)
+    (run-hook *quit-hook*)
+    (run-shell-command "systemctl hibernate")))
 
-(defvar *system-bindings*
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "q") "quit-confirm")
-    (define-key map (kbd "Q") "shutdown")
-    (define-key map (kbd "r") "reboot")
-    (define-key map (kbd "s") "suspend")
-    (define-key map (kbd "h") "hibernate")
-    map))
-(define-key *top-map* (kbd "s-Q") *system-bindings*)
+(load-module "end-session")
+
+(define-key *top-map* (kbd "s-Q") "end-session")
 ;; 
 ;; Local Variables:
 ;; eval: (outline-minor-mode)
