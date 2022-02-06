@@ -33,8 +33,8 @@
    org-directory "~/Documents/Notes/"
    t/daily-file (expand-file-name "daily.org" org-directory)
    ;; appearance
-   org-indent-indentation-per-level 1
-   org-startup-indented nil
+   org-indent-indentation-per-level 2
+   org-startup-indented t
    org-startup-with-inline-images t
    org-startup-with-latex-preview nil   ; slows org utils that open many buffers
    org-fontify-whole-heading-line t
@@ -196,8 +196,7 @@ file+function in org-capture-templates."
     "zk" #'org-previous-visible-heading
     "zj" #'org-next-visible-heading)
   ;; Search headings
-  (t/leader-def 'org-mode-map
-    :infix "g"
+  (general-def goto-map 'org-mode-map
     "o" #'consult-org-heading)
 
   (define-skeleton t/org-note

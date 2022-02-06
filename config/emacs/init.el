@@ -942,7 +942,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
   :straight t
   :defer t
   :config
-  (pdf-tools-install)
+  (pdf-tools-install 'no-query)
   (setq-default pdf-view-display-size 'fit-width)
   :custom
   (pdf-annot-activate-created-annotations t "automatically annotate highlights"))
