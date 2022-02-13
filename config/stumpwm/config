@@ -1,7 +1,8 @@
 ;; -*-lisp-*-
 ;;
-;; My configuration for the Stump Window Manager.  Keybindings are chosen to
-;; reflect vim.
+;; Stump window manager configuration.
+
+;; Keybindings are chosen to reflect vim.
 
 ;; Dependencies: brightnessctl, nm-applet, pamixer, stumpwm-contrib,
 ;; stumpwm-dmenu
@@ -15,7 +16,6 @@
 ;; Setup REPL
 ;; Connect from Emacs with `M-x sly-connect localhost 1234'
 (ql:quickload "slynk")
-
 (defvar *is-slynk-started* nil)
 (defcommand toggle-slynk () ()
   (if *is-slynk-started*
@@ -23,13 +23,12 @@
         (slynk:stop-server 1234)
         (setf *is-slynk-started* nil)
         (message "Slynk server ended."))
-    (progn
-      (slynk:create-server :port 1234 :dont-close t)
-      (setf *is-slynk-started* t)
-      (message "Slynk server started on port 1234."))))
+      (progn
+        (slynk:create-server :port 1234 :dont-close t)
+        (setf *is-slynk-started* t)
+        (message "Slynk server started on port 1234."))))
 
 ;;; X compositing
-
 (run-shell-command "picom")
 
 ;;; Interface
@@ -38,9 +37,11 @@
 (ql:quickload "clx-truetype")
 (load-module "ttf-fonts")
 (xft:cache-fonts)
-(set-font (make-instance 'xft:font :family "Meslo LG S" :subfamily "Regular" :size 11))
+(set-font (make-instance 'xft:font :family "Meslo LG S"
+                                   :subfamily "Regular"
+                                   :size 11))
 
-;; ;;;; Gaps
+;;;; Gaps
 
 ;; (load-module "swm-gaps")
 ;; (setf swm-gaps::*head-gaps-size* 0)
@@ -52,7 +53,6 @@
 ;;;; Modeline
 (load-module "battery-portable")
 (setf battery-portable::*no-battery-info* "")
-;; (load-module "mpd")
 
 ;; colors
 (setf *mode-line-background-color* "#1c1e1f"
@@ -66,7 +66,7 @@
 (setf *time-modeline-string* "%m/%e/%y %l:%M %p")
 ;; https://www.shutterstock.com/blog/neon-color-palettes/ :: source of hex codes
 (setf *screen-mode-line-format*
-      '("[%g] %W^>^(:fg \"#fb2874\")(%d)^n  ^(:fg \"#66d9ef\")(%B)^n     "))
+      '("[%g] %W^>^(:fg \"#fb2874\")(date %d)^n  ^(:fg \"#66d9ef\")(batt %B)^n     "))
 (setf *mode-line-timeout* 2)
 
 ;; start modeline
@@ -81,11 +81,11 @@
 (stumptray::stumptray)
 
 ;;; Launching Programs
-
 (defcommand rofi-windowlist () ()
   (run-shell-command "rofi -show windowcd"))
 (defcommand rofi-run () ()
-  (run-shell-command "rofi -show drun"))
+  ;; (run-shell-command "rofi -show drun")
+  (run-shell-command "rofi -modi windowcd,run -show combi --combi-modi windowcd,drun"))
 (defcommand rofi-windowlist-global () ()
   (run-shell-command "rofi -show window"))
 
@@ -118,15 +118,16 @@
   (0 t   t   :class "discord")
   (0 nil t   :class "Spotify"))
 
-;; binds
+;; Binds
 (define-key *groups-map* (kbd "f") "gnew-float")
-
 (let ((map *top-map*))
   (define-key map (kbd "s-g") *groups-map*)
   (define-key map (kbd "C-s-p") "gprev")
   (define-key map (kbd "C-s-n") "gnext")
-  (define-key map (kbd "C-s-N") "gnext-with-window")
-  (define-key map (kbd "C-s-P") "gprev-with-window")
+  (define-key map (kbd "s-N") "gnext-with-window")
+  (define-key map (kbd "s-P") "gprev-with-window")
+  ;; TODO: Swap group with previous and next group in order
+  ;; (define-key map (kbd "C-s-p") "gswapprev")
   (define-key map (kbd "C-s-f") "grouplist")
   (define-key map (kbd "C-s-k") "gkill")
   (define-key map (kbd "C-s-c") "gnew"))
@@ -153,7 +154,11 @@
   (define-key map (kbd "XF86AudioLowerVolume") "vol-down 4")
   (define-key map (kbd "M-S-F7") "vol-up 2")
   (define-key map (kbd "M-S-F6") "vol-down 2")
-  (define-key map (kbd "XF86AudioMute") "vol-mute"))
+  (define-key map (kbd "XF86AudioMute") "vol-mute")
+  ;; Super+[1,9] switches group
+  (dotimes (i 9)
+    (unless (= i 0)
+      (define-key map (kbd (format nil "s-~D" i)) (format nil "gselect ~D" i)))))
 
 ;;; Brightness
 ;; Commands are run with brightnessctl.
@@ -231,6 +236,9 @@
   (define-key map (kbd "s-v") "hsplit")
   (define-key map (kbd "s-=") "balance-frames")
 
+  ;; resize
+  (define-key map (kbd "s-r") "iresize")
+
   ;; windowlist
   (define-key map (kbd "s-\"") "my-windowlist")
 
@@ -262,9 +270,14 @@
 (defvar *open-program-bindings*
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "e") "emacsclient") ; edit
-    (define-key map (kbd "w") "qutebrowser")     ; web
-    (define-key map (kbd "t") "alacritty")   ; term
-    (define-key map (kbd "f") "thunar")      ; files
+    (define-key map (kbd "w") "qutebrowser") ; web
+    (define-key map (kbd "t") "alacritty") ; term
+    (define-key map (kbd "f") "thunar") ; files
+    ;; new windows
+    (define-key map (kbd "E") "exec emacsclient -c -n")
+    (define-key map (kbd "W") "exec qutebrowser")
+    (define-key map (kbd "T") "exec alacritty")
+    (define-key map (kbd "F") "exec thunar")
     map))
 (define-key *top-map* (kbd "s-a") '*open-program-bindings*)
 

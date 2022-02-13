@@ -881,6 +881,9 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
   (prog-mode . company-mode)
 
   :config
+  ;; remove dabbrev
+  (setq company-backends (delete 'company-dabbrev company-backends))
+
   (general-def
     :keymaps 'company-active-map
     :states '(emacs insert motion)
