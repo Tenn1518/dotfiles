@@ -985,6 +985,10 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
   :straight t
   :defer t)
 
+;; haskell
+(use-package haskell-mode
+  :straight t)
+
 ;;;; External Processes
 
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
