@@ -34,6 +34,7 @@ myConf = def
     [ ("M-S-e", spawn "emacsclient -c -n -a 'emacs'")
     , ("M-<Space>", spawn "rofi -modi windowcd,run -show combi --combi-modi windowcd,drun")
     , ("M-<Tab>", sendMessage NextLayout)
+    , ("M-S-<Tab>", sendMessage FirstLayout)
     , ("M-S-;", commands >>= runCommand)
       -- Banish or beckon cursor, akin to Stump
     , ("M-S-b", banishScreen LowerRight)
