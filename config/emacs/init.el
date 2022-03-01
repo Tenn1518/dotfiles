@@ -367,7 +367,8 @@ If not, kill ARG words backwards."
 ;; Reenable commands
 (put 'narrow-to-region 'disabled nil)
 
-;; keep buffers updated when underlying file changes
+;; keep buffers updated when underlying file/buffer target changes
+(setq global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
 
 ;; shortcut access to C-x binds
@@ -694,6 +695,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
   (dolist (theme '(modus-vivendi modus-operandi))
     (add-to-list 't/theme-list theme)))
 
+;; Pack of themes provided by Doom Emacs
 (use-package doom-themes
   :straight t
 
@@ -703,10 +705,12 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
   (dolist (theme '(doom-molokai doom-solarized-light))
     (add-to-list 't/theme-list theme)))
 
+;; Darken non-file buffers
 (use-package solaire-mode
   :straight t
 
-  :hook (emacs-startup . solaire-global-mode))
+  :config
+  (solaire-global-mode))
 
 ;;;;; Completion
 
@@ -1047,7 +1051,7 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 (use-package aggressive-indent-mode
   :straight t
   :hook
-  (prog-mode . aggressive-indent-mode))
+  (prog-mode . global-aggressive-indent-mode))
 
 ;; automatic formatting of program buffers on save
 (use-package format-all
