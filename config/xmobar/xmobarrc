@@ -1,19 +1,19 @@
 Config { 
 
    -- appearance
-     font =         "xft:Iosevka:size=10:bold:antialias=true"
-   , bgColor =      "black"
-   , fgColor =      "#646464"
+     font =         "xft:Iosevka:size=11:bold:antialias=true"
+   , bgColor =      "#1c1e1f"
+   , fgColor =      "#d6d6d4"
    , position =     Top
    , border =       BottomB
-   , borderColor =  "#646464"
+   , borderColor =  "#1c1b1b"
 
    -- layout
    , sepChar =  "%"   -- delineator between plugin names and straight text
    , alignSep = "}{"  -- separator between left-right alignment
-   , template = "%battery% | %multicpu% | %coretemp% | %memory% | %dynnetwork% }{ %RJTT% | %date% "
+   , template = "  %XMonadLog% }{ %RJTT% · %date% · %battery% "
 
-   -- general behavior
+                -- general behavior
    , lowerOnStart =     True    -- send to bottom of window stack on start
    , hideOnStart =      False   -- start with window unmapped (hidden)
    , allDesktops =      True    -- show on all desktops
@@ -38,52 +38,37 @@ Config {
    , commands = 
 
         -- weather monitor
-        [ Run Weather "RJTT" [ "--template", "<skyCondition> | <fc=#4682B4><tempC></fc>°C | <fc=#4682B4><rh></fc>% | <fc=#4682B4><pressure></fc>hPa"
+        [ Run Weather "RJTT" [ "--template", "<skyCondition>  <fc=#4682B4><tempF></fc>°F"
+                             , "--High"    , "70"
+                             , "--Low"     , "32"
+                             , "--high"    , "darkorange"
+                             , "--normal"  , "darkcyan"
+                             , "--low"     , "lightcyan"
                              ] 36000
 
-        -- network activity monitor (dynamic interface resolution)
-        , Run DynNetwork     [ "--template" , "<dev>: <tx>kB/s|<rx>kB/s"
-                             , "--Low"      , "1000"       -- units: B/s
-                             , "--High"     , "5000"       -- units: B/s
-                             , "--low"      , "darkgreen"
-                             , "--normal"   , "darkorange"
-                             , "--high"     , "darkred"
-                             ] 10
+        -- -- network activity monitor (dynamic interface resolution)
+        -- , Run DynNetwork     [ "--template" , "<dev>: <tx>kB/s|<rx>kB/s"
+        --                      , "--Low"      , "1000"       -- units: B/s
+        --                      , "--High"     , "5000"       -- units: B/s
+        --                      , "--low"      , "darkgreen"
+        --                      , "--normal"   , "darkorange"
+        --                      , "--high"     , "darkred"
+        --                      ] 10
 
-        -- cpu activity monitor
-        , Run MultiCpu       [ "--template" , "Cpu: <total0>%|<total1>%"
-                             , "--Low"      , "50"         -- units: %
-                             , "--High"     , "85"         -- units: %
-                             , "--low"      , "darkgreen"
-                             , "--normal"   , "darkorange"
-                             , "--high"     , "darkred"
-                             ] 10
-
-        -- cpu core temperature monitor
-        , Run CoreTemp       [ "--template" , "Temp: <core0>°C"
-                             , "--Low"      , "70"        -- units: °C
-                             , "--High"     , "80"        -- units: °C
-                             , "--low"      , "darkgreen"
-                             , "--normal"   , "darkorange"
-                             , "--high"     , "darkred"
-                             ] 50
-                          
-        -- memory usage monitor
-        , Run Memory         [ "--template" ,"Mem: <usedratio>%"
-                             , "--Low"      , "20"        -- units: %
-                             , "--High"     , "90"        -- units: %
-                             , "--low"      , "darkgreen"
-                             , "--normal"   , "darkorange"
-                             , "--high"     , "darkred"
-                             ] 10
+        , Run Wireless "wlo1" [ "-t" , "<essid> <quality>%"
+                              , "-L" , "30"
+                              , "-n" , "darkgreen"
+                              , "-h" , "darkgreen"
+                              , "-l" , "darkred"
+                              ] 1000
 
         -- battery monitor
-        , Run Battery        [ "--template" , "Batt: <acstatus>"
+        , Run Battery        [ "--template" , "<acstatus>"
                              , "--Low"      , "10"        -- units: %
-                             , "--High"     , "80"        -- units: %
+                             , "--High"     , "30"        -- units: %
                              , "--low"      , "darkred"
                              , "--normal"   , "darkorange"
-                             , "--high"     , "darkgreen"
+                             , "--high"     , "green"
 
                              , "--" -- battery specific options
                                        -- discharging status
@@ -97,5 +82,7 @@ Config {
         -- time and date indicator 
         --   (%F = y-m-d date, %a = day of week, %T = h:m:s time)
         , Run Date           "<fc=#ABABAB>%F %a %l:%M %p</fc>" "date" 10
+
+        , Run XMonadLog
         ]
    }
