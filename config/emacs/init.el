@@ -17,6 +17,12 @@
 ;; add my folder of lisp programs from dotfiles
 (add-to-list 'load-path (expand-file-name "lisp/" user-emacs-directory))
 
+;; List of modules to be loaded on startup
+(defvar t/modules (list)
+  "List of modules to be loaded on startup.
+Modules are found in the base of the Emacs configuration
+directory.  They are named init-MODULE.el.")
+
 ;; load machine-specific settings and customizations
 (load (expand-file-name "local.el" user-emacs-directory))
 
@@ -140,41 +146,6 @@
 (repeat-mode 1)
 (setq repeat-keep-prefix t)
 
-;;;;; evil-mode --- Vim emulation
-
-;; Vim in Emacs, evil in good
-(use-package evil
-  :straight t
-
-  :hook
-  (after-init . evil-mode)
-  (org-capture-mode . evil-insert-state)
-
-  :custom
-  (evil-undo-system #'undo-redo)      ; enable redo in Emacs 28+
-  (evil-want-keybinding nil)          ; evil-collection requirement
-  (evil-want-Y-yank-to-eol t)         ; Y and yy to copy line is redundant
-  (evil-mode-line-format '(after . mode-line-remote))
-  (evil-want-fine-undo t)
-  (evil-want-Y-yank-to-eol t)
-  (evil-want-C-w-in-emacs-state t)
-  (evil-want-C-u-delete t)
-  (evil-want-C-u-scroll t)
-  (evil-symbol-word-search t)
-
-  :config
-  ;; `C-g' removes search highlights
-  (advice-add #'keyboard-quit :before #'evil-ex-nohighlight)
-  ;; use evil's search over isearch
-  (evil-select-search-module 'evil-search-module 'evil-search))
-
-;; manip delims
-(use-package evil-surround
-  :straight t
-  :after evil
-  :config
-  (global-evil-surround-mode))
-
 ;; evil-friendly keybind macros
 (use-package general
   :straight t
@@ -196,43 +167,13 @@
   ;; ensure compat if evil-mode isn't loaded
   ;; TODO: redundant `C-c s'/`M-s s' and `C-c p'/`C-x p' type binds?
   ;; possible solution: only bind Leader+s when evil loads
-  (general-def "C-c" t/leader-map))
+  (general-def "C-c" t/leader-map)
+  ;; Replace `C-u' clobbered by Evil
+  (t/leader-def "u" #'universal-argument))
 
-(use-package evil-collection
-  :straight t
-  :after evil
-  :init
-  (setq evil-collection-setup-minibuffer t)
-  :config
-  (evil-collection-init))
-
-;; Vertical align
-(use-package evil-lion
-  :straight t
-  :after evil
-  :config
-  (general-def
-    :keymaps 'global
-    :states '(normal visual)
-    "g l" #'evil-lion-left
-    "g L" #'evil-lion-right))
-
-;; comment out text objects with `gc'
-(use-package evil-nerd-commenter
-  :straight t
-  :after evil
-  :config
-  (general-def
-    :keymaps 'global
-    :states 'normal
-    "gc" #'evilnc-comment-operator))
-
-;; operate on argument list items
-(use-package evil-args
-  :straight t
-  :config
-  (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
-  (define-key evil-outer-text-objects-map "a" 'evil-outer-arg))
+;; Load evil-mode settings
+(if (member 'evil t/modules)
+    (load (expand-file-name "init-evil.el" user-emacs-directory)))
 
 ;;;;; Text manipulation
 
@@ -367,8 +308,7 @@ If not, kill ARG words backwards."
 ;; Reenable commands
 (put 'narrow-to-region 'disabled nil)
 
-;; keep buffers updated when underlying file/buffer target changes
-(setq global-auto-revert-non-file-buffers t)
+;; update buffers with changes to the underlying file
 (global-auto-revert-mode)
 
 ;; shortcut access to C-x binds
@@ -513,8 +453,8 @@ If not, kill ARG words backwards."
 ;; font settings
 ;; (add-to-list 'default-frame-alist '(font . "Meslo LG S-10"))
 (set-face-attribute 'default nil
-                    :family "Meslo LG M"
-                    :height 110
+                    :family "Monospace"
+                    ;; :height 100
                     :weight 'normal)
 (set-face-attribute 'variable-pitch nil :family "IBM Plex Sans" :height 140)
 (set-face-attribute 'fixed-pitch nil :family "Meslo LG M")
@@ -611,106 +551,9 @@ in its buffer.
   :config
   (minions-mode))
 
-;; spacemacs modeline
-(use-package spaceline
-  :disabled
-  :straight t
-  :init
-  (setq ns-use-srgb-colorspace nil)
-  :hook
-  (emacs-startup . (lambda ()
-                     (require 'spaceline-config)
-                     (setq powerline-height 16
-                           powerline-default-separator 'wave)
-                     (spaceline-spacemacs-theme)
-                     (spaceline-toggle-minor-modes-off))))
-
-;;;;; Theme
-
-;; theme toggling with C-c h t
-(defvar t/theme-list (list)
-  "List of themes t/cycle-themes cycles through.")
-
-(defvar t/theme--loaded nil
-  "Currently loaded theme.")
-
-(defun t/load-theme (THEME)
-  "Wrapper for \"load-theme\".
-Variable \"t/theme--loaded\" is set to THEME upon use."
-  (load-theme THEME t)
-  (setq t/theme--loaded THEME)
-  ;; recompile spaceline if present
-  (when (require 'spaceline nil t)
-    (spaceline-compile)))
-
-(defun t/cycle-themes ()
-  "Cycle themes according to the elements in t/theme-list."
-  (interactive)
-  (when (null t/theme-list)
-    (error "Variable \"t/theme-list\" must be a list of themes"))
-  (let ((list t/theme-list)
-        (chosen-theme))
-    ;; iterate through list until loaded theme is found or theme is empty
-    (while (and (not (string= (car list)
-                              t/theme--loaded))
-                list)
-      (setq list (cdr list)))
-    ;; load the next theme, or use the first theme if no remaining elements in list
-    (if (null (car (cdr list)))
-        (setq chosen-theme (car t/theme-list))
-      (setq chosen-theme (car (cdr list))))
-    (disable-theme t/theme--loaded)
-    (t/load-theme chosen-theme)
-    (setq t/theme--loaded chosen-theme))
-  (message "Loaded theme %s" t/theme--loaded))
-
-(general-def t/leader-emacs-map "t" #'t/cycle-themes)
-
-;; theme of choice
-(use-package modus-themes
-  :disabled
-  :no-require t                      ; included in Emacs 28 but not as a library
-  :hook (emacs-startup . (lambda () (t/load-theme 'modus-vivendi)))
-
-  :init
-  (setq modus-themes-italic-constructs t
-        modus-themes-variable-pitch-headings t)
-  ;; (setq
-  ;; ;; set font scale for headings
-  ;; modus-themes-scale-headings t
-  ;; modus-themes-scale-title 1.35
-  ;; modus-themes-scale-4 1.2
-  ;; modus-themes-scale-3 1.15
-  ;; modus-themes-scale-2 1.1
-  ;; modus-themes-scale-1 1.05)
-  ;; set fontification settings for headings
-  (setq modus-themes-headings '((1 . (overline))
-                                (2 . (overline))
-                                (4 . (no-bold rainbow))
-                                (t . (no-bold))))
-  ;; set font settings for syntax
-  (setq modus-themes-syntax '(yellow-comments alt-syntax))
-  
-  :config
-  (dolist (theme '(modus-vivendi modus-operandi))
-    (add-to-list 't/theme-list theme)))
-
-;; Pack of themes provided by Doom Emacs
-(use-package doom-themes
-  :straight t
-
-  :hook (emacs-startup . (lambda () (t/load-theme 'doom-molokai)))
-
-  :config
-  (dolist (theme '(doom-molokai doom-solarized-light))
-    (add-to-list 't/theme-list theme)))
-
-;; Darken non-file buffers
-(use-package solaire-mode
-  :straight t
-
-  :config
-  (solaire-global-mode))
+;; Theme Emacs if directed by user
+(if (member 'theming t/modules)
+    (load (expand-file-name "init-theming.el" user-emacs-directory)))
 
 ;;;;; Completion
 
@@ -930,7 +773,6 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
 
 ;; View info pages
 (use-package info
-  :hook (Info-mode . (lambda () (evil-collection-unimpaired-mode -1)))
   :config
   ;; Preserve common Info keymaps
   (general-def
@@ -1071,93 +913,17 @@ Variable \"t/theme--loaded\" is set to THEME upon use."
   :defer t
   :commands (clang-format-buffer))
 
-;;;;; LSP
+;; Load LSP config if directed by user
+(if (member 'lsp t/modules)
+    (load (expand-file-name "init-lsp.el" user-emacs-directory)))
 
-;; IDE-like features through language servers
-(use-package lsp-mode
-  :straight t
-  :defer t
-  :commands lsp lsp-deferred
-  :init
-  (setq lsp-headerline-breadcrumb-enable t)
-  (setq lsp-keymap-prefix "C-c c")
-  (setq lsp-clients-clangd-args '("-j=3"
-                                  "--background-index"
-                                  "--clang-tidy"
-                                  "--completion-style=detailed"
-                                  "--header-insertion=never"
-                                  "--header-insertion-decorators=0"))
-  (defvar t/lsp-enabled-modes
-    '(python-mode c++-mode js-mode)
-    "List of major modes which LSP should activate on start.")
-  (defun t/maybe-lsp ()
-    "Enable lsp-mode if the current major mode is included in
-t/lsp-enabled-modes. Otherwise, enable format-all-mode and use
-dumb-jump as the xref backend."
-    (cond ((member major-mode t/lsp-enabled-modes)
-           (lsp))
-          ((derived-mode-p 'prog-mode)
-           (progn (when (require 'format-all nil t)
-                    (format-all-mode t))
-                  (when (require 'dumb-jump nil t)
-                    (add-hook 'xref-backend-functions #'dumb-jump-xref-activate nil t))))))
-  (defun t/lsp-onsave ()
-    "Configure LSP to automatically format all code on save in
-lsp-enabled buffers."
-    (lsp-enable-which-key-integration)
-    (cond ((derived-mode-p 'c++-mode)
-           (add-hook 'before-save-hook #'clang-format-buffer nil 'local))
-          (t (add-hook 'before-save-hook #'lsp-format-buffer nil 'local)))
-    (add-hook 'before-save-hook #'lsp-organize-imports nil 'local))
-  :hook
-  ((prog-mode . t/maybe-lsp)
-   (lsp-mode . t/lsp-onsave)))
+;; Load Tree Sitter config if directed by user
+(if (member 'tree-sitter t/modules)
+    (load (expand-file-name "init-tree-sitter.el" user-emacs-directory)))
 
-;; UI frontend for language server alerts and info
-(use-package lsp-ui
-  :straight t
-  :defer t
-  :after lsp
-  :config
-  (setq lsp-ui-doc-position 'bottom))
-
-(use-package dap-mode
-  :straight t
-  :config
-  ;; call hydra when breakpoint hit
-  (add-hook 'dap-stopped-hook
-            (lambda (arg) (call-interactively #'dap-hydra))))
-
-;; python language server
-(use-package lsp-python-ms
-  :straight t
-  :after lsp
-  :init
-  (setq lsp-python-ms-auto-install-server t))
-
-;;;;; Tree-sitter
-
-;; tree sitter
-(use-package tree-sitter
-  :straight t
-  :hook
-  ((prog-mode . turn-on-tree-sitter-mode)
-   (tree-sitter-after-on . tree-sitter-hl-mode)))
-
-(use-package tree-sitter-langs
-  :straight t
-  :after tree-sitter)
-
-(use-package tree-sitter-indent
-  :straight t
-  :after tree-sitter)
-
-;;;;; Sly --- Common Lisp editing and REPL interaction
-
-(use-package sly
-  :straight t
-  :config
-  (setq sly-default-lisp "sbcl"))
+;; Load sly config if directed by user
+(if (member 'sly t/modules)
+    (load (expand-file-name "init-sly.el" user-emacs-directory)))
 
 ;;;; Apps
 
@@ -1200,15 +966,6 @@ forward."
   (require 'esh-mode)
   (define-key eshell-mode-map (kbd "C-d") #'t/eshell-del-char-or-exit))
 
-;; package manager
-;; doesn't populate completions like helm-pac-man
-;; maybe look at helm's implementation and recreate it with completing-read?
-(use-package system-packages
-  :straight t
-  :config
-  (setq system-packages-package-manager 'brew
-        system-packages-use-sudo nil))
-
 ;; Atom/RSS feed viewer
 (use-package elfeed
   :straight t
@@ -1218,62 +975,9 @@ forward."
         '(("https://archlinux.org/feeds/news/" linux arch)
           ("https://xkcd.com/rss.xml" content))))
 
-;; music player
-(use-package emms
-  :straight t
-  :defer t
-  
-  :init
-  (t/leader-def "M" '(:prefix-command t/leader-music-map :wk "music"))
-  (general-def t/leader-music-map
-    "m" #'emms
-    "b p" #'emms-playlist-mode-go
-    ;; music controls
-    "p" #'emms-previous
-    "P" #'emms-pause
-    "n" #'emms-next
-    ;; scrub through current song (repeatable)
-    "<left>" #'emms-seek-backward
-    "<right>" #'emms-seek-forward
-    ;; browse by
-    "b b" #'emms-smart-browse
-    "b a" #'emms-browse-by-album
-    "b A" #'emms-browse-by-artist
-    ;; import
-    "i d" #'emms-add-directory-tree
-    "i f" #'emms-add-file)
-  (general-def
-    "s-<f7>" #'emms-previous
-    "s-<f8>" #'emms-pause
-    "s-<f9>" #'emms-next)
-
-  :config
-  ;; initialize emms
-  (require 'emms-setup)
-  (require 'emms-player-mpd)
-  (setq emms-player-mpd-server-name "localhost"
-        emms-player-mpd-server-port "6600")
-  (add-to-list 'emms-info-functions 'emms-info-mpd)
-  (add-to-list 'emms-player-list 'emms-player-mpd)
-  (emms-all)
-  (emms-default-players)
-  (emms-cache-set-from-mpd-all)
-  (setq emms-source-file-default-directory "~/Music/"
-        emms-browser-covers 'emms-browser-cache-thumbnail) ; EMMS auto-resizes "cover.jpg" in album dir
-
-  ;; repeat map for emms commands
-  (defvar t/emms-repeat-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map [left] 'emms-seek-backward)
-      (define-key map [right] 'emms-seek-forward)
-      (define-key map "p" 'emms-previous)
-      (define-key map "P" 'emms-pause)
-      (define-key map "n" 'emms-next)
-      map)
-    "Keymap to repeat emms seeking through track sequences `C-c m <left>'.
-Used in repeat mode.")
-  (dolist (command '(emms-seek-backward emms-seek-forward))
-    (put command 'repeat-map 't/emms-repeat-map)))
+;; Load emms config if directed by user
+(if (member 'emms t/modules)
+    (load (expand-file-name "init-emms.el" user-emacs-directory)))
 
 ;;;;; Email
 
