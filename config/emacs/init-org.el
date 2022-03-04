@@ -156,6 +156,8 @@ file+function in org-capture-templates."
                                           "$"
                                           "$$"
                                           "\\(" "\\["))
+   ;; First chapter starts on its own page after ToC
+   org-latex-toc-command "\\tableofcontents \\clearpage"
    ;; available todo states
    org-todo-keywords '((sequence "TODO(t)"
                                  "NEXT(n)"
