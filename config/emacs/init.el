@@ -453,7 +453,7 @@ If not, kill ARG words backwards."
 ;; font settings
 ;; (add-to-list 'default-frame-alist '(font . "Meslo LG S-10"))
 (set-face-attribute 'default nil
-                    :family "Monospace"
+                    :family "Noto Sans Mono"
                     ;; :height 100
                     :weight 'normal)
 (set-face-attribute 'variable-pitch nil :family "IBM Plex Sans" :height 140)
