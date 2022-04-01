@@ -16,7 +16,6 @@ import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
-import XMonad.Hooks.DynamicLog
 
 import XMonad.Layout.NoBorders
 import XMonad.Layout.Spacing
@@ -24,20 +23,26 @@ import XMonad.Layout.TwoPane
 import XMonad.Layout.TwoPanePersistent
 
 main :: IO ()
-main = xmonad . ewmhFullscreen . ewmh . docks . withSB mySB $ myConf
+main = xmonad
+  . ewmhFullscreen
+  . ewmh
+  . docks
+  . withSB mySB
+  $ myConf
   where
     mySB = statusBarProp "xmobar ~/.config/xmobar/xmobarrc" (pure myXmobarPP)
 
 myConf = def
     { modMask            = mod4Mask
+    , layoutHook         = myLayoutHook
+    , manageHook         = myManageHook
+    , startupHook        = myStartupHook
     , terminal           = "alacritty -e zsh -c 'tmux a || tmux'"
     , focusFollowsMouse  = False
     , borderWidth        = 3
     , normalBorderColor  = "#000000"
-    , focusedBorderColor = "#bd93f9"
-    , layoutHook         = myLayoutHook
-    , manageHook         = myManageHook
-    , logHook            = dynamicLog
+    , focusedBorderColor = violet
+    -- , focusedBorderColor = "#bd93f9"
     }
     `additionalKeysP`
     [ ("M-S-e"     , spawn "emacsclient -c -n -a 'emacs'")
@@ -64,24 +69,24 @@ myConf = def
     , ("<XF86AudioMute>"        , spawn "pamixer -t; vol-info")
     ]
 
+-- `M-S-;'
 commands :: X [(String, X())]
 commands = defaultCommands
 
--- sending XMonad state to XMobar
+-- Xmobar info-passing prefs
 myXmobarPP :: PP
-myXmobarPP            = def
-  { ppLayout          = const ""
-  , ppCurrent         = wrap " " "" . xmobarBorder "Bottom" "#8be9fd" 3
-  , ppHidden          = white . wrap " " ""
-  , ppHiddenNoWindows = lowWhite . wrap " " ""
-  , ppTitle           = shorten 50
-  , ppSep             = " · "
+myXmobarPP = def
+  { ppOrder             = \(ws:_:t:_) -> [ws,t] -- Don't print layout
+  , ppCurrent            = xmobarColor "#f8f8f2" magenta . pad
+  , ppHidden             = pad
+  , ppVisible            = pad
+  , ppHiddenNoWindows    = pad
+  , ppTitleSanitize      = shorten 50
+  , ppTitle              = xmobarBorder "Bottom" magenta 2
+  , ppSep                = "  "
   }
-  where
-    white, lowWhite :: String -> String
-    white             = xmobarColor "#f8f8f2" ""
-    lowWhite          = xmobarColor "#bbbbbb" ""
 
+-- Layouts
 myLayoutHook = smartBorders
                $ avoidStruts
                $ spacingWithEdge 3 (myTall
@@ -101,8 +106,36 @@ myLayoutHook = smartBorders
 -- myManageHook = (otherStuff) <+> (fmap not isDialog --> doF avoidMaster)
 myManageHook = fmap not isDialog --> doF avoidMaster
 
+-- Window manager application autostart
+myStartupHook :: X ()
+myStartupHook = do
+  spawn "~/.local/bin/trayer.sh &" -- launches system tray
+  spawn "blueman-applet &"                               -- Bluetooth tray icon
+  spawn "nm-applet &"                                    -- Network tray icon
+  spawn "sh ~/.fehbg"                                    -- background
+  spawn "light-locker --lock-on-lid --lock-on-suspend &" -- Screen locker
+  spawn "picom &"
+
 -- Windows do not displace master window when it is focused
 avoidMaster :: W.StackSet i l a s sd -> W.StackSet i l a s sd
 avoidMaster = W.modify' $ \c -> case c of
      W.Stack t [] (r:rs) ->  W.Stack t [r] rs
      otherwise           -> c
+
+-- Colors (grabbed from doom-molokai-theme.el)
+bg        = "#1c1e1f"
+bgalt    = "#222323"
+fg        = "#d6d6d4"
+fgalt    = "#556172"
+white     = fg
+grey      = "#525254"
+red       = "#e74c3c"
+orange    = "#fd971f"
+green     = "#b6e63e"
+yellow    = "#e2c770"
+blue      = "#268bd2"
+darkblue = "#727280"
+magenta   = "#fb2874"
+violet    = "#9c91e4"
+cyan      = "#66d9ef"
+darkcyan = "#8fa1b3"
