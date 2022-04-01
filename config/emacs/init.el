@@ -158,11 +158,11 @@ directory.  They are named init-MODULE.el.")
     :keymaps '(global override)
     :prefix "SPC"
     :prefix-command 't/leader-map)
-  ;; (t/leader-def
-  ;;   "t" '(:prefix-command t/leader-toggle-map :which-key "toggle")
-  ;;   "h" '(:prefix-command t/leader-emacs-map :which-key "emacs")
-  ;;   "n" '(:prefix-command t/leader-notes-map :which-key "notes")
-  ;;   "o" '(:prefix-command t/leader-open-map :wk "open"))
+  (t/leader-def
+    "t" '(:prefix-command t/leader-toggle-map :which-key "toggle")
+    "h" '(:prefix-command t/leader-emacs-map :which-key "emacs")
+    "n" '(:prefix-command t/leader-notes-map :which-key "notes")
+    "o" '(:prefix-command t/leader-open-map :wk "open"))
   (let ((m t/leader-map))
     (define-key m "t" t/leader-toggle-map)
     (define-key m "h" t/leader-emacs-map)
