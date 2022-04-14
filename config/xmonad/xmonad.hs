@@ -46,7 +46,8 @@ myConf = def
     }
     `additionalKeysP`
     [ ("M-S-e"     , spawn "emacsclient -c -n -a 'emacs'")
-    , ("M-<Space>" , spawn "rofi -modi windowcd,run -show combi --combi-modi windowcd,drun")
+    , ("M-<Space>" , spawn "rofi -modi combi -show combi --combi-modi windowcd,drun")
+    , ("M-S-<Space>" , spawn "rofi -modi drun -show drun")
     , ("M-<Tab>"   , sendMessage NextLayout)
     , ("M-S-<Tab>" , sendMessage FirstLayout)
     , ("M-S-;"     , commands >>= runCommand)
@@ -88,15 +89,15 @@ myXmobarPP = def
 
 -- Layouts
 myLayoutHook = smartBorders
-               $ avoidStruts
-               $ spacingWithEdge 3 (myTall
-                                    ||| myTwoPane)
+               $ spacingWithEdge 6 (avoidStruts (myTall
+                                                 ||| myTwoPane))
                ||| Full
                where
                  -- Two panes, new windows split slave pane
                  myTall  = Tall nmaster delta ratio
                  -- Two splits, new windows swap into slave pane
                  myTwoPane = TwoPane delta gratio
+                 -- parameters
                  nmaster = 1
                  delta   = 3/100
                  ratio   = 1/2
