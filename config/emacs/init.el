@@ -134,6 +134,21 @@ directory.  They are named init-MODULE.el.")
                 prog-mode-hook))
   (add-hook hook #'t/line-number))
 
+;; One stop region command
+(use-package expand-region
+  :straight t
+  :config
+  (global-set-key (kbd "C-M-SPC") #'er/expand-region))
+
+;; Edit many at once
+(use-package multiple-cursors
+  :straight t
+  :config
+  (global-set-key (kbd "C-S-c") 'mc/edit-lines)
+  (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+  (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+  (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this))
+
 ;; highlight indentation
 (use-package highlight-indent-guides
   :straight t
